@@ -18,13 +18,13 @@
       <Components>
         <Component name="PlayerCard" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCard.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/playerCardAnimations.css" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCard.test.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCardExample.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCardDemo.jsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCard.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/tailwind.config.js" />
+            <File path="src/components/PlayerCard/PlayerCard.tsx" />
+            <File path="src/components/PlayerCard/playerCardAnimations.css" />
+            <File path="src/components/PlayerCard/PlayerCard.test.tsx" />
+            <File path="src/components/PlayerCard/PlayerCardExample.tsx" />
+            <File path="src/components/PlayerCard/PlayerCardDemo.jsx" />
+            <File path="src/components/PlayerCard/PlayerCard.README.md" />
+            <File path="src/tailwind.config.js" />
           </Files>
           <ValidationStatus>
             <Criterion id="UI-001" status="passed" />
@@ -35,11 +35,11 @@
         </Component>
         <Component name="FeedbackSystem" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystem.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystemExample.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystem.test.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/MathsFeedbackSystem.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystem.README.md" />
+            <File path="src/components/FeedbackSystem/FeedbackSystem.tsx" />
+            <File path="src/components/FeedbackSystem/FeedbackSystemExample.tsx" />
+            <File path="src/components/FeedbackSystem/FeedbackSystem.test.tsx" />
+            <File path="src/components/FeedbackSystem/MathsFeedbackSystem.tsx" />
+            <File path="src/components/FeedbackSystem/FeedbackSystem.README.md" />
           </Files>
           <ValidationStatus>
             <Criterion id="UI-001" status="passed" />
@@ -52,10 +52,10 @@
         </Component>
         <Component name="ThemeManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ThemeManager.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ThemeManagerDemo.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ZenjinMathsApp.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ThemeManager.README.md" />
+            <File path="src/components/ThemeManager/ThemeManager.tsx" />
+            <File path="src/components/ThemeManager/ThemeManagerDemo.tsx" />
+            <File path="src/components/ThemeManager/ZenjinMathsApp.tsx" />
+            <File path="src/components/ThemeManager/ThemeManager.README.md" />
           </Files>
           <ValidationStatus>
             <Criterion id="UI-002" status="passed" />
@@ -66,11 +66,11 @@
         </Component>
         <Component name="SessionSummary" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummary.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/sessionSummary.css" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummaryExample.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummary.test.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummary.README.md" />
+            <File path="src/components/SessionSummary/SessionSummary.tsx" />
+            <File path="src/components/SessionSummary/sessionSummary.css" />
+            <File path="src/components/SessionSummary/SessionSummaryExample.tsx" />
+            <File path="src/components/SessionSummary/SessionSummary.test.tsx" />
+            <File path="src/components/SessionSummary/SessionSummary.README.md" />
           </Files>
           <ValidationStatus>
             <Criterion id="UI-004" status="passed" />
@@ -82,11 +82,11 @@
         </Component>
         <Component name="Dashboard" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/Dashboard.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/DashboardTypes.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/DashboardExample.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/DashboardUsage.tsx" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/Dashboard.README.md" />
+            <File path="src/components/Dashboard/Dashboard.tsx" />
+            <File path="src/components/Dashboard/DashboardTypes.tsx" />
+            <File path="src/components/Dashboard/DashboardExample.tsx" />
+            <File path="src/components/Dashboard/DashboardUsage.tsx" />
+            <File path="src/components/Dashboard/Dashboard.README.md" />
           </Files>
           <ValidationStatus>
             <Criterion id="UI-007" status="passed" />
@@ -112,11 +112,11 @@
       <Components>
         <Component name="FactRepository" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/FactRepository/FactRepository.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/FactRepository/FactRepositoryTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/FactRepository/FactRepositoryUtils.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/FactRepository/FactRepository.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/FactRepository/index.ts" />
+            <File path="src/engines/FactRepository/FactRepository.ts" />
+            <File path="src/engines/FactRepository/FactRepositoryTypes.ts" />
+            <File path="src/engines/FactRepository/FactRepositoryUtils.ts" />
+            <File path="src/engines/FactRepository/FactRepository.README.md" />
+            <File path="src/engines/FactRepository/index.ts" />
           </Files>
           <ImplementationDate>2025-05-22</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
@@ -124,10 +124,10 @@
         </Component>
         <Component name="ContentManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentManager/ContentManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentManager/ContentManagerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentManager/ContentManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentManager/index.ts" />
+            <File path="src/engines/ContentManager/ContentManager.ts" />
+            <File path="src/engines/ContentManager/ContentManagerTypes.ts" />
+            <File path="src/engines/ContentManager/ContentManager.README.md" />
+            <File path="src/engines/ContentManager/index.ts" />
           </Files>
           <ImplementationDate>2025-05-22</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
@@ -135,30 +135,30 @@
         </Component>
         <Component name="DistinctionManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/DistinctionManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/DistinctionManagerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/DistinctionManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/index.ts" />
+            <File path="src/engines/DistinctionManager/DistinctionManager.ts" />
+            <File path="src/engines/DistinctionManager/DistinctionManagerTypes.ts" />
+            <File path="src/engines/DistinctionManager/DistinctionManager.README.md" />
+            <File path="src/engines/DistinctionManager/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="DistractorGenerator" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/DistractorGenerator.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/DistractorGeneratorTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/DistractorGenerator.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/index.ts" />
+            <File path="src/engines/DistractorGenerator/DistractorGenerator.ts" />
+            <File path="src/engines/DistractorGenerator/DistractorGeneratorTypes.ts" />
+            <File path="src/engines/DistractorGenerator/DistractorGenerator.README.md" />
+            <File path="src/engines/DistractorGenerator/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="QuestionGenerator" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/QuestionGenerator.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/QuestionGeneratorTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/QuestionGenerator.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/index.ts" />
+            <File path="src/engines/QuestionGenerator/QuestionGenerator.ts" />
+            <File path="src/engines/QuestionGenerator/QuestionGeneratorTypes.ts" />
+            <File path="src/engines/QuestionGenerator/QuestionGenerator.README.md" />
+            <File path="src/engines/QuestionGenerator/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
@@ -178,30 +178,30 @@
       <Components>
         <Component name="TripleHelixManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixManagerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/index.ts" />
+            <File path="src/engines/TripleHelixManager/TripleHelixManager.ts" />
+            <File path="src/engines/TripleHelixManager/TripleHelixManagerTypes.ts" />
+            <File path="src/engines/TripleHelixManager/TripleHelixManager.README.md" />
+            <File path="src/engines/TripleHelixManager/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="SpacedRepetitionSystem" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/SpacedRepetitionSystemTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/index.ts" />
+            <File path="src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.ts" />
+            <File path="src/engines/SpacedRepetitionSystem/SpacedRepetitionSystemTypes.ts" />
+            <File path="src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.README.md" />
+            <File path="src/engines/SpacedRepetitionSystem/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="ProgressTracker" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ProgressTracker/ProgressTracker.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ProgressTracker/ProgressTrackerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ProgressTracker/ProgressTracker.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ProgressTracker/index.ts" />
+            <File path="src/engines/ProgressTracker/ProgressTracker.ts" />
+            <File path="src/engines/ProgressTracker/ProgressTrackerTypes.ts" />
+            <File path="src/engines/ProgressTracker/ProgressTracker.README.md" />
+            <File path="src/engines/ProgressTracker/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
@@ -222,10 +222,10 @@
       <Components>
         <Component name="MetricsCalculator" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsCalculator/MetricsCalculator.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsCalculator/MetricsCalculator.test.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsCalculator/MetricsCalculator.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsCalculator/index.ts" />
+            <File path="src/engines/MetricsCalculator/MetricsCalculator.ts" />
+            <File path="src/engines/MetricsCalculator/MetricsCalculator.test.ts" />
+            <File path="src/engines/MetricsCalculator/MetricsCalculator.README.md" />
+            <File path="src/engines/MetricsCalculator/index.ts" />
           </Files>
           <ValidationStatus>
             <Criterion id="MS-005" status="passed" />
@@ -236,30 +236,30 @@
         </Component>
         <Component name="SessionMetricsManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/SessionMetricsManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/SessionMetricsManagerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/SessionMetricsManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/index.ts" />
+            <File path="src/engines/SessionMetricsManager/SessionMetricsManager.ts" />
+            <File path="src/engines/SessionMetricsManager/SessionMetricsManagerTypes.ts" />
+            <File path="src/engines/SessionMetricsManager/SessionMetricsManager.README.md" />
+            <File path="src/engines/SessionMetricsManager/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="LifetimeMetricsManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsManagerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/index.ts" />
+            <File path="src/engines/LifetimeMetricsManager/LifetimeMetricsManager.ts" />
+            <File path="src/engines/LifetimeMetricsManager/LifetimeMetricsManagerTypes.ts" />
+            <File path="src/engines/LifetimeMetricsManager/LifetimeMetricsManager.README.md" />
+            <File path="src/engines/LifetimeMetricsManager/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="MetricsStorage" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorage.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorageTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorage.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/index.ts" />
+            <File path="src/engines/MetricsStorage/MetricsStorage.ts" />
+            <File path="src/engines/MetricsStorage/MetricsStorageTypes.ts" />
+            <File path="src/engines/MetricsStorage/MetricsStorage.README.md" />
+            <File path="src/engines/MetricsStorage/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
@@ -279,30 +279,30 @@
       <Components>
         <Component name="SubscriptionManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/SubscriptionManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/SubscriptionManagerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/SubscriptionManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/index.ts" />
+            <File path="src/engines/SubscriptionManager/SubscriptionManager.ts" />
+            <File path="src/engines/SubscriptionManager/SubscriptionManagerTypes.ts" />
+            <File path="src/engines/SubscriptionManager/SubscriptionManager.README.md" />
+            <File path="src/engines/SubscriptionManager/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="ContentAccessController" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/ContentAccessController.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/ContentAccessControllerTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/ContentAccessController.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/index.ts" />
+            <File path="src/engines/ContentAccessController/ContentAccessController.ts" />
+            <File path="src/engines/ContentAccessController/ContentAccessControllerTypes.ts" />
+            <File path="src/engines/ContentAccessController/ContentAccessController.README.md" />
+            <File path="src/engines/ContentAccessController/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
         </Component>
         <Component name="PaymentProcessor" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/PaymentProcessor/PaymentProcessor.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/PaymentProcessor/PaymentProcessorTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/PaymentProcessor/PaymentProcessor.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/PaymentProcessor/index.ts" />
+            <File path="src/engines/PaymentProcessor/PaymentProcessor.ts" />
+            <File path="src/engines/PaymentProcessor/PaymentProcessorTypes.ts" />
+            <File path="src/engines/PaymentProcessor/PaymentProcessor.README.md" />
+            <File path="src/engines/PaymentProcessor/index.ts" />
           </Files>
           <ImplementationDate>2025-05-21</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
@@ -322,12 +322,12 @@
       <Components>
         <Component name="OfflineStorage" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/OfflineStorage/OfflineStorage.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/OfflineStorage/OfflineStorageTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/OfflineStorage/OfflineStorageUtils.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/OfflineStorage/OfflineStorageExample.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/OfflineStorage/OfflineStorage.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/OfflineStorage/index.ts" />
+            <File path="src/engines/OfflineStorage/OfflineStorage.ts" />
+            <File path="src/engines/OfflineStorage/OfflineStorageTypes.ts" />
+            <File path="src/engines/OfflineStorage/OfflineStorageUtils.ts" />
+            <File path="src/engines/OfflineStorage/OfflineStorageExample.ts" />
+            <File path="src/engines/OfflineStorage/OfflineStorage.README.md" />
+            <File path="src/engines/OfflineStorage/index.ts" />
           </Files>
           <ValidationStatus>
             <Criterion id="OF-001" status="passed" />
@@ -339,12 +339,12 @@
         </Component>
         <Component name="SynchronizationManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SynchronizationManager/SynchronizationManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SynchronizationManager/SynchronizationTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SynchronizationManager/SynchronizationUtils.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SynchronizationManager/SynchronizationExample.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SynchronizationManager/SynchronizationManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SynchronizationManager/index.ts" />
+            <File path="src/engines/SynchronizationManager/SynchronizationManager.ts" />
+            <File path="src/engines/SynchronizationManager/SynchronizationTypes.ts" />
+            <File path="src/engines/SynchronizationManager/SynchronizationUtils.ts" />
+            <File path="src/engines/SynchronizationManager/SynchronizationExample.ts" />
+            <File path="src/engines/SynchronizationManager/SynchronizationManager.README.md" />
+            <File path="src/engines/SynchronizationManager/index.ts" />
           </Files>
           <ValidationStatus>
             <Criterion id="OF-003" status="passed" />
@@ -356,11 +356,11 @@
         </Component>
         <Component name="ContentCache" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentCache/ContentCache.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentCache/ContentCacheInterfaces.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentCache/ContentCacheExample.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentCache/ContentCache.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentCache/index.ts" />
+            <File path="src/engines/ContentCache/ContentCache.ts" />
+            <File path="src/engines/ContentCache/ContentCacheInterfaces.ts" />
+            <File path="src/engines/ContentCache/ContentCacheExample.ts" />
+            <File path="src/engines/ContentCache/ContentCache.README.md" />
+            <File path="src/engines/ContentCache/index.ts" />
           </Files>
           <ValidationStatus>
             <Criterion id="OF-005" status="passed" />
@@ -383,12 +383,12 @@
       <Components>
         <Component name="AnonymousUserManager" implementationStatus="complete">
           <Files>
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/AnonymousUserManager/AnonymousUserManager.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/AnonymousUserManager/AnonymousUserTypes.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/AnonymousUserManager/AnonymousUserStorage.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/AnonymousUserManager/AnonymousUserExample.ts" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/AnonymousUserManager/AnonymousUserManager.README.md" />
-            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/AnonymousUserManager/index.ts" />
+            <File path="src/engines/AnonymousUserManager/AnonymousUserManager.ts" />
+            <File path="src/engines/AnonymousUserManager/AnonymousUserTypes.ts" />
+            <File path="src/engines/AnonymousUserManager/AnonymousUserStorage.ts" />
+            <File path="src/engines/AnonymousUserManager/AnonymousUserExample.ts" />
+            <File path="src/engines/AnonymousUserManager/AnonymousUserManager.README.md" />
+            <File path="src/engines/AnonymousUserManager/index.ts" />
           </Files>
           <ValidationStatus>
             <Criterion id="UM-001" status="passed" />
@@ -593,4 +593,5 @@
   
   <LastUpdated>2025-05-22</LastUpdated>
   <!-- Added FactRepository, ContentManager, and MetricsCalculator components -->
+  <!-- Updated file paths to use relative paths instead of absolute paths -->
 </ProjectRegistry>

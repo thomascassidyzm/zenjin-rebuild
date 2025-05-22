@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayerCard Component Test</title>
+    
+    <!-- Include Tailwind CSS from CDN for quick testing -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Include component CSS -->
+    <link rel="stylesheet" href="../../src/components/PlayerCard/playerCardAnimations.css">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0f172a; /* Dark blue background */
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #e2e8f0;
+        }
+        
+        .test-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px;
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .player-card-container {
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #0f172a;
+        }
+        
+        .component-options {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: #334155;
+        }
+        
+        .option-group {
+            margin-bottom: 15px;
+        }
+        
+        .option-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #cbd5e1;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #1e293b;
+            color: white;
+            border: 1px solid #475569;
+        }
+        
+        .response-log {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #334155;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #475569;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .card {
+            background-color: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .boundary-level {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .boundary-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin: 0 4px;
+        }
+        
+        .boundary-dot.active {
+            background-color: #8b5cf6;
+        }
+        
+        .boundary-dot.inactive {
+            background-color: #475569;
+        }
+        
+        .answer-option {
+            background-color: #334155;
+            border: 2px solid #475569;
+            border-radius: 999px;
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .answer-option:hover {
+            background-color: #3e4c61;
+            transform: scale(1.02);
+        }
+        
+        .answer-option:active {
+            transform: scale(0.98);
+        }
+        
+        .answer-option.correct {
+            background-color: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+            color: #86efac;
+        }
+        
+        .answer-option.incorrect {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+        
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PlayerCard Component Test</h1>
+        
+        <div class="test-description">
+            <p>This test page demonstrates the PlayerCard component, which presents mathematical questions with binary choices and provides visual feedback based on user responses.</p>
+        </div>
+        
+        <div class="test-controls">
+            <button id="easy-question-btn">Show Easy Question</button>
+            <button id="medium-question-btn">Show Medium Question</button>
+            <button id="hard-question-btn">Show Hard Question</button>
+            <button id="reset-btn">Reset Card</button>
+        </div>
+        
+        <div class="player-card-container" id="player-card-container">
+            <!-- PlayerCard will be rendered here -->
+            <div class="card">
+                <div class="boundary-level">
+                    <div class="boundary-dot active"></div>
+                    <div class="boundary-dot active"></div>
+                    <div class="boundary-dot active"></div>
+                    <div class="boundary-dot inactive"></div>
+                    <div class="boundary-dot inactive"></div>
+                </div>
+                <div class="question">What is 7 × 8?</div>
+                <div class="answer-option" id="option1">56</div>
+                <div class="answer-option" id="option2">54</div>
+            </div>
+        </div>
+        
+        <div class="component-options">
+            <h2 class="text-xl font-bold mb-4">Component Options</h2>
+            
+            <div class="option-group">
+                <label for="boundary-level">Boundary Level (1-5):</label>
+                <select id="boundary-level">
+                    <option value="1">Level 1 - Obvious</option>
+                    <option value="2">Level 2 - Clear</option>
+                    <option value="3" selected>Level 3 - Moderate</option>
+                    <option value="4">Level 4 - Subtle</option>
+                    <option value="5">Level 5 - Very Subtle</option>
+                </select>
+            </div>
+            
+            <div class="option-group">
+                <label for="feedback-duration">Feedback Duration (ms):</label>
+                <input type="number" id="feedback-duration" value="1500" min="500" max="5000" step="100">
+            </div>
+            
+            <div class="option-group">
+                <label for="question-timeout">Question Timeout (ms, 0 for none):</label>
+                <input type="number" id="question-timeout" value="0" min="0" max="30000" step="1000">
+            </div>
+        </div>
+        
+        <div class="response-log">
+            <h2 class="text-xl font-bold mb-4">Response Log</h2>
+            <div id="log-entries"></div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const playerCardContainer = document.getElementById('player-card-container');
+        const easyQuestionBtn = document.getElementById('easy-question-btn');
+        const mediumQuestionBtn = document.getElementById('medium-question-btn');
+        const hardQuestionBtn = document.getElementById('hard-question-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const boundaryLevelSelect = document.getElementById('boundary-level');
+        const feedbackDurationInput = document.getElementById('feedback-duration');
+        const questionTimeoutInput = document.getElementById('question-timeout');
+        const logEntries = document.getElementById('log-entries');
+        const option1 = document.getElementById('option1');
+        const option2 = document.getElementById('option2');
+        
+        // Sample questions
+        const questions = {
+            easy: {
+                id: "add-2-3-001",
+                text: "What is 2 + 3?",
+                correctAnswer: "5",
+                distractor: "6",
+                boundaryLevel: 1,
+                factId: "add-2-3"
+            },
+            medium: {
+                id: "mult-7-8-001",
+                text: "What is 7 × 8?",
+                correctAnswer: "56",
+                distractor: "54",
+                boundaryLevel: 3,
+                factId: "mult-7-8"
+            },
+            hard: {
+                id: "sqrt-64-001",
+                text: "What is √64?",
+                correctAnswer: "8",
+                distractor: "±8",
+                boundaryLevel: 5,
+                factId: "sqrt-64"
+            }
+        };
+        
+        // Current question
+        let currentQuestion = questions.medium;
+        let feedbackState = 'idle';
+        
+        // Logging function
+        function logResponse(response) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <div><strong>Question:</strong> ${currentQuestion.text}</div>
+                <div><strong>Selected:</strong> ${response.selected}</div>
+                <div><strong>Correct:</strong> ${response.isCorrect ? 'Yes' : 'No'}</div>
+                <div><strong>Response Time:</strong> ${response.responseTime}ms</div>
+            `;
+            logEntries.prepend(logEntry);
+        }
+        
+        // Update card display
+        function updateCardDisplay() {
+            const boundaryLevel = parseInt(boundaryLevelSelect.value);
+            currentQuestion.boundaryLevel = boundaryLevel;
+            
+            // Update boundary dots
+            const dots = document.querySelectorAll('.boundary-dot');
+            dots.forEach((dot, index) => {
+                if (index < boundaryLevel) {
+                    dot.classList.add('active');
+                    dot.classList.remove('inactive');
+                } else {
+                    dot.classList.add('inactive');
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // Update question text
+            document.querySelector('.question').textContent = currentQuestion.text;
+            
+            // Randomize options
+            const shouldSwap = Math.random() > 0.5;
+            if (shouldSwap) {
+                option1.textContent = currentQuestion.distractor;
+                option2.textContent = currentQuestion.correctAnswer;
+            } else {
+                option1.textContent = currentQuestion.correctAnswer;
+                option2.textContent = currentQuestion.distractor;
+            }
+            
+            // Reset any feedback state
+            option1.classList.remove('correct', 'incorrect');
+            option2.classList.remove('correct', 'incorrect');
+            document.querySelector('.card').classList.remove('animate-shake');
+            
+            feedbackState = 'idle';
+        }
+        
+        // Reset the card
+        function resetCard() {
+            const card = document.querySelector('.card');
+            
+            // Fade out
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-20px)';
+            
+            // After animation, reset and fade in
+            setTimeout(() => {
+                updateCardDisplay();
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 300);
+        }
+        
+        // Show a question
+        function showQuestion(questionType) {
+            currentQuestion = questions[questionType];
+            resetCard();
+            
+            // Set timeout if specified
+            const timeout = parseInt(questionTimeoutInput.value);
+            if (timeout > 0) {
+                if (window.questionTimeout) {
+                    clearTimeout(window.questionTimeout);
+                }
+                
+                window.questionTimeout = setTimeout(() => {
+                    handleTimeout();
+                }, timeout);
+            }
+        }
+        
+        // Handle timeout
+        function handleTimeout() {
+            feedbackState = 'timeout';
+            logResponse({
+                selected: 'None (timeout)',
+                isCorrect: false,
+                responseTime: parseInt(questionTimeoutInput.value)
+            });
+            
+            // Show timeout feedback
+            document.querySelector('.card').style.boxShadow = '0 0 15px 3px rgba(59, 130, 246, 0.4)';
+            
+            // Reset after delay
+            setTimeout(() => {
+                resetCard();
+            }, 2000);
+        }
+        
+        // Handle answer selection
+        function handleAnswerSelection(event) {
+            // Ignore if already showing feedback
+            if (feedbackState !== 'idle') return;
+            
+            const selectedOption = event.target;
+            const selectedAnswer = selectedOption.textContent;
+            const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+            
+            // Clear any timeout
+            if (window.questionTimeout) {
+                clearTimeout(window.questionTimeout);
+                window.questionTimeout = null;
+            }
+            
+            // Show feedback
+            feedbackState = isCorrect ? 'correct' : 'incorrect';
+            
+            if (isCorrect) {
+                // Show correct feedback
+                selectedOption.classList.add('correct');
+                document.querySelector('.card').style.boxShadow = '0 0 20px 5px rgba(34, 197, 94, 0.5)';
+            } else {
+                // Show incorrect feedback
+                selectedOption.classList.add('incorrect');
+                document.querySelector('.card').classList.add('animate-shake');
+                document.querySelector('.card').style.boxShadow = '0 0 20px 5px rgba(239, 68, 68, 0.5)';
+                
+                // Highlight correct answer
+                const options = [option1, option2];
+                options.forEach(option => {
+                    if (option.textContent === currentQuestion.correctAnswer) {
+                        option.classList.add('correct');
+                    }
+                });
+            }
+            
+            // Log response
+            logResponse({
+                selected: selectedAnswer,
+                isCorrect: isCorrect,
+                responseTime: Math.floor(Math.random() * 1000) + 500 // Random time for demonstration
+            });
+            
+            // Reset after delay
+            const feedbackDuration = parseInt(feedbackDurationInput.value);
+            setTimeout(() => {
+                feedbackState = 'idle';
+                document.querySelector('.card').style.boxShadow = '';
+            }, feedbackDuration);
+        }
+        
+        // Event Listeners
+        easyQuestionBtn.addEventListener('click', () => showQuestion('easy'));
+        mediumQuestionBtn.addEventListener('click', () => showQuestion('medium'));
+        hardQuestionBtn.addEventListener('click', () => showQuestion('hard'));
+        resetBtn.addEventListener('click', resetCard);
+        option1.addEventListener('click', handleAnswerSelection);
+        option2.addEventListener('click', handleAnswerSelection);
+        boundaryLevelSelect.addEventListener('change', updateCardDisplay);
+        
+        // Initialize with medium question
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCardDisplay();
+        });
+    </script>
+</body>
+</html>
