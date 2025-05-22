@@ -13,7 +13,7 @@
   </ContextBoundary>
   
   <Interfaces>
-    <Interface name="SessionMetricsInterface">
+    <Interface name="SessionMetricsManagerInterface">
       <Description>
         Calculates and manages metrics for individual learning sessions.
       </Description>
@@ -41,7 +41,7 @@
       </Methods>
     </Interface>
     
-    <Interface name="LifetimeMetricsInterface">
+    <Interface name="LifetimeMetricsManagerInterface">
       <Description>
         Calculates and manages lifetime metrics across all user sessions.
       </Description>
@@ -124,7 +124,7 @@
       <Description>
         Manages metrics for individual learning sessions.
       </Description>
-      <Implements>SessionMetricsInterface</Implements>
+      <Implements>SessionMetricsManagerInterface</Implements>
       <Dependencies>
         <Dependency interface="MetricsCalculationInterface" />
         <Dependency interface="MetricsStorageInterface" />
@@ -135,7 +135,7 @@
       <Description>
         Manages lifetime metrics across all user sessions.
       </Description>
-      <Implements>LifetimeMetricsInterface</Implements>
+      <Implements>LifetimeMetricsManagerInterface</Implements>
       <Dependencies>
         <Dependency interface="MetricsCalculationInterface" />
         <Dependency interface="MetricsStorageInterface" />

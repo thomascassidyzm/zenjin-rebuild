@@ -1,13 +1,14 @@
-# Fractal AI-Assisted Development Framework v1.2.6
+# APML Framework v1.3.0
 
 ## Version Information
 
-**Version:** 1.2.6  
+**Version:** 1.3.0  
 **Release Date:** May 22, 2025  
 **Status:** Stable Release  
 **Authors:** Original concept by Zenjin, developed with Claude 3.7 Sonnet & Gemini
 
 ### Change Log
+- **v1.3.0 (2025-05-22):** Enhanced "Testing Strategy" to explicitly incorporate APML principles for the development, management, and lifecycle of testing systems and infrastructure (e.g., test harnesses). Added guidelines for APML-compliant development of testing systems, ensuring they adhere to framework phases, artifact generation, non-coder accessibility, and naming conventions. Added example `TestSystemInception.apml` and visual diagram. Updated validation levels to include testing system validation.
 - **v1.2.6 (2025-05-22):** Added comprehensive naming conventions section with clear guidelines for case styles (PascalCase, camelCase, kebab-case, snake_case) and standardized conventions for all file types, variables, and database fields.
 - **v1.2.5 (2025-05-22):** Added GitHub integration guidelines, HTML-based component testing for non-coders, and component relationship visualization. Introduced Better × Simpler × Cheaper principle for non-coders.
 - **v1.2.3-1.2.4 (2025-05-21):** Updated README file naming convention to `ComponentName.README.md`. Moved registry.apml to project root as the single source of truth. Added status.html for project status visualization. Standardized component exports with index.ts files.
@@ -233,11 +234,11 @@ Reflect on the implementation and refine as needed.
 ├── status.html                 # Current project status visualization
 ├── README.md                   # Project overview
 ├── framework_relationships.md  # Visual mapping of component relationships
-├── apml_framework_v1.2.6.md    # Current framework version in root for easy reference
+├── apml_framework_v1.3.0.md    # Current framework version in root for easy reference
 │
 ├── framework/                  # Framework definition
 │   ├── current/                # Current framework version (copy)
-│   │   └── apml_framework_v1.2.6.md
+│   │   └── apml_framework_v1.3.0.md
 │   └── archive/                # Previous versions
 │
 ├── docs/                       # Documentation and build artifacts
@@ -249,14 +250,15 @@ Reflect on the implementation and refine as needed.
 │   │   └── implementation_packages/ # LLM implementation instructions
 │   │
 │   ├── integration/            # Integration documentation
-│   └── testing/                # Testing documentation
+│   └── testing/                # Testing documentation (May include APML specs for Test Systems)
 │
 ├── src/                        # Source code
 │   ├── components/             # UI components
 │   └── engines/                # Business logic components
 │
 └── tests/                      # Global test configurations and fixtures
-    └── visual/                 # Simple HTML-based component tests
+    ├── visual/                 # Simple HTML-based component tests
+    └── harness/                # (Optional) Source code for a dedicated test harness if built as a sub-project
 ```
 
 ### Component Organization
@@ -369,135 +371,12 @@ The APML Framework uses specific case styles for different elements to maintain 
 | Response Fields | camelCase | `{ "userName": "John", "isActive": true }` |
 | HTTP Methods | UPPERCASE | `GET`, `POST`, `PUT`, `DELETE` |
 
-### Abbreviations and Acronyms
-
-1. Common abbreviations and acronyms should be treated consistently:
-   - For PascalCase: Capitalize only the first letter of the acronym if it's part of a longer name (e.g., `HttpRequest`, `XmlParser`)
-   - For camelCase: Lowercase the entire acronym if it's at the beginning (e.g., `httpRequest`, `xmlParser`)
-   - Standalone acronyms should remain all uppercase (e.g., `HTTP`, `XML`, `API`)
-
-2. Avoid uncommon abbreviations that reduce code readability.
-
-### Naming Best Practices
-
-1. **Be Descriptive**: Names should clearly indicate purpose and functionality
-2. **Be Consistent**: Follow established patterns within the project
-3. **Avoid Ambiguity**: Names should have a single, clear meaning
-4. **Prioritize Readability**: Choose clarity over brevity
-5. **Document Exceptions**: When standard conventions cannot be followed, document the reason
-
-## Project Registry
-
-The project registry (registry.apml) is the single source of truth for what needs to be built. It is stored at the project root and contains:
-
-1. Project purpose and scope
-2. Module definitions
-3. Component specifications
-4. Implementation status
-5. Validation criteria
-6. Module interactions
-
-## Version Control Integration
-
-The APML Framework supports optional version control integration to track changes and facilitate collaboration:
-
-### Simple GitHub Integration
-
-1. **Repository Setup**:
-   - Use GitHub Desktop for a user-friendly interface
-   - Initialize repository in the project root
-   - Add a basic `.gitignore` file for common exclusions
-
-2. **Basic Workflow**:
-   - Make changes to project files
-   - Commit changes with clear descriptions
-   - Push to GitHub when ready to share or backup
-
-3. **Branch Strategy** (Optional):
-   - `main` branch for stable, working code
-   - Feature branches for new components or major changes
-
-### Benefits for Non-Coders
-
-- **History**: Tracks all changes to project files
-- **Safety**: Provides backups and ability to revert changes
-- **Collaboration**: Makes sharing and reviewing code easier
-- **Transparency**: Documents who made which changes and why
-
-## Component Testing for Non-Coders
-
-The APML Framework emphasizes simple testing approaches accessible to non-coders:
-
-### HTML-Based Component Testing
-
-1. **Create Simple HTML Test Files**:
-   - One HTML file per component in `/tests/visual/`
-   - Include necessary CSS and JavaScript files
-   - Minimal setup to instantiate and test the component
-
-2. **Test Structure**:
-   - Basic HTML page that loads the component
-   - Simple controls to test different component states
-   - Visual verification of component behavior
-
-3. **Usage**:
-   - Open the HTML file directly in a browser
-   - No build tools or servers required
-   - Refresh to see changes after modifying component code
-
-### Example Test File Structure
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ComponentName Test</title>
-    <link rel="stylesheet" href="../../src/components/ComponentName/componentName.css">
-    <style>
-        /* Test page styling */
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>ComponentName Test</h1>
-        <div id="component-container"></div>
-        <div class="controls">
-            <!-- Test controls -->
-        </div>
-    </div>
-
-    <script src="../../src/components/ComponentName/ComponentName.js"></script>
-    <script>
-        // Test initialization and control logic
-    </script>
-</body>
-</html>
-```
-
-## Component Relationship Visualization
-
-The APML Framework now includes a visual mapping document to clarify component relationships:
-
-### Framework Relationships Document
-
-The `framework_relationships.md` file provides a visual representation of:
-
-1. **Module Structure**: High-level module organization
-2. **Interface-Component Relationships**: Which components implement which interfaces
-3. **Component Dependencies**: How components depend on each other
-4. **Cross-Module Interactions**: How modules interact with each other
-
-### Visualization Format
-
-The document uses simple markdown-based visualization with:
-
-- ASCII box diagrams for module structure
-- Indented lists for interface-component relationships
-- Connection diagrams for cross-module interactions
+#### Abbreviations and Acronyms
+- Common abbreviations (ID, UI, API) should be treated as single words
+- For camelCase: `userId`, `apiKey`, `uiComponent`
+- For PascalCase: `UserId`, `ApiKey`, `UiComponent`
+- For kebab-case: `user-id`, `api-key`, `ui-component`
+- For snake_case: `user_id`, `api_key`, `ui_component`
 
 ## Fractal Patterns
 
@@ -688,7 +567,7 @@ Replace blanket inclusion with targeted references:
 
 The testing approach is guided by the following principles:
 
-1. **Distinction-Based Validation**: All components must be validated through explicit test-linked criteria, following Axiom 5 of the Fractal framework.
+1. **Distinction-Based Validation**: All components must be validated through explicit test-linked criteria, following Axiom 5 of the APML framework.
 
 2. **Dual Validation Approach**: Combining automated testing for objective criteria with human evaluation for subjective aspects.
 
@@ -915,6 +794,12 @@ Validation occurs at multiple levels:
    - Validation against project purpose and requirements
    - Documented in ReflectionChecklist.apml
 
+4. **Testing System Level**
+   - Validation against test system purpose and requirements
+   - Documented in TestSystemReflection.apml
+   - Focuses on the effectiveness of the testing system itself
+   - Evaluates coverage, usability, and integration with APML artifacts
+
 ### Testing Implementation Process
 
 1. **Test Planning**
@@ -975,12 +860,932 @@ Validation occurs at multiple levels:
 - [ ] Test results documented
 - [ ] Issues identified and prioritized
 - [ ] Validation status updated in project registry
-- [ ] Reflection and refinement plan created
 
-## Conclusion
+## APML-Compliant Testing Systems
 
-This framework transforms AI-assisted development from an unpredictable, ad-hoc process into a structured, repeatable program. By explicitly addressing the constraints of AI systems, particularly context window limitations, and ensuring thorough project inception, it enables consistent, high-quality outcomes while minimizing technical debt.
+The APML Framework extends its principles to the development, management, and lifecycle of testing systems themselves. Testing infrastructure (such as test harnesses, test runners, and validation tools) should be developed following the same APML principles as the main application components.
 
-The checklist-driven approach ensures that humans follow a proven sequence of steps, while the formal APML language provides the necessary structure for effective AI collaboration. The fractal patterns ensure consistency across all scales of development, from individual functions to entire architectures.
+### Test Systems as APML Projects
 
-This framework is particularly suitable for non-programmers creating software with AI assistance, as it provides clear guidance without requiring deep technical expertise. By following the checklists and using the provided tools, anyone with a clear vision can translate their ideas into robust, scalable software.
+Testing systems should be treated as first-class APML projects with their own:
+
+1. **Project Inception**: Using `TestSystemInception.apml` to define the problem, solution vision, and scope
+2. **Registry**: Defining modules and components specific to the testing system
+3. **Interfaces**: Establishing clear contracts for test system components
+4. **Development Sessions**: Implementing test system components with validation criteria
+5. **Integration**: Ensuring proper interaction between test system components
+6. **Reflection**: Continuously improving the test system based on feedback
+
+### Example: TestSystemInception.apml
+
+Below is an example of a `TestSystemInception.apml` file for a component test harness:
+
+```xml
+<TestSystemInception name="ComponentTestHarness">
+  <Problem>
+    <Description>
+      Current component testing relies on simple HTML files that lack standardization, 
+      comprehensive validation capabilities, and proper integration with the APML Framework. 
+      Non-coders struggle to verify component functionality without a structured approach, 
+      and developers lack visibility into component behavior across different states and configurations.
+    </Description>
+    <CurrentSolutions>
+      <Solution name="SimpleHTMLTests">
+        <Strengths>
+          <Strength>Minimal tooling requirements</Strength>
+          <Strength>Accessible to non-coders</Strength>
+        </Strengths>
+        <Weaknesses>
+          <Weakness>Limited state manipulation</Weakness>
+          <Weakness>No standardized validation</Weakness>
+          <Weakness>Poor integration with APML artifacts</Weakness>
+          <Weakness>Difficult to maintain at scale</Weakness>
+        </Weaknesses>
+      </Solution>
+      <Solution name="ManualComponentTesting">
+        <Strengths>
+          <Strength>No additional infrastructure needed</Strength>
+        </Strengths>
+        <Weaknesses>
+          <Weakness>Inconsistent testing approach</Weakness>
+          <Weakness>No validation history</Weakness>
+          <Weakness>Cannot easily reproduce specific states</Weakness>
+        </Weaknesses>
+      </Solution>
+    </CurrentSolutions>
+    <TargetAudience>
+      <Audience type="Primary">Non-coding project stakeholders</Audience>
+      <Audience type="Secondary">Developers implementing components</Audience>
+      <Audience type="Tertiary">QA specialists validating system behavior</Audience>
+    </TargetAudience>
+    <UniqueValueProposition>
+      An APML-compliant test harness that enables comprehensive component testing 
+      with standardized validation criteria, state manipulation, and integration with 
+      existing APML artifacts, while remaining accessible to non-coders.
+    </UniqueValueProposition>
+  </Problem>
+  
+  <SolutionVision>
+    <CoreConcept>
+      A modular test harness built using Vite+React+TypeScript that provides a unified 
+      interface for testing all components in the system, with capabilities for state 
+      manipulation, event monitoring, and validation against APML-defined criteria.
+    </CoreConcept>
+    <KeyFunctionalities>
+      <Functionality name="ComponentSelector">
+        Allows users to select any component in the system for testing
+      </Functionality>
+      <Functionality name="PropEditor">
+        Enables manipulation of component props to test different configurations
+      </Functionality>
+      <Functionality name="StateVisualizer">
+        Displays component internal state and updates in real-time
+      </Functionality>
+      <Functionality name="EventMonitor">
+        Logs all events triggered by the component
+      </Functionality>
+      <Functionality name="ValidationChecker">
+        Verifies component behavior against APML-defined validation criteria
+      </Functionality>
+      <Functionality name="ScenarioRunner">
+        Executes predefined test scenarios from DevelopmentSession.apml files
+      </Functionality>
+      <Functionality name="FeedbackCollector">
+        Captures subjective feedback on component behavior
+      </Functionality>
+    </KeyFunctionalities>
+    <LongTermVision>
+      A comprehensive testing ecosystem that integrates with the APML Framework 
+      at all levels, providing continuous validation of components, modules, and 
+      the entire system throughout the development lifecycle.
+    </LongTermVision>
+    <SMARTObjectives>
+      <Objective name="ComponentCoverage">
+        Enable testing of 100% of UI and Engine components by project completion
+      </Objective>
+      <Objective name="ValidationIntegration">
+        Automatically import and validate against criteria from DevelopmentSession.apml files
+      </Objective>
+      <Objective name="NonCoderAccessibility">
+        Achieve 90% task completion rate for non-coders in usability testing
+      </Objective>
+      <Objective name="DevelopmentEfficiency">
+        Reduce component validation time by 50% compared to manual testing
+      </Objective>
+      <Objective name="DocumentationGeneration">
+        Automatically generate validation reports for all tested components
+      </Objective>
+    </SMARTObjectives>
+  </SolutionVision>
+  
+  <!-- Additional sections omitted for brevity -->
+</TestSystemInception>
+```
+
+For the complete example, see the full `TestSystemInception.apml` in the framework documentation.
+
+### Test Harness Integration with APML Framework
+
+The following diagram illustrates how a test harness integrates with the APML Framework:
+
+```
+                                APML Framework
+                                     │
+                                     │
+                 ┌─────────────────┐ │ ┌─────────────────┐
+                 │                 │ │ │                 │
+                 │  Main Project   │◄┼─┤  Test Harness   │
+                 │                 │ │ │                 │
+                 └────────┬────────┘ │ └────────┬────────┘
+                          │          │          │
+                          ▼          │          ▼
+                 ┌────────────────┐  │  ┌────────────────┐
+                 │                │  │  │                │
+                 │ Project APML   │  │  │ Test APML      │
+                 │ Artifacts      │  │  │ Artifacts      │
+                 │                │  │  │                │
+                 │ - registry.apml│  │  │ - TestSystem   │
+                 │ - interfaces/  │  │  │   Inception.apml
+                 │ - modules/     │  │  │ - TestModule.apml
+                 │ - sessions/    │  │  │ - TestInterfaces/
+                 │                │  │  │                │
+                 └────────┬───────┘  │  └────────┬───────┘
+                          │          │           │
+                          │          │           │
+                          ▼          │           ▼
+                 ┌────────────────┐  │  ┌────────────────┐
+                 │                │  │  │                │
+                 │ Implementation │  │  │ Test Harness   │
+                 │ Components     │  │  │ Components     │
+                 │                │  │  │                │
+                 │ - UI Components│  │  │ - UI Module    │
+                 │ - Engine       │◄─┼──┤ - Engine Module│
+                 │   Components   │  │  │ - Integration  │
+                 │                │  │  │   Layer        │
+                 └────────┬───────┘  │  └────────┬───────┘
+                          │          │           │
+                          │          │           │
+                          ▼          │           ▼
+                 ┌────────────────┐  │  ┌────────────────┐
+                 │                │  │  │                │
+                 │ Validation     │◄─┼──┤ Test Execution │
+                 │ Criteria       │  │  │ & Reporting    │
+                 │                │  │  │                │
+                 │ - Objective    │  │  │ - Component    │
+                 │   Criteria     │  │  │   Tests        │
+                 │ - Subjective   │  │  │ - Validation   │
+                 │   Criteria     │  │  │   Reports      │
+                 │                │  │  │                │
+                 └────────────────┘  │  └────────────────┘
+                                     │
+                                     ▼
+                            ┌─────────────────┐
+                            │                 │
+                            │ Project Status  │
+                            │ & Documentation │
+                            │                 │
+                            │ - status.html   │
+                            │ - Validation    │
+                            │   Reports       │
+                            │                 │
+                            └─────────────────┘
+```
+
+### APML Principles for Test Systems
+
+Test systems should adhere to the following APML principles:
+
+#### 1. Interface Contracts for Test Components
+
+Test system components must have clearly defined interfaces:
+
+```xml
+<Interface name="TestHarnessComponentSelector">
+  <Purpose>
+    Provides a mechanism for selecting components for testing
+  </Purpose>
+  <Methods>
+    <Method name="listAvailableComponents">
+      <Output name="componentList" type="ComponentInfo[]" />
+    </Method>
+    <Method name="selectComponent">
+      <Input name="componentId" type="string" required="true" />
+      <Output name="selectedComponent" type="ComponentInstance" />
+    </Method>
+  </Methods>
+  <ValidationCriteria>
+    <Criterion id="TS-001">
+      Must display all available components from registry.apml
+    </Criterion>
+    <Criterion id="TS-002">
+      Must support filtering and searching components
+    </Criterion>
+  </ValidationCriteria>
+</Interface>
+```
+
+#### 2. Context Boundaries for Test Systems
+
+Test systems must respect context boundaries:
+
+```xml
+<ContextBoundary size="medium" tokenEstimate="8000">
+  <Rationale>
+    Test harness requires moderate context due to need to understand
+    both the test infrastructure and the components being tested
+  </Rationale>
+  <ContextInclusions>
+    <Include>Component interfaces being tested</Include>
+    <Include>Validation criteria from DevelopmentSession.apml</Include>
+    <Include>Test harness component interfaces</Include>
+  </ContextInclusions>
+  <ContextExclusions>
+    <Exclude>Implementation details of unrelated components</Exclude>
+    <Exclude>Historical test results</Exclude>
+  </ContextExclusions>
+</ContextBoundary>
+```
+
+#### 3. Validation Criteria for Test Systems
+
+Test systems must have their own validation criteria:
+
+```xml
+<ValidationCriteria>
+  <Criterion id="TS-HARNESS-001" test="tests/harness/accessibility_test.js">
+    Test harness must meet WCAG 2.1 AA accessibility standards
+  </Criterion>
+  <Criterion id="TS-HARNESS-002" test="tests/harness/non_coder_usability_test.js">
+    Non-coders must be able to complete basic testing tasks without assistance
+  </Criterion>
+  <Criterion id="TS-HARNESS-003" test="tests/harness/validation_criteria_test.js">
+    Test harness must correctly import and validate against criteria from DevelopmentSession.apml
+  </Criterion>
+  <Criterion id="TS-HARNESS-004" test="tests/harness/component_coverage_test.js">
+    Test harness must support testing of all component types in the system
+  </Criterion>
+</ValidationCriteria>
+```
+
+### Implementation Requirements for Test Systems
+
+Test systems must meet the following implementation requirements:
+
+1. **APML Artifact Integration**
+   - Must parse and utilize APML artifacts (interfaces, development sessions)
+   - Must extract validation criteria from DevelopmentSession.apml files
+   - Must report validation results in APML-compatible format
+
+2. **Non-Coder Accessibility**
+   - Must provide intuitive interfaces for non-technical users
+   - Must use clear, non-technical language in UI and documentation
+   - Must support guided testing workflows
+
+3. **Component Coverage**
+   - Must support testing of all component types (UI, Engine)
+   - Must handle different component interfaces and behaviors
+   - Must provide appropriate testing tools for each component type
+
+4. **Validation Reporting**
+   - Must generate structured validation reports
+   - Must track validation status over time
+   - Must integrate with project status reporting
+
+5. **APML-Compliant Architecture**
+   - Must follow modular architecture with clear interfaces
+   - Must respect context boundaries
+   - Must implement validation criteria for its own components
+
+### Test System Development Process
+
+The development of test systems should follow the same APML process as the main application:
+
+1. **Phase 0N: Test System Inception**
+   - Create TestSystemInception.apml
+   - Define test system purpose, scope, and requirements
+   - Identify test system users and stakeholders
+
+2. **Phase 1: Test System Registry**
+   - Create TestSystemRegistry.apml
+   - Define test system modules and components
+   - Document critical interfaces between test system components
+
+3. **Phase 2: Test System Interfaces**
+   - Define interfaces for test system components
+   - Establish context boundaries
+   - Document validation criteria for test system components
+
+4. **Phase 3: Test System Implementation**
+   - Implement test system components
+   - Validate against test system criteria
+   - Document completion status
+
+5. **Phase 4: Test System Integration**
+   - Integrate test system components
+   - Test integration with main application components
+   - Validate system behavior
+
+6. **Phase 5: Test System Reflection**
+   - Evaluate test system effectiveness
+   - Identify improvement opportunities
+   - Plan next development cycle
+
+### Test System Naming Conventions
+
+Test systems should follow the same naming conventions as the main application, with the following additions:
+
+1. **Test System Files**
+   - TestSystemInception.apml
+   - TestSystemRegistry.apml
+   - TestModule.apml
+   - TestComponentInterface.apml
+   - TestComponent.DevelopmentSession.apml
+   - TestComponent_Implementation_Package.md
+
+2. **Test System Components**
+   - TestHarnessUI
+   - TestRunner
+   - ValidationReporter
+   - TestDataGenerator
+   - ScenarioExecutor
+
+3. **Test System Directories**
+   - /tests/harness/ - Source code for test harness
+   - /docs/testing/ - Documentation for test systems
+   - /docs/build/apml/test_systems/ - APML artifacts for test systems
+
+## GitHub Integration
+
+The APML Framework supports integration with GitHub for version control, collaboration, and project management.
+
+### Repository Structure
+
+The GitHub repository should mirror the file structure defined in the framework:
+
+```
+/project-root/
+├── registry.apml
+├── status.html
+├── README.md
+├── framework_relationships.md
+├── apml_framework_v1.3.0.md
+├── framework/
+├── docs/
+├── src/
+└── tests/
+```
+
+### Branch Strategy
+
+1. **main** - Stable, production-ready code
+2. **develop** - Integration branch for feature development
+3. **feature/feature-name** - Individual feature branches
+4. **component/component-name** - Branches for specific component implementations
+
+### Pull Request Template
+
+```markdown
+## Component Implementation
+
+**Component Name:** ComponentName
+**Interface:** [Link to ComponentNameInterface.apml]
+**Development Session:** [Link to ComponentName.DevelopmentSession.apml]
+
+### Implementation Details
+- Brief description of implementation approach
+- Key design decisions
+- Notable optimizations or trade-offs
+
+### Validation Status
+- [ ] Unit tests implemented
+- [ ] Interface compliance verified
+- [ ] Validation criteria met
+- [ ] Documentation updated
+
+### Additional Notes
+Any other relevant information about the implementation.
+```
+
+### Issue Templates
+
+#### Component Implementation Issue
+
+```markdown
+## Component Implementation Request
+
+**Component Name:** ComponentName
+**Module:** ModuleName
+**Priority:** High/Medium/Low
+
+### Interface Definition
+[Link to ComponentNameInterface.apml]
+
+### Development Session
+[Link to ComponentName.DevelopmentSession.apml]
+
+### Implementation Requirements
+- Key requirements for implementation
+- Specific constraints or considerations
+- Dependencies on other components
+
+### Validation Criteria
+- Criteria for successful implementation
+- Specific test scenarios to consider
+```
+
+#### Bug Report Issue
+
+```markdown
+## Bug Report
+
+**Component:** ComponentName
+**Severity:** Critical/High/Medium/Low
+
+### Description
+Clear description of the bug
+
+### Steps to Reproduce
+1. Step 1
+2. Step 2
+3. Step 3
+
+### Expected Behavior
+What should happen
+
+### Actual Behavior
+What actually happens
+
+### Context
+- Browser/Environment
+- User role/permissions
+- Any other relevant context
+```
+
+### GitHub Actions
+
+Automated workflows for APML projects:
+
+1. **Validation Workflow**
+   - Validates APML files against schema
+   - Checks for context boundary compliance
+   - Verifies naming conventions
+
+2. **Documentation Generation**
+   - Generates Markdown documentation from APML files
+   - Updates status.html with current project state
+   - Builds framework_relationships.md visualization
+
+3. **Test Execution**
+   - Runs automated tests for components
+   - Validates against criteria in DevelopmentSession.apml
+   - Reports validation status
+
+### Project Boards
+
+Recommended project board structure:
+
+1. **Component Backlog**
+   - Components pending implementation
+   - Prioritized by module and dependencies
+
+2. **In Development**
+   - Components currently being implemented
+   - Assigned to specific developers or AI systems
+
+3. **Validation**
+   - Components awaiting validation
+   - Testing in progress
+
+4. **Complete**
+   - Fully implemented and validated components
+   - Ready for integration
+
+5. **Integration**
+   - Components being integrated with others
+   - Cross-component testing
+
+## HTML-Based Component Testing for Non-Coders
+
+To support the "Approachable Testing" principle, the framework includes a simple HTML-based testing approach for non-coders.
+
+### Purpose
+
+- Allow non-technical stakeholders to verify component functionality
+- Provide a simple way to test components without complex tooling
+- Support the "Better × Simpler × Cheaper" principle
+
+### Implementation
+
+For each UI component, create a simple HTML test file:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlayerCard Component Test</title>
+  <link rel="stylesheet" href="../../dist/styles.css">
+  <script src="../../dist/bundle.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .test-container {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .test-controls {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f5f5f5;
+    }
+    .test-description {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .validation-criteria {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #e6f7ff;
+    }
+    .validation-item {
+      margin-bottom: 5px;
+    }
+    .validation-checkbox {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>PlayerCard Component Test</h1>
+  
+  <div class="test-container">
+    <div class="test-description">Default State</div>
+    <div id="test-default"></div>
+    <div class="test-controls">
+      <button onclick="resetDefault()">Reset</button>
+    </div>
+  </div>
+  
+  <div class="test-container">
+    <div class="test-description">With Progress (75%)</div>
+    <div id="test-progress"></div>
+    <div class="test-controls">
+      <button onclick="updateProgress(25)">25%</button>
+      <button onclick="updateProgress(50)">50%</button>
+      <button onclick="updateProgress(75)">75%</button>
+      <button onclick="updateProgress(100)">100%</button>
+    </div>
+  </div>
+  
+  <div class="test-container">
+    <div class="test-description">With Achievements</div>
+    <div id="test-achievements"></div>
+    <div class="test-controls">
+      <button onclick="addAchievement()">Add Achievement</button>
+      <button onclick="resetAchievements()">Reset</button>
+    </div>
+  </div>
+  
+  <div class="validation-criteria">
+    <h2>Validation Criteria</h2>
+    <div class="validation-item">
+      <input type="checkbox" class="validation-checkbox" id="criteria-1">
+      <label for="criteria-1">Player name and avatar display correctly</label>
+    </div>
+    <div class="validation-item">
+      <input type="checkbox" class="validation-checkbox" id="criteria-2">
+      <label for="criteria-2">Progress bar updates smoothly</label>
+    </div>
+    <div class="validation-item">
+      <input type="checkbox" class="validation-checkbox" id="criteria-3">
+      <label for="criteria-3">Achievements display with correct icons</label>
+    </div>
+    <div class="validation-item">
+      <input type="checkbox" class="validation-checkbox" id="criteria-4">
+      <label for="criteria-4">Component is responsive on different screen sizes</label>
+    </div>
+    <div class="validation-item">
+      <input type="checkbox" class="validation-checkbox" id="criteria-5">
+      <label for="criteria-5">Visual design matches application theme</label>
+    </div>
+    <button onclick="saveValidation()">Save Validation Results</button>
+  </div>
+  
+  <script>
+    // Simple test harness code
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeTests();
+    });
+    
+    function initializeTests() {
+      // Initialize default test
+      const defaultContainer = document.getElementById('test-default');
+      renderPlayerCard(defaultContainer, {
+        name: 'Alex Johnson',
+        avatar: '../../assets/avatars/default.png',
+        level: 3,
+        progress: 50
+      });
+      
+      // Initialize progress test
+      const progressContainer = document.getElementById('test-progress');
+      renderPlayerCard(progressContainer, {
+        name: 'Alex Johnson',
+        avatar: '../../assets/avatars/default.png',
+        level: 3,
+        progress: 75
+      });
+      
+      // Initialize achievements test
+      const achievementsContainer = document.getElementById('test-achievements');
+      renderPlayerCard(achievementsContainer, {
+        name: 'Alex Johnson',
+        avatar: '../../assets/avatars/default.png',
+        level: 3,
+        progress: 50,
+        achievements: ['fast-learner', 'problem-solver']
+      });
+    }
+    
+    function renderPlayerCard(container, props) {
+      // This would normally use the actual component
+      // For this example, we're just creating a simple representation
+      container.innerHTML = `
+        <div class="player-card">
+          <img src="${props.avatar}" alt="${props.name}" class="player-avatar">
+          <div class="player-info">
+            <div class="player-name">${props.name}</div>
+            <div class="player-level">Level ${props.level}</div>
+            <div class="player-progress">
+              <div class="progress-bar" style="width: ${props.progress}%"></div>
+            </div>
+            ${props.achievements ? `
+              <div class="player-achievements">
+                ${props.achievements.map(a => `<span class="achievement ${a}"></span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+    
+    function resetDefault() {
+      const defaultContainer = document.getElementById('test-default');
+      renderPlayerCard(defaultContainer, {
+        name: 'Alex Johnson',
+        avatar: '../../assets/avatars/default.png',
+        level: 3,
+        progress: 50
+      });
+    }
+    
+    function updateProgress(value) {
+      const progressContainer = document.getElementById('test-progress');
+      renderPlayerCard(progressContainer, {
+        name: 'Alex Johnson',
+        avatar: '../../assets/avatars/default.png',
+        level: 3,
+        progress: value
+      });
+    }
+    
+    let achievements = ['fast-learner', 'problem-solver'];
+    const allAchievements = ['fast-learner', 'problem-solver', 'persistent', 'curious', 'team-player'];
+    
+    function addAchievement() {
+      if (achievements.length < allAchievements.length) {
+        const remaining = allAchievements.filter(a => !achievements.includes(a));
+        achievements.push(remaining[0]);
+        const achievementsContainer = document.getElementById('test-achievements');
+        renderPlayerCard(achievementsContainer, {
+          name: 'Alex Johnson',
+          avatar: '../../assets/avatars/default.png',
+          level: 3,
+          progress: 50,
+          achievements: achievements
+        });
+      }
+    }
+    
+    function resetAchievements() {
+      achievements = [];
+      const achievementsContainer = document.getElementById('test-achievements');
+      renderPlayerCard(achievementsContainer, {
+        name: 'Alex Johnson',
+        avatar: '../../assets/avatars/default.png',
+        level: 3,
+        progress: 50,
+        achievements: achievements
+      });
+    }
+    
+    function saveValidation() {
+      const results = {
+        component: 'PlayerCard',
+        timestamp: new Date().toISOString(),
+        criteria: {
+          'Player name and avatar display correctly': document.getElementById('criteria-1').checked,
+          'Progress bar updates smoothly': document.getElementById('criteria-2').checked,
+          'Achievements display with correct icons': document.getElementById('criteria-3').checked,
+          'Component is responsive on different screen sizes': document.getElementById('criteria-4').checked,
+          'Visual design matches application theme': document.getElementById('criteria-5').checked
+        }
+      };
+      
+      console.log('Validation Results:', results);
+      // In a real implementation, this would save to a file or send to a server
+      alert('Validation results saved!');
+    }
+  </script>
+</body>
+</html>
+```
+
+### Usage Guidelines
+
+1. **Simplicity First**
+   - Keep HTML tests as simple as possible
+   - Minimize dependencies on external libraries
+   - Use inline styles and scripts for portability
+
+2. **Validation Criteria**
+   - Include explicit validation criteria from DevelopmentSession.apml
+   - Provide checkboxes for manual verification
+   - Include a way to save validation results
+
+3. **Interactive Controls**
+   - Add simple controls to manipulate component state
+   - Allow testing of different configurations
+   - Provide reset buttons to return to default state
+
+4. **Documentation**
+   - Include clear descriptions of each test case
+   - Document expected behavior
+   - Provide context for non-technical users
+
+5. **Accessibility**
+   - Ensure test files are accessible
+   - Use clear language and instructions
+   - Support keyboard navigation
+
+### Integration with Framework
+
+1. **Automatic Generation**
+   - Generate HTML test files from DevelopmentSession.apml
+   - Update test files when validation criteria change
+   - Link test files to component documentation
+
+2. **Validation Reporting**
+   - Collect validation results from HTML tests
+   - Integrate with project status reporting
+   - Track validation status over time
+
+3. **Distribution**
+   - Include HTML tests in project repository
+   - Make tests accessible via simple web server
+   - Support offline testing when needed
+
+## Component Relationship Visualization
+
+To support understanding of component relationships, the framework includes tools for visualizing component interactions.
+
+### Purpose
+
+- Provide clear visualization of component relationships
+- Help identify dependencies and potential issues
+- Support communication between technical and non-technical stakeholders
+
+### Implementation
+
+Generate a `framework_relationships.md` file with visualizations:
+
+```markdown
+# Component Relationship Visualization
+
+## Module Overview
+
+```mermaid
+graph TD
+    A[UserInterface] --> B[LearningEngine]
+    A --> C[ProgressionSystem]
+    B --> C
+    C --> D[MetricsSystem]
+    A --> E[SubscriptionSystem]
+    A --> F[OfflineSupport]
+    F --> B
+    F --> C
+```
+
+## UserInterface Module Components
+
+```mermaid
+graph TD
+    UI[UserInterface] --> PC[PlayerCard]
+    UI --> FS[FeedbackSystem]
+    UI --> TM[ThemeManager]
+    UI --> SS[SessionSummary]
+    UI --> DB[Dashboard]
+    
+    PC --> TM
+    FS --> TM
+    SS --> TM
+    DB --> PC
+    DB --> SS
+```
+
+## Component Dependencies: PlayerCard
+
+```mermaid
+graph TD
+    PC[PlayerCard] --> TM[ThemeManager]
+    PC --> PS[ProgressTracker]
+    PC --> LM[LifetimeMetricsManager]
+    PC --> AM[AchievementManager]
+    
+    subgraph UserInterface
+        PC
+        TM
+    end
+    
+    subgraph ProgressionSystem
+        PS
+    end
+    
+    subgraph MetricsSystem
+        LM
+    end
+    
+    subgraph AchievementSystem
+        AM
+    end
+```
+
+## Data Flow: User Session
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant DB as Dashboard
+    participant QG as QuestionGenerator
+    participant PT as ProgressTracker
+    participant SM as SessionMetricsManager
+    
+    U->>DB: Start Session
+    DB->>QG: Request Questions
+    QG-->>DB: Return Questions
+    DB->>U: Display Question
+    U->>DB: Submit Answer
+    DB->>PT: Update Progress
+    DB->>SM: Record Metrics
+    PT-->>DB: Updated Progress
+    DB->>U: Show Feedback
+```
+```
+
+### Visualization Types
+
+1. **Module Overview**
+   - High-level view of module relationships
+   - Shows primary dependencies between modules
+   - Helps understand system architecture
+
+2. **Module Components**
+   - Components within each module
+   - Internal relationships between components
+   - Module boundaries and responsibilities
+
+3. **Component Dependencies**
+   - Detailed view of a specific component's dependencies
+   - Shows cross-module relationships
+   - Highlights potential coupling issues
+
+4. **Data Flow Diagrams**
+   - Sequence diagrams for key user flows
+   - Shows how data moves through the system
+   - Illustrates component interactions over time
+
+5. **State Transitions**
+   - State diagrams for complex components
+   - Shows how components change state
+   - Helps understand component behavior
+
+### Integration with Framework
+
+1. **Automatic Generation**
+   - Generate visualizations from APML files
+   - Update visualizations when interfaces change
+   - Link visualizations to component documentation
+
+2. **Validation Use**
+   - Use visualizations to validate component relationships
+   - Identify unexpected dependencies
+   - Ensure clean module boundaries
+
+3. **Documentation Integration**
+   - Include visualizations in component documentation
+   - Link visualizations from status.html
+   - Use visualizations in implementation packages

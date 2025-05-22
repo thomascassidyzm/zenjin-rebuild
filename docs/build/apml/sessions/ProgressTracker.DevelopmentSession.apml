@@ -6,7 +6,7 @@
     </ImplementationGoal>
     
     <ContextReferences>
-      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="Interfaces.ProgressTrackingInterface" />
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="Interfaces.ProgressTrackerInterface" />
       <Reference type="LearningMechanics" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MathematicalImplementation.TripleHelixModel.CorePrinciples.AdaptiveDifficulty" />
       <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-002" />
       <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="ValidationCriteria" />
@@ -29,7 +29,7 @@
       
       Technical requirements:
       - Use TypeScript for type safety
-      - Implement the ProgressTrackingInterface as defined in the ProgressionSystem module
+      - Implement the ProgressTrackerInterface as defined in the ProgressionSystem module
       - Ensure the implementation is testable with mock inputs
       - Design for efficient storage and retrieval of progress data
       - Support detailed progress tracking without overwhelming the user

@@ -38,7 +38,7 @@
       </Methods>
     </Interface>
     
-    <Interface name="SpacedRepetitionInterface">
+    <Interface name="SpacedRepetitionSystemInterface">
       <Description>
         Implements the Stitch Repositioning Algorithm for spaced repetition.
       </Description>
@@ -61,7 +61,7 @@
       </Methods>
     </Interface>
     
-    <Interface name="ProgressTrackingInterface">
+    <Interface name="ProgressTrackerInterface">
       <Description>
         Tracks user progress through learning paths and content mastery.
       </Description>
@@ -122,10 +122,10 @@
       <Description>
         Implements the Stitch Repositioning Algorithm for spaced repetition.
       </Description>
-      <Implements>SpacedRepetitionInterface</Implements>
+      <Implements>SpacedRepetitionSystemInterface</Implements>
       <Dependencies>
         <Dependency interface="StitchManagerInterface" />
-        <Dependency interface="ProgressTrackingInterface" />
+        <Dependency interface="ProgressTrackerInterface" />
       </Dependencies>
     </Component>
     
@@ -133,7 +133,7 @@
       <Description>
         Tracks user progress through learning paths and content mastery.
       </Description>
-      <Implements>ProgressTrackingInterface</Implements>
+      <Implements>ProgressTrackerInterface</Implements>
     </Component>
     
     <Component name="StitchManager">
@@ -149,7 +149,7 @@
       <Interface>DistinctionManagerInterface</Interface>
     </ModuleDependency>
     <ModuleDependency name="MetricsSystem">
-      <Interface>SessionMetricsInterface</Interface>
+      <Interface>SessionMetricsManagerInterface</Interface>
     </ModuleDependency>
     <ModuleDependency name="SubscriptionSystem">
       <Interface>ContentAccessInterface</Interface>

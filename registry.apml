@@ -172,8 +172,8 @@
       </Purpose>
       <CriticalInterfaces>
         <Interface name="TripleHelixManagerInterface" implementationStatus="complete" />
-        <Interface name="SpacedRepetitionInterface" implementationStatus="complete" />
-        <Interface name="ProgressTrackingInterface" implementationStatus="complete" />
+        <Interface name="SpacedRepetitionSystemInterface" implementationStatus="complete" />
+        <Interface name="ProgressTrackerInterface" implementationStatus="complete" />
       </CriticalInterfaces>
       <Components>
         <Component name="TripleHelixManager" implementationStatus="complete">
@@ -214,8 +214,8 @@
         Calculate and manage session and lifetime metrics including FTCPoints, ECPoints, BasePoints, BonusMultipliers, BlinkSpeed, TotalPoints, Evolution, and GlobalRanking.
       </Purpose>
       <CriticalInterfaces>
-        <Interface name="SessionMetricsInterface" implementationStatus="complete" />
-        <Interface name="LifetimeMetricsInterface" implementationStatus="complete" />
+        <Interface name="SessionMetricsManagerInterface" implementationStatus="complete" />
+        <Interface name="LifetimeMetricsManagerInterface" implementationStatus="complete" />
         <Interface name="MetricsStorageInterface" implementationStatus="complete" />
         <Interface name="MetricsCalculatorInterface" implementationStatus="complete" />
       </CriticalInterfaces>
@@ -444,7 +444,7 @@
     </Interaction>
     
     <Interaction>
-      <Source>MetricsSystem.SessionMetricsInterface</Source>
+      <Source>MetricsSystem.SessionMetricsManagerInterface</Source>
       <Target>UserInterface.SessionSummaryInterface</Target>
       <Description>
         The Session Metrics system provides performance data to the Session Summary for visualization and display.
@@ -485,15 +485,15 @@
     
     <Interaction>
       <Source>UserInterface.PlayerCardInterface</Source>
-      <Target>MetricsSystem.SessionMetricsInterface</Target>
+      <Target>MetricsSystem.SessionMetricsManagerInterface</Target>
       <Description>
         The Player Card reports user interactions to the Session Metrics system for calculation of performance metrics.
       </Description>
     </Interaction>
     
     <Interaction>
-      <Source>MetricsSystem.SessionMetricsInterface</Source>
-      <Target>MetricsSystem.LifetimeMetricsInterface</Target>
+      <Source>MetricsSystem.SessionMetricsManagerInterface</Source>
+      <Target>MetricsSystem.LifetimeMetricsManagerInterface</Target>
       <Description>
         The Session Metrics system provides session results to the Lifetime Metrics system for aggregation.
       </Description>
@@ -594,4 +594,5 @@
   <LastUpdated>2025-05-22</LastUpdated>
   <!-- Added FactRepository, ContentManager, and MetricsCalculator components -->
   <!-- Updated file paths to use relative paths instead of absolute paths -->
+  <!-- Standardized interface naming conventions: updated SpacedRepetitionInterface to SpacedRepetitionSystemInterface, ProgressTrackingInterface to ProgressTrackerInterface, SessionMetricsInterface to SessionMetricsManagerInterface, and LifetimeMetricsInterface to LifetimeMetricsManagerInterface -->
 </ProjectRegistry>

@@ -178,11 +178,11 @@
       <Interface>DistractorGeneratorInterface</Interface>
     </ModuleDependency>
     <ModuleDependency name="MetricsSystem">
-      <Interface>SessionMetricsInterface</Interface>
-      <Interface>LifetimeMetricsInterface</Interface>
+      <Interface>SessionMetricsManagerInterface</Interface>
+      <Interface>LifetimeMetricsManagerInterface</Interface>
     </ModuleDependency>
     <ModuleDependency name="ProgressionSystem">
-      <Interface>ProgressTrackingInterface</Interface>
+      <Interface>ProgressTrackerInterface</Interface>
     </ModuleDependency>
   </ModuleDependencies>
   
