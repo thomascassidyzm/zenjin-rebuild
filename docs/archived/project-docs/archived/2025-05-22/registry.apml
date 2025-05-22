@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProjectRegistry version="1.1.0">
+  <ProjectPurpose>
+    Rebuild the Zenjin Maths App using the Fractal AI-Assisted Development Framework to create a modular, maintainable implementation of the distinction-based learning system. The rebuild will preserve the effective theoretical foundation and user experience while improving component separation, interface clarity, and testability to support ongoing adaptation and enhancement.
+  </ProjectPurpose>
+  
+  <CoreModules>
+    <Module name="UserInterface">
+      <Purpose>
+        Provide a calming, anxiety-free visual experience with appropriate feedback for user interactions, implementing the binary distinction presentation through the Player Card mechanism.
+      </Purpose>
+      <CriticalInterfaces>
+        <Interface name="PlayerCardInterface" implementationStatus="complete" />
+        <Interface name="FeedbackSystemInterface" implementationStatus="complete" />
+        <Interface name="ThemeManagerInterface" implementationStatus="complete" />
+        <Interface name="SessionSummaryInterface" implementationStatus="complete" />
+      </CriticalInterfaces>
+      <Components>
+        <Component name="PlayerCard" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCard.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/playerCardAnimations.css" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCard.test.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCardExample.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/PlayerCardDemo.jsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/PlayerCard/README.md" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/tailwind.config.js" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-001" status="passed" />
+            <Criterion id="UI-006" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-19</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="FeedbackSystem" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystem.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystemExample.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/FeedbackSystem.test.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/MathsFeedbackSystem.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/FeedbackSystem/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-001" status="passed" />
+            <Criterion id="UI-003" status="passed" />
+            <Criterion id="UI-006" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-19</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+          <Notes>Reimplemented with improved architecture, GSAP animations, and comprehensive accessibility features</Notes>
+        </Component>
+        <Component name="ThemeManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ThemeManager.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ThemeManagerDemo.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/ZenjinMathsApp.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/ThemeManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-002" status="passed" />
+            <Criterion id="UI-003" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-19</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="SessionSummary" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummary.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/sessionSummary.css" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummaryExample.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/SessionSummary.test.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/SessionSummary/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-004" status="passed" />
+            <Criterion id="UI-005" status="passed" />
+            <Criterion id="UI-006" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-19</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="Dashboard" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/Dashboard.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/DashboardTypes.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/DashboardExample.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/DashboardUsage.tsx" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/components/Dashboard/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-007" status="passed" />
+            <Criterion id="UI-008" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+      </Components>
+    </Module>
+    
+    <Module name="LearningEngine">
+      <Purpose>
+        Implement the distinction-based learning approach with five boundary levels and manage the generation of appropriate distractors for each question based on the user's current mastery level.
+      </Purpose>
+      <CriticalInterfaces>
+        <Interface name="DistinctionManagerInterface" implementationStatus="complete" />
+        <Interface name="DistractorGeneratorInterface" implementationStatus="complete" />
+        <Interface name="QuestionGeneratorInterface" implementationStatus="complete" />
+        <Interface name="StitchManagerInterface" implementationStatus="complete" />
+      </CriticalInterfaces>
+      <Components>
+        <Component name="DistinctionManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/DistinctionManager.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/DistinctionManager.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistinctionManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="LE-001" status="passed" />
+            <Criterion id="LE-002" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="DistractorGenerator" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/DistractorGenerator.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/DistractorGenerator.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/DistractorGeneratorUsage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/DistractorGenerator/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="LE-003" status="passed" />
+            <Criterion id="LE-004" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="QuestionGenerator" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/QuestionGenerator.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/QuestionGenerator.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/QuestionGenerator/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="LE-005" status="passed" />
+            <Criterion id="LE-006" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="StitchManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/StitchManager/StitchManager.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/StitchManager/StitchManager.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/StitchManager/StitchManagerUsage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/StitchManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="LE-007" status="passed" />
+            <Criterion id="LE-008" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+      </Components>
+    </Module>
+    
+    <Module name="ProgressionSystem">
+      <Purpose>
+        Implement the Triple Helix model with three parallel learning paths and the spaced repetition algorithm for optimizing cognitive resource usage and ensuring effective learning progression.
+      </Purpose>
+      <CriticalInterfaces>
+        <Interface name="TripleHelixManagerInterface" implementationStatus="complete" />
+        <Interface name="SpacedRepetitionInterface" implementationStatus="complete" />
+        <Interface name="ProgressTrackingInterface" implementationStatus="pending" />
+      </CriticalInterfaces>
+      <Components>
+        <Component name="TripleHelixManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixManager.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixManager.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixTypes.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/TripleHelixUsage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/TripleHelixManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="PS-001" status="passed" />
+            <Criterion id="PS-002" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="SpacedRepetitionSystem" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/SpacedRepetitionExample.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SpacedRepetitionSystem/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="PS-003" status="passed" />
+            <Criterion id="PS-004" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="ProgressTracker" implementationStatus="pending" />
+      </Components>
+    </Module>
+    
+    <Module name="MetricsSystem">
+      <Purpose>
+        Calculate and manage session and lifetime metrics including FTCPoints, ECPoints, BasePoints, BonusMultipliers, BlinkSpeed, TotalPoints, Evolution, and GlobalRanking.
+      </Purpose>
+      <CriticalInterfaces>
+        <Interface name="SessionMetricsInterface" implementationStatus="complete" />
+        <Interface name="LifetimeMetricsInterface" implementationStatus="complete" />
+        <Interface name="MetricsStorageInterface" implementationStatus="complete" />
+      </CriticalInterfaces>
+      <Components>
+        <Component name="SessionMetricsManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/SessionMetricsManager.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/SessionMetricsManager.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/SessionMetricsManagerUnitTests.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SessionMetricsManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="MS-001" status="passed" />
+            <Criterion id="MS-002" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="LifetimeMetricsManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsManager.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsManager.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsCalculator.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsBasicCalculator.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsStorage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsInMemoryStorage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/LifetimeMetricsManagerUsage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/LifetimeMetricsManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="MS-003" status="passed" />
+            <Criterion id="MS-004" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-21</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="MetricsStorage" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorage.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorageIndex.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsStorageUsage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/MetricsSystemIntegration.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/MetricsStorage/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="MS-005" status="passed" />
+            <Criterion id="MS-006" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-22</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+      </Components>
+    </Module>
+    
+    <Module name="SubscriptionSystem">
+      <Purpose>
+        Manage subscription tiers (Anonymous, Free, Premium) and control access to content and features based on the user's subscription level.
+      </Purpose>
+      <CriticalInterfaces>
+        <Interface name="SubscriptionManagerInterface" implementationStatus="complete" />
+        <Interface name="ContentAccessInterface" implementationStatus="complete" />
+        <Interface name="PaymentProcessingInterface" implementationStatus="pending" />
+      </CriticalInterfaces>
+      <Components>
+        <Component name="SubscriptionManager" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/SubscriptionManager.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/SubscriptionManagerInterfaces.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/SubscriptionManagerExample.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/SubscriptionManager/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="SS-001" status="passed" />
+            <Criterion id="SS-002" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-22</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="ContentAccessController" implementationStatus="complete">
+          <Files>
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/ContentAccessController.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/ContentAccessController.test.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/ContentAccessControllerUsage.ts" />
+            <File path="/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild/src/engines/ContentAccessController/README.md" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="SS-003" status="passed" />
+            <Criterion id="SS-004" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-22</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+      </Components>
+    </Module>
+    
+    <Module name="OfflineSupport">
+      <Purpose>
+        Provide offline functionality with local storage of content and progress, synchronizing with the server only at the beginning and end of sessions.
+      </Purpose>
+      <CriticalInterfaces>
+        <Interface name="OfflineStorageInterface" implementationStatus="pending" />
+        <Interface name="SynchronizationInterface" implementationStatus="pending" />
+        <Interface name="ContentCachingInterface" implementationStatus="pending" />
+      </CriticalInterfaces>
+    </Module>
+  </CoreModules>
+  
+  <ModuleInteractions>
+    <Interaction>
+      <Source>UserInterface.PlayerCardInterface</Source>
+      <Target>LearningEngine.QuestionGeneratorInterface</Target>
+      <Description>
+        The Player Card requests questions from the Question Generator and displays them to the user.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.PlayerCardInterface</Source>
+      <Target>LearningEngine.DistractorGeneratorInterface</Target>
+      <Description>
+        The Player Card requests distractors from the Distractor Generator to present alongside correct answers.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.PlayerCardInterface</Source>
+      <Target>UserInterface.FeedbackSystemInterface</Target>
+      <Description>
+        The Player Card uses the Feedback System to provide visual feedback for user responses.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.PlayerCardInterface</Source>
+      <Target>UserInterface.ThemeManagerInterface</Target>
+      <Description>
+        The Player Card uses the Theme Manager to apply consistent visual styling and animations.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.FeedbackSystemInterface</Source>
+      <Target>UserInterface.ThemeManagerInterface</Target>
+      <Description>
+        The Feedback System uses the Theme Manager to ensure visual feedback is consistent with the application theme.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>MetricsSystem.SessionMetricsInterface</Source>
+      <Target>UserInterface.SessionSummaryInterface</Target>
+      <Description>
+        The Session Metrics system provides performance data to the Session Summary for visualization and display.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.SessionSummaryInterface</Source>
+      <Target>UserInterface.ThemeManagerInterface</Target>
+      <Description>
+        The Session Summary uses the Theme Manager to ensure consistent visual styling and dark mode support.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.SessionSummaryInterface</Source>
+      <Target>UserInterface.FeedbackSystemInterface</Target>
+      <Description>
+        The Session Summary uses the Feedback System for achievement celebrations and animations.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>LearningEngine.DistinctionManagerInterface</Source>
+      <Target>ProgressionSystem.TripleHelixManagerInterface</Target>
+      <Description>
+        The Distinction Manager provides mastery information to the Triple Helix Manager to inform learning path progression.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>ProgressionSystem.TripleHelixManagerInterface</Source>
+      <Target>LearningEngine.QuestionGeneratorInterface</Target>
+      <Description>
+        The Triple Helix Manager determines which learning path is active and requests appropriate questions.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>UserInterface.PlayerCardInterface</Source>
+      <Target>MetricsSystem.SessionMetricsInterface</Target>
+      <Description>
+        The Player Card reports user interactions to the Session Metrics system for calculation of performance metrics.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>MetricsSystem.SessionMetricsInterface</Source>
+      <Target>MetricsSystem.LifetimeMetricsInterface</Target>
+      <Description>
+        The Session Metrics system provides session results to the Lifetime Metrics system for aggregation.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>SubscriptionSystem.SubscriptionManagerInterface</Source>
+      <Target>ProgressionSystem.TripleHelixManagerInterface</Target>
+      <Description>
+        The Subscription Manager informs the Triple Helix Manager about content access limitations based on subscription tier.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>OfflineSupport.SynchronizationInterface</Source>
+      <Target>MetricsSystem.MetricsStorageInterface</Target>
+      <Description>
+        The Synchronization system ensures metrics are properly stored locally and synchronized with the server when online.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>LearningEngine.StitchManagerInterface</Source>
+      <Target>ProgressionSystem.TripleHelixManagerInterface</Target>
+      <Description>
+        The Stitch Manager organizes learning content into stitches which the Triple Helix Manager uses to determine learning paths.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>ProgressionSystem.SpacedRepetitionInterface</Source>
+      <Target>LearningEngine.QuestionGeneratorInterface</Target>
+      <Description>
+        The Spaced Repetition System determines when previously learned content should be reviewed and requests appropriate questions.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>MetricsSystem.LifetimeMetricsInterface</Source>
+      <Target>UserInterface.DashboardInterface</Target>
+      <Description>
+        The Lifetime Metrics Manager provides aggregated performance data to the Dashboard for visualization and display.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>MetricsSystem.SessionMetricsInterface</Source>
+      <Target>ProgressionSystem.ProgressTrackingInterface</Target>
+      <Description>
+        The Session Metrics Manager provides session results to the Progress Tracker to update the user's learning progression.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>ProgressionSystem.SpacedRepetitionInterface</Source>
+      <Target>ProgressionSystem.ProgressTrackingInterface</Target>
+      <Description>
+        The Spaced Repetition System uses the Progress Tracker to determine which content needs review based on mastery levels.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>MetricsSystem.SessionMetricsInterface</Source>
+      <Target>MetricsSystem.MetricsStorageInterface</Target>
+      <Description>
+        The Session Metrics Manager uses the Metrics Storage component to persist session metrics data.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>MetricsSystem.LifetimeMetricsInterface</Source>
+      <Target>MetricsSystem.MetricsStorageInterface</Target>
+      <Description>
+        The Lifetime Metrics Manager uses the Metrics Storage component to store and retrieve aggregated lifetime metrics.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>SubscriptionSystem.SubscriptionManagerInterface</Source>
+      <Target>SubscriptionSystem.ContentAccessInterface</Target>
+      <Description>
+        The Subscription Manager informs the Content Access Controller about the user's subscription level to determine content access rights.
+      </Description>
+    </Interaction>
+    
+    <Interaction>
+      <Source>SubscriptionSystem.ContentAccessInterface</Source>
+      <Target>LearningEngine.StitchManagerInterface</Target>
+      <Description>
+        The Content Access Controller filters content stitches based on the user's subscription level before they are provided to the user.
+      </Description>
+    </Interaction>
+  </ModuleInteractions>
+  
+  <TokenEstimation>
+    <Module name="UserInterface" estimate="40000" />
+    <Module name="LearningEngine" estimate="50000" />
+    <Module name="ProgressionSystem" estimate="45000" />
+    <Module name="MetricsSystem" estimate="30000" />
+    <Module name="SubscriptionSystem" estimate="25000" />
+    <Module name="OfflineSupport" estimate="35000" />
+    <Total estimate="225000" />
+  </TokenEstimation>
+  
+  <ImplementationProgress>
+    <CompletedComponents>
+      <Component module="UserInterface" name="PlayerCard" date="2025-05-19" />
+      <Component module="UserInterface" name="FeedbackSystem" date="2025-05-19" />
+      <Component module="UserInterface" name="ThemeManager" date="2025-05-19" />
+      <Component module="UserInterface" name="SessionSummary" date="2025-05-19" />
+      <Component module="UserInterface" name="Dashboard" date="2025-05-21" />
+      <Component module="LearningEngine" name="DistinctionManager" date="2025-05-21" />
+      <Component module="LearningEngine" name="DistractorGenerator" date="2025-05-21" />
+      <Component module="LearningEngine" name="QuestionGenerator" date="2025-05-21" />
+      <Component module="LearningEngine" name="StitchManager" date="2025-05-21" />
+      <Component module="ProgressionSystem" name="TripleHelixManager" date="2025-05-21" />
+      <Component module="ProgressionSystem" name="SpacedRepetitionSystem" date="2025-05-21" />
+      <Component module="MetricsSystem" name="SessionMetricsManager" date="2025-05-21" />
+      <Component module="MetricsSystem" name="LifetimeMetricsManager" date="2025-05-21" />
+      <Component module="MetricsSystem" name="MetricsStorage" date="2025-05-22" />
+      <Component module="SubscriptionSystem" name="SubscriptionManager" date="2025-05-22" />
+      <Component module="SubscriptionSystem" name="ContentAccessController" date="2025-05-22" />
+    </CompletedComponents>
+    <PendingComponents>
+      <Component module="ProgressionSystem" name="ProgressTracker" nextInQueue="true" />
+      <Component module="OfflineSupport" name="SynchronizationManager" />
+      <Component module="OfflineSupport" name="OfflineStorage" />
+      <Component module="OfflineSupport" name="ContentCache" />
+    </PendingComponents>
+  </ImplementationProgress>
+  
+  <LastUpdated>2025-05-22</LastUpdated>
+</ProjectRegistry>

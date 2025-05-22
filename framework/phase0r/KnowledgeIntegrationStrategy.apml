@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KnowledgeIntegrationStrategy version="1.1.0">
+  <IntegrationPrinciples>
+    <Principle id="IP-001">
+      <Name>Distinction-First Design</Name>
+      <Description>
+        All components must be designed with the core philosophical principle of 
+        "Distinction As Primitive" as their foundation. This means that boundary-drawing 
+        operations should be explicit in the design and implementation of all learning components.
+      </Description>
+      <ApplicationGuidelines>
+        <Guideline>Learning Engine components must explicitly model the five boundary levels</Guideline>
+        <Guideline>UI components must visually reinforce distinction boundaries</Guideline>
+        <Guideline>Progression mechanics must be based on distinction mastery</Guideline>
+      </ApplicationGuidelines>
+    </Principle>
+    
+    <Principle id="IP-002">
+      <Name>Interface-Driven Knowledge Transfer</Name>
+      <Description>
+        Knowledge from the previous implementation must be transferred through 
+        well-defined interfaces rather than implementation details. This ensures 
+        that the rebuild preserves the effective aspects of the previous system 
+        while allowing for improved implementation.
+      </Description>
+      <ApplicationGuidelines>
+        <Guideline>Define interfaces based on proven interaction patterns from previous implementation</Guideline>
+        <Guideline>Encapsulate complex algorithms behind clear interfaces</Guideline>
+        <Guideline>Preserve user experience patterns while allowing implementation flexibility</Guideline>
+      </ApplicationGuidelines>
+    </Principle>
+    
+    <Principle id="IP-003">
+      <Name>Modular Knowledge Encapsulation</Name>
+      <Description>
+        Domain knowledge must be encapsulated in modular components with clear 
+        responsibilities. This allows for independent development and testing 
+        of knowledge-intensive components.
+      </Description>
+      <ApplicationGuidelines>
+        <Guideline>Learning algorithms should be isolated in dedicated components</Guideline>
+        <Guideline>Progression mechanics should be separated from presentation</Guideline>
+        <Guideline>Metrics calculation should be encapsulated in dedicated services</Guideline>
+      </ApplicationGuidelines>
+    </Principle>
+  </IntegrationPrinciples>
+  
+  <KnowledgeMappingMatrix>
+    <KnowledgeArea name="MetaTheoretical">
+      <TargetComponents>
+        <Component>LearningEngine</Component>
+        <Component>DistinctionManager</Component>
+        <Component>ProgressionSystem</Component>
+      </TargetComponents>
+      <IntegrationApproach>
+        These components must directly implement the distinction-based learning principles, 
+        with explicit modeling of boundary levels and cognitive resource optimization.
+      </IntegrationApproach>
+      <ValidationStrategy>
+        Components must be validated against the core learning principles to ensure 
+        they correctly implement the distinction-based approach.
+      </ValidationStrategy>
+    </KnowledgeArea>
+    
+    <KnowledgeArea name="UserExperience">
+      <TargetComponents>
+        <Component>PlayerCard</Component>
+        <Component>FeedbackSystem</Component>
+        <Component>VisualTheme</Component>
+      </TargetComponents>
+      <IntegrationApproach>
+        These components must implement the calming, anxiety-free experience with 
+        appropriate visual feedback for different user interactions.
+      </IntegrationApproach>
+      <ValidationStrategy>
+        Components must be validated against the visual design principles and 
+        interaction patterns from the previous implementation.
+      </ValidationStrategy>
+    </KnowledgeArea>
+    
+    <KnowledgeArea name="LearningMechanics">
+      <TargetComponents>
+        <Component>TripleHelixManager</Component>
+        <Component>SpacedRepetitionSystem</Component>
+        <Component>DistractorGenerator</Component>
+      </TargetComponents>
+      <IntegrationApproach>
+        These components must implement the Triple Helix model and spaced repetition 
+        algorithm with appropriate distractor generation based on boundary levels.
+      </IntegrationApproach>
+      <ValidationStrategy>
+        Components must be validated against the mathematical implementation details 
+        and progression mechanics from the previous implementation.
+      </ValidationStrategy>
+    </KnowledgeArea>
+    
+    <KnowledgeArea name="BusinessModel">
+      <TargetComponents>
+        <Component>SubscriptionManager</Component>
+        <Component>ContentAccessController</Component>
+        <Component>OfflineManager</Component>
+      </TargetComponents>
+      <IntegrationApproach>
+        These components must implement the subscription tiers, content access rules, 
+        and offline strategy according to the business model.
+      </IntegrationApproach>
+      <ValidationStrategy>
+        Components must be validated against the business requirements and 
+        user expectations for different subscription tiers.
+      </ValidationStrategy>
+    </KnowledgeArea>
+  </KnowledgeMappingMatrix>
+  
+  <CrossCuttingConcerns>
+    <Concern name="PerformanceOptimization">
+      <Description>
+        Knowledge about performance optimization, particularly for mobile devices, 
+        must be integrated across all components.
+      </Description>
+      <IntegrationStrategy>
+        Define performance requirements in component interfaces and validate 
+        implementations against these requirements.
+      </IntegrationStrategy>
+    </Concern>
+    
+    <Concern name="OfflineFirst">
+      <Description>
+        Knowledge about offline-first design must be integrated across all components 
+        that interact with remote services.
+      </Description>
+      <IntegrationStrategy>
+        Define synchronization protocols in component interfaces and ensure all 
+        components handle offline scenarios appropriately.
+      </IntegrationStrategy>
+    </Concern>
+    
+    <Concern name="UserPrivacy">
+      <Description>
+        Knowledge about user privacy considerations must be integrated across all 
+        components that handle user data.
+      </Description>
+      <IntegrationStrategy>
+        Define data handling requirements in component interfaces and ensure all 
+        implementations follow privacy best practices.
+      </IntegrationStrategy>
+    </Concern>
+  </CrossCuttingConcerns>
+  
+  <KnowledgeTransferProcess>
+    <Phase name="InterfaceDefinition">
+      <Step>
+        Extract interaction patterns and requirements from ExpertKnowledge.apml 
+        and define clear interfaces for each component.
+      </Step>
+      <Deliverable>Component interface definitions in APML format</Deliverable>
+    </Phase>
+    
+    <Phase name="AlgorithmEncapsulation">
+      <Step>
+        Identify core algorithms from previous implementation and define 
+        algorithm components with clear interfaces.
+      </Step>
+      <Deliverable>Algorithm component specifications in APML format</Deliverable>
+    </Phase>
+    
+    <Phase name="ValidationCriteriaDefinition">
+      <Step>
+        Define validation criteria for each component based on RebuildRequirements.apml 
+        and previous implementation insights.
+      </Step>
+      <Deliverable>Validation criteria in APML format</Deliverable>
+    </Phase>
+    
+    <Phase name="ImplementationGuidance">
+      <Step>
+        Prepare implementation guidance for LLMs based on ExpertKnowledge.apml 
+        and ImplementationAssessment.apml.
+      </Step>
+      <Deliverable>Implementation guidance in APML format</Deliverable>
+    </Phase>
+  </KnowledgeTransferProcess>
+  
+  <LLMCollaborationStrategy>
+    <Strategy name="ComponentAssignment">
+      <Description>
+        Assign components to different LLMs based on their strengths and the 
+        knowledge requirements of each component.
+      </Description>
+      <Implementation>
+        <Assignment component="LearningEngine" llm="Claude 3.7 Sonnet">
+          Requires deep understanding of distinction-based learning principles 
+          and algorithm implementation.
+        </Assignment>
+        <Assignment component="UserInterface" llm="Claude 3.7 Sonnet">
+          Requires understanding of visual design principles and interaction patterns.
+        </Assignment>
+        <Assignment component="ProgressionSystem" llm="Claude 3.7 Sonnet">
+          Requires understanding of Triple Helix model and spaced repetition algorithm.
+        </Assignment>
+      </Implementation>
+    </Strategy>
+    
+    <Strategy name="KnowledgeDistribution">
+      <Description>
+        Distribute knowledge to LLMs through component interfaces and implementation guidance.
+      </Description>
+      <Implementation>
+        <Step>
+          Provide each LLM with the component interface definition and relevant 
+          sections of ExpertKnowledge.apml.
+        </Step>
+        <Step>
+          Include implementation guidance based on ImplementationAssessment.apml 
+          and RebuildRequirements.apml.
+        </Step>
+        <Step>
+          Specify validation criteria based on the component's requirements.
+        </Step>
+      </Implementation>
+    </Strategy>
+    
+    <Strategy name="ParallelDevelopment">
+      <Description>
+        Enable parallel development by multiple LLMs through clear interface contracts.
+      </Description>
+      <Implementation>
+        <Step>
+          Define all component interfaces before starting implementation.
+        </Step>
+        <Step>
+          Ensure each component has mock inputs and outputs for testing.
+        </Step>
+        <Step>
+          Implement components in isolation, validating against interface contracts.
+        </Step>
+        <Step>
+          Integrate components through defined interfaces.
+        </Step>
+      </Implementation>
+    </Strategy>
+  </LLMCollaborationStrategy>
+</KnowledgeIntegrationStrategy>

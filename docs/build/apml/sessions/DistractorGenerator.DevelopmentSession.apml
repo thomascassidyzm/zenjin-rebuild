@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="DistractorGenerator" module="LearningEngine">
+    <ImplementationGoal>
+      Implement the DistractorGenerator component that generates appropriate distractors based on the boundary level and mathematical fact, supporting the distinction-based learning approach.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/LearningEngine.apml" section="Interfaces.DistractorGeneratorInterface" />
+      <Reference type="MetaTheoretical" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MathematicalImplementation.BoundaryLevels" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-001" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/LearningEngine.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the DistractorGenerator component for the Zenjin Maths App, which is responsible for generating appropriate distractors based on the boundary level and mathematical fact.
+      
+      The DistractorGenerator must implement:
+      1. Generation of distractors for each boundary level:
+         - Category Boundaries (Level 1): Non-numerical distractors (e.g., "Fish" instead of 56)
+         - Magnitude Boundaries (Level 2): Numerical distractors with incorrect magnitude (e.g., 784 instead of 56)
+         - Operation Boundaries (Level 3): Results from incorrect operation (e.g., 7 + 8 = 15 instead of 7 × 8 = 56)
+         - Related Fact Boundaries (Level 4): Results from adjacent facts (e.g., 7 × 9 = 63 instead of 7 × 8 = 56)
+         - Near Miss Boundaries (Level 5): Very similar numerical answers (e.g., 54 instead of 56)
+      
+      2. Methods to:
+         - Generate appropriate distractors based on boundary level and fact
+         - Provide explanations for why distractors were chosen
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the DistractorGeneratorInterface as defined in the LearningEngine module
+      - Ensure the implementation is testable with mock inputs
+      - Design for performance with distractor generation completing within 50ms
+      - Ensure distractors are relevant to the specific boundary level being tested
+      
+      Please implement the DistractorGenerator component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how the distractors relate to each boundary level.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="generateDistractor" value="{factId: 'mult-7-8', boundaryLevel: 5, correctAnswer: '56'}" />
+      <Input name="getDistractorExplanation" value="{factId: 'mult-7-8', distractor: '54', boundaryLevel: 5}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="distractor" value="'54'" />
+      <Output name="explanation" value="'This distractor (54) is a near miss to the correct answer (56), differing by only 2. It tests the learner's precise knowledge of the multiplication fact 7 × 8 = 56 versus the similar-looking value 54.'" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="LE-002">
+        DistractorGenerator must generate appropriate distractors for each boundary level that isolate the specific boundary being tested.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

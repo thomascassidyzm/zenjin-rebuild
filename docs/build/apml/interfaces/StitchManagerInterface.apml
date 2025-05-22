@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="StitchManagerInterface" version="1.1.0" module="ProgressionSystem">
+  <Purpose>
+    Defines the contract for the StitchManager component that manages stitches (learning units) within learning paths.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="Stitch">
+      <Field name="id" type="string" required="true" description="Unique identifier for the stitch" />
+      <Field name="name" type="string" required="true" description="Name of the stitch" />
+      <Field name="description" type="string" required="false" description="Description of the stitch" />
+      <Field name="learningPathId" type="string" required="true" description="ID of the learning path this stitch belongs to" />
+      <Field name="position" type="number" required="true" description="Position in the learning path queue" />
+      <Field name="difficulty" type="number" required="true" description="Difficulty level of the stitch (1-5)" />
+      <Field name="factIds" type="string[]" required="true" description="IDs of mathematical facts covered in this stitch" />
+      <Field name="prerequisites" type="string[]" required="false" description="IDs of prerequisite stitches" />
+      <Field name="metadata" type="object" required="false" description="Additional metadata for the stitch" />
+    </Structure>
+    
+    <Structure name="StitchProgress">
+      <Field name="userId" type="string" required="true" description="User identifier" />
+      <Field name="stitchId" type="string" required="true" description="Stitch identifier" />
+      <Field name="completionCount" type="number" required="true" description="Number of times the stitch has been completed" />
+      <Field name="correctCount" type="number" required="true" description="Number of correct answers" />
+      <Field name="totalCount" type="number" required="true" description="Total number of questions attempted" />
+      <Field name="masteryLevel" type="number" required="true" description="Mastery level (0.0-1.0)" />
+      <Field name="lastAttemptDate" type="string" required="false" description="ISO date string of last attempt" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="getStitchById">
+      <Description>Gets a stitch by its identifier</Description>
+      <Input name="stitchId" type="string" required="true" description="Stitch identifier" />
+      <Output name="stitch" type="Stitch" description="The stitch" />
+      <Errors>
+        <Error code="STITCH_NOT_FOUND" description="The specified stitch was not found" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getStitchesByLearningPath">
+      <Description>Gets all stitches for a specific learning path</Description>
+      <Input name="learningPathId" type="string" required="true" description="Learning path identifier" />
+      <Output name="stitches" type="Stitch[]" description="Array of stitches in the learning path" />
+      <Errors>
+        <Error code="LEARNING_PATH_NOT_FOUND" description="The specified learning path was not found" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getStitchProgress">
+      <Description>Gets progress data for a specific stitch and user</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="stitchId" type="string" required="true" description="Stitch identifier" />
+      <Output name="progress" type="StitchProgress" description="Stitch progress data" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="STITCH_NOT_FOUND" description="The specified stitch was not found" />
+        <Error code="NO_PROGRESS_DATA" description="No progress data exists for this user and stitch" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="updateStitchProgress">
+      <Description>Updates progress data for a specific stitch and user</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="stitchId" type="string" required="true" description="Stitch identifier" />
+      <Input name="sessionResults" type="object" required="true" description="Results from the learning session">
+        <Field name="correctCount" type="number" required="true" description="Number of correct answers in the session" />
+        <Field name="totalCount" type="number" required="true" description="Total number of questions in the session" />
+        <Field name="completionTime" type="number" required="true" description="Time taken to complete the session in milliseconds" />
+      </Input>
+      <Output name="updatedProgress" type="StitchProgress" description="Updated stitch progress data" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="STITCH_NOT_FOUND" description="The specified stitch was not found" />
+        <Error code="INVALID_SESSION_RESULTS" description="The session results are invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="repositionStitch">
+      <Description>Repositions a stitch within its learning path based on the Stitch Repositioning Algorithm</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="stitchId" type="string" required="true" description="Stitch identifier" />
+      <Input name="performance" type="object" required="true" description="Performance data for repositioning">
+        <Field name="correctCount" type="number" required="true" description="Number of correct answers" />
+        <Field name="totalCount" type="number" required="true" description="Total number of questions" />
+        <Field name="averageResponseTime" type="number" required="true" description="Average response time in milliseconds" />
+      </Input>
+      <Output name="result" type="object" description="Result of the repositioning operation">
+        <Field name="previousPosition" type="number" description="Previous position in the queue" />
+        <Field name="newPosition" type="number" description="New position in the queue" />
+        <Field name="skipNumber" type="number" description="Skip number used for repositioning" />
+      </Output>
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="STITCH_NOT_FOUND" description="The specified stitch was not found" />
+        <Error code="INVALID_PERFORMANCE_DATA" description="The performance data is invalid" />
+        <Error code="REPOSITIONING_FAILED" description="Failed to reposition the stitch" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getNextStitch">
+      <Description>Gets the next stitch to present to the user in a learning path</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="learningPathId" type="string" required="true" description="Learning path identifier" />
+      <Output name="nextStitch" type="Stitch" description="The next stitch to present" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="LEARNING_PATH_NOT_FOUND" description="The specified learning path was not found" />
+        <Error code="NO_STITCHES_AVAILABLE" description="No stitches available in the learning path" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+  </Methods>
+  
+  <Dependencies>
+    <Dependency interface="SpacedRepetitionInterface" module="ProgressionSystem" />
+  </Dependencies>
+  
+  <UsageExample>
+```typescript
+// Example usage of StitchManagerInterface
+import { StitchManager } from './components/StitchManager';
+
+// Create stitch manager
+const stitchManager = new StitchManager();
+
+// Get a stitch by ID
+const stitch = stitchManager.getStitchById('stitch123');
+console.log(`Stitch: ${stitch.name}`);
+console.log(`Difficulty: ${stitch.difficulty}`);
+console.log(`Position: ${stitch.position}`);
+
+// Get all stitches for a learning path
+const stitches = stitchManager.getStitchesByLearningPath('path1');
+console.log(`Found ${stitches.length} stitches in the learning path`);
+
+// Get stitch progress for a user
+const progress = stitchManager.getStitchProgress('user123', 'stitch123');
+console.log(`Completion count: ${progress.completionCount}`);
+console.log(`Mastery level: ${progress.masteryLevel}`);
+
+// Update stitch progress based on session results
+const updatedProgress = stitchManager.updateStitchProgress('user123', 'stitch123', {
+  correctCount: 18,
+  totalCount: 20,
+  completionTime: 240000
+});
+
+console.log(`Updated mastery level: ${updatedProgress.masteryLevel}`);
+
+// Reposition a stitch based on performance
+const repositionResult = stitchManager.repositionStitch('user123', 'stitch123', {
+  correctCount: 20,
+  totalCount: 20,
+  averageResponseTime: 1500
+});
+
+console.log(`Previous position: ${repositionResult.previousPosition}`);
+console.log(`New position: ${repositionResult.newPosition}`);
+console.log(`Skip number: ${repositionResult.skipNumber}`);
+
+// Get the next stitch for a user in a learning path
+const nextStitch = stitchManager.getNextStitch('user123', 'path1');
+console.log(`Next stitch: ${nextStitch.name}`);
+```
+  </UsageExample>
+</Interface>

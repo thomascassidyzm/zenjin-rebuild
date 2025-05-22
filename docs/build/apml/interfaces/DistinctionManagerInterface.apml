@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="DistinctionManagerInterface" version="1.1.0" module="LearningEngine">
+  <Purpose>
+    Defines the contract for the DistinctionManager component that manages the five boundary levels of distinction and tracks user mastery at each level.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="BoundaryLevel">
+      <Field name="level" type="number" required="true" description="Boundary level (1-5)" />
+      <Field name="name" type="string" required="true" description="Name of the boundary level" />
+      <Field name="description" type="string" required="true" description="Description of the boundary level" />
+    </Structure>
+    
+    <Structure name="UserFactMastery">
+      <Field name="userId" type="string" required="true" description="User identifier" />
+      <Field name="factId" type="string" required="true" description="Mathematical fact identifier" />
+      <Field name="currentLevel" type="number" required="true" description="Current boundary level (1-5)" />
+      <Field name="masteryScore" type="number" required="true" description="Mastery score for the current level (0.0-1.0)" />
+      <Field name="consecutiveCorrect" type="number" required="true" description="Number of consecutive correct answers" />
+      <Field name="lastResponseTime" type="number" required="false" description="Last response time in milliseconds" />
+      <Field name="lastAttemptDate" type="string" required="false" description="ISO date string of last attempt" />
+    </Structure>
+    
+    <Structure name="PerformanceData">
+      <Field name="correctFirstAttempt" type="boolean" required="true" description="Whether the answer was correct on first attempt" />
+      <Field name="responseTime" type="number" required="true" description="Response time in milliseconds" />
+      <Field name="consecutiveCorrect" type="number" required="false" description="Number of consecutive correct answers" defaultValue="0" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="getCurrentBoundaryLevel">
+      <Description>Gets the current boundary level for a user and fact</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="factId" type="string" required="true" description="Mathematical fact identifier" />
+      <Output name="boundaryLevel" type="number" description="Current boundary level (1-5)" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="FACT_NOT_FOUND" description="The specified fact was not found" />
+        <Error code="NO_MASTERY_DATA" description="No mastery data exists for this user and fact" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getUserFactMastery">
+      <Description>Gets detailed mastery data for a user and fact</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="factId" type="string" required="true" description="Mathematical fact identifier" />
+      <Output name="mastery" type="UserFactMastery" description="User fact mastery data" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="FACT_NOT_FOUND" description="The specified fact was not found" />
+        <Error code="NO_MASTERY_DATA" description="No mastery data exists for this user and fact" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="updateBoundaryLevel">
+      <Description>Updates the boundary level based on user performance</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="factId" type="string" required="true" description="Mathematical fact identifier" />
+      <Input name="performance" type="PerformanceData" required="true" description="Performance data for the update" />
+      <Output name="result" type="object" description="Result of the update operation">
+        <Field name="previousLevel" type="number" description="Previous boundary level" />
+        <Field name="newLevel" type="number" description="New boundary level" />
+        <Field name="levelChanged" type="boolean" description="Whether the level changed" />
+        <Field name="masteryScore" type="number" description="Updated mastery score" />
+      </Output>
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="FACT_NOT_FOUND" description="The specified fact was not found" />
+        <Error code="INVALID_PERFORMANCE_DATA" description="The performance data is invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getBoundaryLevelDescription">
+      <Description>Gets the description of a specific boundary level</Description>
+      <Input name="level" type="number" required="true" description="Boundary level (1-5)" />
+      <Output name="description" type="BoundaryLevel" description="Boundary level description" />
+      <Errors>
+        <Error code="INVALID_LEVEL" description="The specified level is invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getAllBoundaryLevels">
+      <Description>Gets descriptions of all boundary levels</Description>
+      <Output name="levels" type="BoundaryLevel[]" description="Array of all boundary level descriptions" />
+      <Errors>
+        <!-- No specific errors for this method -->
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="initializeUserFactMastery">
+      <Description>Initializes mastery data for a user and fact</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="factId" type="string" required="true" description="Mathematical fact identifier" />
+      <Input name="initialLevel" type="number" required="false" description="Initial boundary level (1-5)" defaultValue="1" />
+      <Output name="success" type="boolean" description="Whether the initialization was successful" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="FACT_NOT_FOUND" description="The specified fact was not found" />
+        <Error code="INVALID_LEVEL" description="The specified initial level is invalid" />
+        <Error code="ALREADY_INITIALIZED" description="Mastery data already exists for this user and fact" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+  </Methods>
+  
+  <Dependencies>
+    <Dependency interface="FactRepositoryInterface" module="LearningEngine" />
+  </Dependencies>
+  
+  <UsageExample>
+```typescript
+// Example usage of DistinctionManagerInterface
+import { DistinctionManager } from './components/DistinctionManager';
+
+// Create distinction manager
+const distinctionManager = new DistinctionManager();
+
+// Get current boundary level for a user and fact
+const boundaryLevel = distinctionManager.getCurrentBoundaryLevel('user123', 'mult-7-8');
+console.log(`Current boundary level: ${boundaryLevel}`);
+
+// Get description of the boundary level
+const levelDescription = distinctionManager.getBoundaryLevelDescription(boundaryLevel);
+console.log(`Level ${levelDescription.level}: ${levelDescription.name}`);
+console.log(`Description: ${levelDescription.description}`);
+
+// Update boundary level based on performance
+const updateResult = distinctionManager.updateBoundaryLevel('user123', 'mult-7-8', {
+  correctFirstAttempt: true,
+  responseTime: 1200,
+  consecutiveCorrect: 3
+});
+
+console.log(`Previous level: ${updateResult.previousLevel}`);
+console.log(`New level: ${updateResult.newLevel}`);
+console.log(`Level changed: ${updateResult.levelChanged}`);
+console.log(`Mastery score: ${updateResult.masteryScore}`);
+
+// Get detailed mastery data
+const mastery = distinctionManager.getUserFactMastery('user123', 'mult-7-8');
+console.log(`Current level: ${mastery.currentLevel}`);
+console.log(`Mastery score: ${mastery.masteryScore}`);
+console.log(`Consecutive correct: ${mastery.consecutiveCorrect}`);
+```
+  </UsageExample>
+</Interface>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="SynchronizationManagerInterface" version="1.1.0" module="OfflineSupport">
+  <Purpose>
+    Defines the contract for the SynchronizationManager component that manages data synchronization between local storage and the server.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="SyncStatus">
+      <Field name="lastSyncTime" type="string" required="true" description="ISO date string of last successful synchronization" />
+      <Field name="pendingChanges" type="number" required="true" description="Number of pending changes to be synchronized" />
+      <Field name="syncInProgress" type="boolean" required="true" description="Whether synchronization is currently in progress" />
+      <Field name="lastError" type="string" required="false" description="Description of the last synchronization error" />
+      <Field name="connectionStatus" type="string" required="true" description="Current connection status ('online', 'offline')" />
+    </Structure>
+    
+    <Structure name="SyncResult">
+      <Field name="success" type="boolean" required="true" description="Whether the synchronization was successful" />
+      <Field name="syncedChanges" type="number" required="true" description="Number of changes synchronized" />
+      <Field name="conflictsResolved" type="number" required="true" description="Number of conflicts resolved" />
+      <Field name="timestamp" type="string" required="true" description="ISO date string of synchronization" />
+      <Field name="error" type="string" required="false" description="Error message if synchronization failed" />
+    </Structure>
+    
+    <Structure name="SyncOptions">
+      <Field name="forceSync" type="boolean" required="false" description="Whether to force synchronization even with conflicts" defaultValue="false" />
+      <Field name="syncDirection" type="string" required="false" description="Direction of synchronization ('upload', 'download', 'both')" defaultValue="both" />
+      <Field name="conflictResolution" type="string" required="false" description="Conflict resolution strategy ('server', 'client', 'manual')" defaultValue="server" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="synchronize">
+      <Description>Initiates data synchronization between local storage and the server</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="options" type="SyncOptions" required="false" description="Synchronization options" />
+      <Output name="result" type="SyncResult" description="Synchronization result" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="SYNC_IN_PROGRESS" description="Synchronization is already in progress" />
+        <Error code="NETWORK_ERROR" description="Network error occurred during synchronization" />
+        <Error code="SERVER_ERROR" description="Server error occurred during synchronization" />
+        <Error code="CONFLICT_ERROR" description="Unresolved conflicts prevented synchronization" />
+      </Errors>
+      <Async>true</Async>
+    </Method>
+    
+    <Method name="getSyncStatus">
+      <Description>Gets the current synchronization status</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Output name="status" type="SyncStatus" description="Current synchronization status" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="markForSync">
+      <Description>Marks specific data for synchronization</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="dataType" type="string" required="true" description="Type of data to mark ('progress', 'metrics', 'settings')" />
+      <Input name="dataId" type="string" required="true" description="Identifier of the data to mark" />
+      <Output name="success" type="boolean" description="Whether the data was successfully marked for synchronization" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="INVALID_DATA_TYPE" description="The specified data type is invalid" />
+        <Error code="DATA_NOT_FOUND" description="The specified data was not found" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="resolveConflict">
+      <Description>Resolves a synchronization conflict</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="conflictId" type="string" required="true" description="Conflict identifier" />
+      <Input name="resolution" type="string" required="true" description="Resolution choice ('server', 'client', 'merged')" />
+      <Input name="mergedData" type="object" required="false" description="Merged data if resolution is 'merged'" />
+      <Output name="success" type="boolean" description="Whether the conflict was successfully resolved" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="CONFLICT_NOT_FOUND" description="The specified conflict was not found" />
+        <Error code="INVALID_RESOLUTION" description="The specified resolution is invalid" />
+        <Error code="INVALID_MERGED_DATA" description="The merged data is invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getConnectionStatus">
+      <Description>Gets the current connection status</Description>
+      <Output name="status" type="string" description="Current connection status ('online', 'offline')" />
+      <Errors>
+        <!-- No specific errors for this method -->
+      </Errors>
+      <Async>false</Async>
+    </Method>
+  </Methods>
+  
+  <Dependencies>
+    <Dependency interface="OfflineStorageInterface" module="OfflineSupport" />
+  </Dependencies>
+  
+  <UsageExample>
+```typescript
+// Example usage of SynchronizationManagerInterface
+import { SynchronizationManager } from './components/SynchronizationManager';
+
+// Create synchronization manager
+const syncManager = new SynchronizationManager();
+
+// Get current sync status
+const status = syncManager.getSyncStatus('user123');
+console.log(`Last sync: ${status.lastSyncTime}`);
+console.log(`Pending changes: ${status.pendingChanges}`);
+console.log(`Connection: ${status.connectionStatus}`);
+
+// Check connection status
+const connectionStatus = syncManager.getConnectionStatus();
+if (connectionStatus === 'online') {
+  // Initiate synchronization
+  syncManager.synchronize('user123', {
+    forceSync: false,
+    syncDirection: 'both',
+    conflictResolution: 'server'
+  }).then(result => {
+    console.log(`Sync successful: ${result.success}`);
+    console.log(`Changes synced: ${result.syncedChanges}`);
+    console.log(`Conflicts resolved: ${result.conflictsResolved}`);
+  }).catch(error => {
+    console.error(`Sync failed: ${error.message}`);
+  });
+} else {
+  console.log('Cannot sync while offline');
+  
+  // Mark data for future synchronization
+  syncManager.markForSync('user123', 'progress', 'session123');
+  console.log('Data marked for future sync');
+}
+```
+  </UsageExample>
+</Interface>

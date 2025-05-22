@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="UserInterface" version="1.1.0">
+  <Purpose>
+    Provide a calming, anxiety-free visual experience with appropriate feedback for user interactions, implementing the binary distinction presentation through the Player Card mechanism.
+  </Purpose>
+  
+  <ContextBoundary size="medium" tokenEstimate="40000">
+    <Description>
+      This module encompasses all user-facing components, including the Player Card, feedback system, 
+      visual theming, animations, and layout. It is responsible for presenting questions and collecting 
+      user responses, but not for generating content or tracking progression.
+    </Description>
+  </ContextBoundary>
+  
+  <Interfaces>
+    <Interface name="PlayerCardInterface">
+      <Description>
+        Presents questions with two possible answers (one correct, one distractor) and provides 
+        appropriate visual feedback based on user response.
+      </Description>
+      <Methods>
+        <Method name="presentQuestion">
+          <Input name="question" type="string" required="true" description="The question text to display" />
+          <Input name="correctAnswer" type="string" required="true" description="The correct answer text" />
+          <Input name="distractor" type="string" required="true" description="The distractor (incorrect) answer text" />
+          <Input name="questionId" type="string" required="true" description="Unique identifier for the question" />
+          <Output name="response" type="object" description="User response data including selected answer and timing" />
+        </Method>
+        <Method name="showFeedback">
+          <Input name="isCorrect" type="boolean" required="true" description="Whether the user's answer was correct" />
+          <Input name="feedbackType" type="string" required="true" description="Type of feedback to show (correct, incorrect, timeout, no-answer)" />
+        </Method>
+        <Method name="resetCard">
+          <Description>Reset the card to neutral state for the next question</Description>
+        </Method>
+      </Methods>
+      <Events>
+        <Event name="onAnswerSelected">
+          <Parameter name="questionId" type="string" description="ID of the question being answered" />
+          <Parameter name="selectedAnswer" type="string" description="Text of the selected answer" />
+          <Parameter name="isCorrect" type="boolean" description="Whether the selected answer is correct" />
+          <Parameter name="responseTime" type="number" description="Time taken to respond in milliseconds" />
+        </Event>
+        <Event name="onTimeout">
+          <Parameter name="questionId" type="string" description="ID of the question that timed out" />
+        </Event>
+      </Events>
+    </Interface>
+    
+    <Interface name="FeedbackSystemInterface">
+      <Description>
+        Manages visual and interactive feedback for user actions throughout the application.
+      </Description>
+      <Methods>
+        <Method name="showCorrectFeedback">
+          <Input name="element" type="object" required="true" description="The UI element to apply feedback to" />
+          <Input name="intensity" type="number" required="false" description="Intensity of the feedback effect (0-1)" />
+        </Method>
+        <Method name="showIncorrectFeedback">
+          <Input name="element" type="object" required="true" description="The UI element to apply feedback to" />
+          <Input name="intensity" type="number" required="false" description="Intensity of the feedback effect (0-1)" />
+        </Method>
+        <Method name="showNeutralFeedback">
+          <Input name="element" type="object" required="true" description="The UI element to apply feedback to" />
+        </Method>
+        <Method name="showTimeoutFeedback">
+          <Input name="element" type="object" required="true" description="The UI element to apply feedback to" />
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="ThemeManagerInterface">
+      <Description>
+        Manages the visual theme of the application, including colors, animations, and styling.
+      </Description>
+      <Methods>
+        <Method name="applyTheme">
+          <Input name="theme" type="object" required="true" description="Theme configuration object" />
+        </Method>
+        <Method name="getThemeProperty">
+          <Input name="propertyName" type="string" required="true" description="Name of the theme property to retrieve" />
+          <Output name="propertyValue" type="any" description="Value of the requested theme property" />
+        </Method>
+        <Method name="startBackgroundAnimation">
+          <Description>Start the calming bubble background animation</Description>
+        </Method>
+        <Method name="stopBackgroundAnimation">
+          <Description>Stop the background animation to conserve resources</Description>
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="SessionSummaryInterface">
+      <Description>
+        Displays session metrics and summary information after a learning session.
+      </Description>
+      <Methods>
+        <Method name="showSessionSummary">
+          <Input name="sessionData" type="object" required="true" description="Session metrics and summary data" />
+        </Method>
+        <Method name="animatePointsAccumulation">
+          <Input name="basePoints" type="number" required="true" description="Base points earned in the session" />
+          <Input name="bonusPoints" type="number" required="true" description="Bonus points earned in the session" />
+          <Input name="totalPoints" type="number" required="true" description="Total points (base + bonus)" />
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="DashboardInterface">
+      <Description>
+        Displays lifetime metrics and user progress information.
+      </Description>
+      <Methods>
+        <Method name="showDashboard">
+          <Input name="lifetimeData" type="object" required="true" description="Lifetime metrics and progress data" />
+        </Method>
+        <Method name="updateMetric">
+          <Input name="metricName" type="string" required="true" description="Name of the metric to update" />
+          <Input name="metricValue" type="any" required="true" description="New value for the metric" />
+        </Method>
+      </Methods>
+    </Interface>
+  </Interfaces>
+  
+  <Components>
+    <Component name="PlayerCard">
+      <Description>
+        The core interactive component that presents questions with binary choices and provides feedback.
+      </Description>
+      <Implements>PlayerCardInterface</Implements>
+      <Dependencies>
+        <Dependency interface="FeedbackSystemInterface" />
+        <Dependency interface="ThemeManagerInterface" />
+      </Dependencies>
+    </Component>
+    
+    <Component name="FeedbackSystem">
+      <Description>
+        Manages visual and interactive feedback for user actions.
+      </Description>
+      <Implements>FeedbackSystemInterface</Implements>
+      <Dependencies>
+        <Dependency interface="ThemeManagerInterface" />
+      </Dependencies>
+    </Component>
+    
+    <Component name="ThemeManager">
+      <Description>
+        Manages the visual theme and animations of the application.
+      </Description>
+      <Implements>ThemeManagerInterface</Implements>
+    </Component>
+    
+    <Component name="SessionSummary">
+      <Description>
+        Displays session metrics and summary information.
+      </Description>
+      <Implements>SessionSummaryInterface</Implements>
+      <Dependencies>
+        <Dependency interface="ThemeManagerInterface" />
+      </Dependencies>
+    </Component>
+    
+    <Component name="Dashboard">
+      <Description>
+        Displays lifetime metrics and user progress information.
+      </Description>
+      <Implements>DashboardInterface</Implements>
+      <Dependencies>
+        <Dependency interface="ThemeManagerInterface" />
+      </Dependencies>
+    </Component>
+  </Components>
+  
+  <ModuleDependencies>
+    <ModuleDependency name="LearningEngine">
+      <Interface>QuestionGeneratorInterface</Interface>
+      <Interface>DistractorGeneratorInterface</Interface>
+    </ModuleDependency>
+    <ModuleDependency name="MetricsSystem">
+      <Interface>SessionMetricsInterface</Interface>
+      <Interface>LifetimeMetricsInterface</Interface>
+    </ModuleDependency>
+    <ModuleDependency name="ProgressionSystem">
+      <Interface>ProgressTrackingInterface</Interface>
+    </ModuleDependency>
+  </ModuleDependencies>
+  
+  <ValidationCriteria>
+    <Criterion id="UI-001" test="tests/ui/player_card_feedback_test.js">
+      Player Card must show greenish glow for correct answers, reddish glow with card shudder for incorrect answers, and neutral blue for no-answer scenarios.
+    </Criterion>
+    <Criterion id="UI-002" test="tests/ui/background_animation_test.js">
+      Background must display calming bubble animation that maintains 60fps on target devices.
+    </Criterion>
+    <Criterion id="UI-003" test="tests/ui/theme_consistency_test.js">
+      All UI components must consistently apply the theme with rich colors, gradients, and dark theme.
+    </Criterion>
+    <Criterion id="UI-004" test="tests/ui/session_summary_test.js">
+      Session Summary must correctly display and animate all session metrics.
+    </Criterion>
+    <Criterion id="UI-005" test="tests/ui/dashboard_test.js">
+      Dashboard must correctly display all lifetime metrics including Evolution and Global Ranking.
+    </Criterion>
+    <Criterion id="UI-006" test="tests/ui/accessibility_test.js">
+      UI must be accessible for the target audience of school-aged children from age 6 and up.
+    </Criterion>
+  </ValidationCriteria>
+  
+  <SystemRequirements>
+    <Requirement type="Performance" name="AnimationFrameRate">
+      All animations must maintain 60fps on target devices.
+    </Requirement>
+    <Requirement type="Performance" name="InteractionLatency">
+      UI must respond to user interactions within 50ms.
+    </Requirement>
+    <Requirement type="Usability" name="ChildFriendly">
+      UI must be usable by children as young as 6 years old.
+    </Requirement>
+    <Requirement type="Accessibility" name="ColorContrast">
+      All text must have sufficient contrast ratio for readability.
+    </Requirement>
+    <Requirement type="Compatibility" name="MobileOptimized">
+      UI must be optimized for mobile devices with touch interactions.
+    </Requirement>
+  </SystemRequirements>
+</Module>

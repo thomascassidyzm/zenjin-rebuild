@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="QuestionGeneratorInterface" version="1.1.0" module="LearningEngine">
+  <Purpose>
+    Defines the contract for the QuestionGenerator component that generates questions based on the active learning path and user's progress.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="Question">
+      <Field name="id" type="string" required="true" description="Unique identifier for the question" />
+      <Field name="factId" type="string" required="true" description="Mathematical fact identifier" />
+      <Field name="text" type="string" required="true" description="The question text to display" />
+      <Field name="correctAnswer" type="string" required="true" description="The correct answer" />
+      <Field name="boundaryLevel" type="number" required="true" description="The boundary level (1-5) this question is testing" />
+      <Field name="difficulty" type="number" required="false" description="Difficulty rating (0.0-1.0)" defaultValue="0.5" />
+      <Field name="metadata" type="object" required="false" description="Additional metadata for the question" />
+    </Structure>
+    
+    <Structure name="QuestionGenerationOptions">
+      <Field name="boundaryLevel" type="number" required="false" description="Specific boundary level to target" />
+      <Field name="difficulty" type="number" required="false" description="Desired difficulty level (0.0-1.0)" />
+      <Field name="excludeFactIds" type="string[]" required="false" description="Fact IDs to exclude from generation" />
+      <Field name="preferredOperations" type="string[]" required="false" description="Preferred mathematical operations" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="generateQuestion">
+      <Description>Generates a question for a specific user and learning path</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="learningPathId" type="string" required="true" description="Learning path identifier" />
+      <Input name="options" type="QuestionGenerationOptions" required="false" description="Question generation options" />
+      <Output name="question" type="Question" description="Generated question" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="LEARNING_PATH_NOT_FOUND" description="The specified learning path was not found" />
+        <Error code="GENERATION_FAILED" description="Failed to generate a question" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getNextQuestion">
+      <Description>Gets the next question in the sequence for a user and learning path</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="learningPathId" type="string" required="true" description="Learning path identifier" />
+      <Output name="question" type="Question" description="Next question in the sequence" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="LEARNING_PATH_NOT_FOUND" description="The specified learning path was not found" />
+        <Error code="NO_QUESTIONS_AVAILABLE" description="No more questions available in the sequence" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="generateQuestionBatch">
+      <Description>Generates a batch of questions for a specific user and learning path</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="learningPathId" type="string" required="true" description="Learning path identifier" />
+      <Input name="count" type="number" required="true" description="Number of questions to generate" />
+      <Input name="options" type="QuestionGenerationOptions" required="false" description="Question generation options" />
+      <Output name="questions" type="Question[]" description="Array of generated questions" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="LEARNING_PATH_NOT_FOUND" description="The specified learning path was not found" />
+        <Error code="GENERATION_FAILED" description="Failed to generate questions" />
+        <Error code="INVALID_COUNT" description="The specified count is invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getQuestionById">
+      <Description>Gets a question by its identifier</Description>
+      <Input name="questionId" type="string" required="true" description="Question identifier" />
+      <Output name="question" type="Question" description="The question with the specified ID" />
+      <Errors>
+        <Error code="QUESTION_NOT_FOUND" description="The specified question was not found" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+  </Methods>
+  
+  <Dependencies>
+    <Dependency interface="FactRepositoryInterface" module="LearningEngine" />
+    <Dependency interface="DistinctionManagerInterface" module="LearningEngine" />
+    <Dependency interface="DistractorGeneratorInterface" module="LearningEngine" />
+  </Dependencies>
+  
+  <UsageExample>
+```typescript
+// Example usage of QuestionGeneratorInterface
+import { QuestionGenerator } from './components/QuestionGenerator';
+
+// Create question generator
+const questionGenerator = new QuestionGenerator();
+
+// Generate a question for a specific user and learning path
+const question = questionGenerator.generateQuestion('user123', 'path1', {
+  boundaryLevel: 5,
+  difficulty: 0.7
+});
+
+console.log(`Question: ${question.text}`);
+console.log(`Correct Answer: ${question.correctAnswer}`);
+console.log(`Boundary Level: ${question.boundaryLevel}`);
+
+// Get the next question in the sequence
+const nextQuestion = questionGenerator.getNextQuestion('user123', 'path1');
+console.log(`Next Question: ${nextQuestion.text}`);
+
+// Generate a batch of questions
+const questions = questionGenerator.generateQuestionBatch('user123', 'path1', 5, {
+  preferredOperations: ['multiplication', 'division']
+});
+
+console.log(`Generated ${questions.length} questions`);
+questions.forEach((q, index) => {
+  console.log(`Question ${index + 1}: ${q.text}`);
+});
+```
+  </UsageExample>
+</Interface>

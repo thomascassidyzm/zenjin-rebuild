@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="SessionMetricsManager" module="MetricsSystem">
+    <ImplementationGoal>
+      Implement the SessionMetricsManager component that calculates and manages metrics for individual learning sessions, including FTCPoints, ECPoints, BasePoints, BonusMultipliers, BlinkSpeed, and TotalPoints.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/MetricsSystem.apml" section="Interfaces.SessionMetricsInterface" />
+      <Reference type="MetricsInsights" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="LearningEngineInsights.Metrics.SessionStats" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-004" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/MetricsSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the SessionMetricsManager component for the Zenjin Maths App, which is responsible for calculating and managing metrics for individual learning sessions.
+      
+      The SessionMetricsManager must implement:
+      1. Session metrics calculation:
+         - FTCPoints: First time correct points
+         - ECPoints: Eventually correct points
+         - BasePoints: Base points
+         - BonusMultipliers: Calculated from consistency, accuracy, and speed criteria
+         - BlinkSpeed: Session Time / FTC answers
+         - TotalPoints: Base points × Bonus multiplier
+      
+      2. Methods to:
+         - Start a new session
+         - Record answers during the session
+         - End a session and generate a summary
+         - Retrieve current session metrics
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the SessionMetricsInterface as defined in the MetricsSystem module
+      - Ensure the implementation is testable with mock inputs
+      - Design for accuracy in calculations with appropriate precision
+      - Support efficient real-time metrics updates during a session
+      
+      Please implement the SessionMetricsManager component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and the calculation formulas for each metric.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="startSession" value="{userId: 'user123', sessionConfig: {duration: 300, questionCount: 20}}" />
+      <Input name="recordAnswer" value="{sessionId: 'session123', questionId: 'q001', isCorrect: true, isFirstAttempt: true, responseTime: 1500}" />
+      <Input name="endSession" value="{sessionId: 'session123'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="sessionId" value="'session123'" />
+      <Output name="sessionSummary" value="{
+        sessionId: 'session123',
+        userId: 'user123',
+        duration: 240000,
+        questionCount: 20,
+        ftcCount: 16,
+        ecCount: 3,
+        incorrectCount: 1,
+        ftcPoints: 80,
+        ecPoints: 9,
+        basePoints: 89,
+        consistency: 0.85,
+        accuracy: 0.95,
+        speed: 0.78,
+        bonusMultiplier: 1.25,
+        blinkSpeed: 15000,
+        totalPoints: 111.25
+      }" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="MS-001">
+        SessionMetricsManager must correctly calculate FTCPoints, ECPoints, BasePoints, BonusMultipliers, BlinkSpeed, and TotalPoints for a session.
+      </Criterion>
+      <Criterion id="MS-005">
+        MetricsCalculator must perform calculations with the correct formulas and precision.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

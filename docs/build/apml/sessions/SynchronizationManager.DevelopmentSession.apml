@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="SynchronizationManager" module="OfflineSupport">
+    <ImplementationGoal>
+      Implement the SynchronizationManager component that manages data synchronization between local storage and server, ensuring the application functions properly in both online and offline modes.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/OfflineSupport.apml" section="Interfaces.SynchronizationInterface" />
+      <Reference type="BusinessModel" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="BusinessModelInsights.OfflineStrategy" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-007" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/OfflineSupport.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the SynchronizationManager component for the Zenjin Maths App, which is responsible for managing data synchronization between local storage and server, ensuring the application functions properly in both online and offline modes.
+      
+      The SynchronizationManager must implement:
+      1. Synchronization of user data:
+         - Minimize server interactions to just beginning and end of sessions
+         - Ensure progress is saved locally during offline use
+         - Synchronize data when connection is restored
+         - Resolve conflicts between local and server data
+      
+      2. Methods to:
+         - Synchronize data between local storage and server
+         - Get the timestamp of the last synchronization
+         - Resolve conflicts between local and server data
+         - Get the current synchronization status
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the SynchronizationInterface as defined in the OfflineSupport module
+      - Ensure the implementation is testable with mock inputs
+      - Design for resilience to intermittent connectivity and network errors
+      - Support efficient synchronization to minimize data transfer
+      
+      Please implement the SynchronizationManager component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details, conflict resolution strategies, and synchronization protocols.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="synchronize" value="{userId: 'user123', dataTypes: ['progress', 'metrics']}" />
+      <Input name="getLastSyncTime" value="{userId: 'user123', dataType: 'progress'}" />
+      <Input name="resolveConflicts" value="{conflicts: [
+        {type: 'progress', localData: {factId: 'mult-7-8', level: 4}, serverData: {factId: 'mult-7-8', level: 3}, lastLocalUpdate: 1621234567890, lastServerUpdate: 1621234567000}
+      ]}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="result" value="{
+        success: true,
+        syncedDataTypes: ['progress', 'metrics'],
+        conflicts: 1,
+        resolvedConflicts: 1,
+        timestamp: 1621234568000
+      }" />
+      <Output name="timestamp" value="1621234567890" />
+      <Output name="resolutions" value="[
+        {type: 'progress', resolvedData: {factId: 'mult-7-8', level: 4}, resolution: 'local_newer'}
+      ]" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="OS-002">
+        SynchronizationManager must correctly synchronize data between local storage and server, resolving conflicts appropriately.
+      </Criterion>
+      <Criterion id="OS-005">
+        The application must function correctly without an internet connection, using cached content and local storage.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

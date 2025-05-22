@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="ThemeManager" module="UserInterface">
+    <ImplementationGoal>
+      Implement the ThemeManager component that manages the visual theme of the application, including colors, animations, and styling to provide a calming, anxiety-free experience.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/UserInterface.apml" section="Interfaces.ThemeManagerInterface" />
+      <Reference type="VisualDesign" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="UserExperienceInsights.VisualDesign" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="NonFunctionalRequirements.NFR-002" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/UserInterface.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the ThemeManager component for the Zenjin Maths App, which is responsible for managing the visual theme of the application, including colors, animations, and styling.
+      
+      The ThemeManager must implement:
+      1. Visual design principles:
+         - Calming Experience: Bubbles animation in background with gentle, anxiety-free, mindful visuals
+         - Color Scheme: Rich colors with gradients, simple deep gradients
+         - Modern Aesthetic: Modern look with dark themes only to limit battery cost on mobile devices
+      
+      2. Methods to:
+         - Apply theme configuration
+         - Retrieve theme properties
+         - Start and stop background animations
+      
+      Technical requirements:
+      - Use Next.js with TypeScript and Tailwind CSS
+      - Implement the ThemeManagerInterface as defined in the UserInterface module
+      - Ensure the implementation is testable with mock inputs
+      - Design for performance with smooth animations that maintain 60fps
+      - Support dark theme to limit battery usage on mobile devices
+      
+      Please implement the ThemeManager component with all necessary TypeScript types, React hooks, and styling. Include comprehensive comments explaining the implementation details and how they contribute to the calming, anxiety-free experience.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="applyTheme" value="{primaryColor: '#3B82F6', secondaryColor: '#10B981', textColor: '#F3F4F6', backgroundColor: '#111827'}" />
+      <Input name="getThemeProperty" value="{propertyName: 'primaryColor'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="propertyValue" value="'#3B82F6'" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="UI-002">
+        Background must display calming bubble animation that maintains 60fps on target devices.
+      </Criterion>
+      <Criterion id="UI-003">
+        All UI components must consistently apply the theme with rich colors, gradients, and dark theme.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="PlayerCard" module="UserInterface">
+    <ImplementationGoal>
+      Implement the PlayerCard component that presents questions with binary choices and provides appropriate visual feedback based on user responses, following the distinction-based learning principles.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/UserInterface.apml" section="Interfaces.PlayerCardInterface" />
+      <Reference type="MetaTheoretical" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MetaTheoretical.EducationalApplications.LearningPrinciples" />
+      <Reference type="UserExperience" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="UserExperienceInsights.CoreInteractions.PlayerCard" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/UserInterface.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the PlayerCard component for the Zenjin Maths App, which is the core interactive element that presents mathematical questions with binary choices (one correct answer and one distractor) and provides visual feedback based on user responses.
+      
+      The PlayerCard must:
+      1. Present questions with two possible answers in a visually appealing way
+      2. Show appropriate feedback:
+         - Correct Answer: Circle glows greenish
+         - Wrong Answer: Card shudders and circle glows reddish
+         - No Answer: Answer circles go neutral blue and question repeats
+         - Timeout: Handle when learner loses focus/gets distracted
+      3. Implement the PlayerCardInterface as defined in the UserInterface module
+      4. Support the distinction-based learning principles
+      
+      Technical requirements:
+      - Use Next.js with TypeScript and Tailwind CSS
+      - Ensure the component is responsive and works well on mobile devices
+      - Implement smooth animations for feedback
+      - Ensure accessibility for school-aged children (6+ years old)
+      - Use dark theme to limit battery cost on mobile devices
+      
+      Please implement the PlayerCard component with all necessary TypeScript types, React hooks, and styling. Include comprehensive comments explaining the implementation details and how they relate to the distinction-based learning principles.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="question" value="What is 7 × 8?" />
+      <Input name="correctAnswer" value="56" />
+      <Input name="distractor" value="54" />
+      <Input name="questionId" value="mult-7-8-001" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="response" value="{selectedAnswer: '56', isCorrect: true, responseTime: 1250}" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="UI-001">
+        PlayerCard must show greenish glow for correct answers, reddish glow with card shudder for incorrect answers, and neutral blue for no-answer scenarios.
+      </Criterion>
+      <Criterion id="UI-003">
+        All UI components must consistently apply the theme with rich colors, gradients, and dark theme.
+      </Criterion>
+      <Criterion id="UI-006">
+        UI must be accessible for the target audience of school-aged children from age 6 and up.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

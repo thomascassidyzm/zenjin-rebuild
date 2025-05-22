@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="SessionSummaryInterface" version="1.1.0">
+  <Purpose>
+    Provide a comprehensive summary of the user's learning session, displaying metrics, achievements, and progress in an engaging and motivational format.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="SessionData">
+      <Field name="sessionId" type="string" required="true" description="Unique identifier for the session" />
+      <Field name="startTime" type="Date" required="true" description="When the session started" />
+      <Field name="endTime" type="Date" required="true" description="When the session ended" />
+      <Field name="duration" type="number" required="true" description="Session duration in seconds" />
+      <Field name="questionsAnswered" type="number" required="true" description="Total number of questions answered" />
+      <Field name="correctAnswers" type="number" required="true" description="Number of correct answers" />
+      <Field name="incorrectAnswers" type="number" required="true" description="Number of incorrect answers" />
+      <Field name="timeouts" type="number" required="true" description="Number of questions that timed out" />
+      <Field name="averageResponseTime" type="number" required="true" description="Average time to answer in milliseconds" />
+      <Field name="boundaryLevels" type="object" required="true" description="Performance at each boundary level">
+        <Field name="level1" type="number" required="true" description="Percentage correct at boundary level 1" />
+        <Field name="level2" type="number" required="true" description="Percentage correct at boundary level 2" />
+        <Field name="level3" type="number" required="true" description="Percentage correct at boundary level 3" />
+        <Field name="level4" type="number" required="true" description="Percentage correct at boundary level 4" />
+        <Field name="level5" type="number" required="true" description="Percentage correct at boundary level 5" />
+      </Field>
+    </Structure>
+    
+    <Structure name="MetricsData">
+      <Field name="ftcPoints" type="number" required="true" description="First Time Correct points earned" />
+      <Field name="ecPoints" type="number" required="true" description="Every Correct points earned" />
+      <Field name="basePoints" type="number" required="true" description="Base points earned" />
+      <Field name="bonusMultiplier" type="number" required="true" description="Bonus multiplier achieved" />
+      <Field name="blinkSpeed" type="number" required="true" description="Blink speed metric (milliseconds)" />
+      <Field name="totalPoints" type="number" required="true" description="Total points earned in session" />
+      <Field name="evolution" type="number" required="true" description="Evolution progress (percentage)" />
+    </Structure>
+    
+    <Structure name="AchievementData">
+      <Field name="newAchievements" type="Array<Achievement>" required="true" description="Achievements unlocked in this session" />
+      <Field name="progressAchievements" type="Array<AchievementProgress>" required="true" description="Progress made toward achievements" />
+    </Structure>
+    
+    <Structure name="Achievement">
+      <Field name="id" type="string" required="true" description="Unique identifier for the achievement" />
+      <Field name="name" type="string" required="true" description="Display name of the achievement" />
+      <Field name="description" type="string" required="true" description="Description of the achievement" />
+      <Field name="icon" type="string" required="true" description="Icon URL for the achievement" />
+      <Field name="pointsAwarded" type="number" required="true" description="Points awarded for this achievement" />
+    </Structure>
+    
+    <Structure name="AchievementProgress">
+      <Field name="id" type="string" required="true" description="Unique identifier for the achievement" />
+      <Field name="name" type="string" required="true" description="Display name of the achievement" />
+      <Field name="description" type="string" required="true" description="Description of the achievement" />
+      <Field name="icon" type="string" required="true" description="Icon URL for the achievement" />
+      <Field name="progress" type="number" required="true" description="Current progress (percentage)" />
+      <Field name="target" type="number" required="true" description="Target value to achieve" />
+    </Structure>
+    
+    <Structure name="ProgressData">
+      <Field name="learningPaths" type="object" required="true" description="Progress in each learning path">
+        <Field name="path1" type="PathProgress" required="true" description="Progress in first learning path" />
+        <Field name="path2" type="PathProgress" required="true" description="Progress in second learning path" />
+        <Field name="path3" type="PathProgress" required="true" description="Progress in third learning path" />
+      </Field>
+      <Field name="overallProgress" type="number" required="true" description="Overall curriculum progress (percentage)" />
+      <Field name="nextSessionFocus" type="Array<string>" required="true" description="Suggested focus areas for next session" />
+    </Structure>
+    
+    <Structure name="PathProgress">
+      <Field name="name" type="string" required="true" description="Name of the learning path" />
+      <Field name="progress" type="number" required="true" description="Progress percentage in this path" />
+      <Field name="unitsCompleted" type="number" required="true" description="Number of units completed" />
+      <Field name="totalUnits" type="number" required="true" description="Total number of units in path" />
+      <Field name="currentUnit" type="string" required="true" description="Name of current unit" />
+    </Structure>
+    
+    <Structure name="SummaryOptions">
+      <Field name="showMetrics" type="boolean" required="false" description="Whether to show metrics section" defaultValue="true" />
+      <Field name="showAchievements" type="boolean" required="false" description="Whether to show achievements section" defaultValue="true" />
+      <Field name="showProgress" type="boolean" required="false" description="Whether to show progress section" defaultValue="true" />
+      <Field name="showNextSteps" type="boolean" required="false" description="Whether to show next steps section" defaultValue="true" />
+      <Field name="animateEntrance" type="boolean" required="false" description="Whether to animate the entrance of the summary" defaultValue="true" />
+      <Field name="celebrateAchievements" type="boolean" required="false" description="Whether to show celebration animations for achievements" defaultValue="true" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="showSessionSummary">
+      <Description>
+        Display a comprehensive summary of the completed learning session with metrics, achievements, and progress.
+      </Description>
+      <Input>
+        <Parameter name="sessionData" type="SessionData" required="true" description="Data about the completed session" />
+        <Parameter name="metricsData" type="MetricsData" required="true" description="Metrics calculated for the session" />
+        <Parameter name="achievementData" type="AchievementData" required="true" description="Achievements unlocked and progress made" />
+        <Parameter name="progressData" type="ProgressData" required="true" description="Progress made in learning paths" />
+        <Parameter name="options" type="SummaryOptions" required="false" description="Display options for the summary" />
+      </Input>
+      <Output>
+        <Parameter name="summaryId" type="string" description="Unique identifier for the displayed summary" />
+      </Output>
+      <Errors>
+        <Error code="SS-001" description="Invalid session data provided" />
+        <Error code="SS-002" description="Invalid metrics data provided" />
+        <Error code="SS-003" description="Invalid achievement data provided" />
+        <Error code="SS-004" description="Invalid progress data provided" />
+        <Error code="SS-005" description="Summary already displayed" />
+      </Errors>
+    </Method>
+    
+    <Method name="hideSessionSummary">
+      <Description>
+        Hide the currently displayed session summary.
+      </Description>
+      <Input>
+        <Parameter name="summaryId" type="string" required="true" description="Identifier of the summary to hide" />
+        <Parameter name="animate" type="boolean" required="false" description="Whether to animate the exit" defaultValue="true" />
+      </Input>
+      <Output>
+        <Parameter name="success" type="boolean" description="Whether the operation was successful" />
+      </Output>
+      <Errors>
+        <Error code="SS-101" description="Summary not found" />
+        <Error code="SS-102" description="Summary already hidden" />
+      </Errors>
+    </Method>
+    
+    <Method name="getSummarySnapshot">
+      <Description>
+        Generate a shareable image of the session summary.
+      </Description>
+      <Input>
+        <Parameter name="summaryId" type="string" required="true" description="Identifier of the summary to snapshot" />
+        <Parameter name="format" type="string" required="false" description="Image format (png, jpeg)" defaultValue="png" />
+        <Parameter name="includeMetrics" type="boolean" required="false" description="Whether to include metrics in snapshot" defaultValue="true" />
+        <Parameter name="includeAchievements" type="boolean" required="false" description="Whether to include achievements in snapshot" defaultValue="true" />
+      </Input>
+      <Output>
+        <Parameter name="imageUrl" type="string" description="URL to the generated image" />
+        <Parameter name="imageData" type="Blob" description="Raw image data" />
+      </Output>
+      <Errors>
+        <Error code="SS-201" description="Summary not found" />
+        <Error code="SS-202" description="Invalid format specified" />
+        <Error code="SS-203" description="Image generation failed" />
+      </Errors>
+    </Method>
+    
+    <Method name="celebrateAchievement">
+      <Description>
+        Trigger a celebration animation for a specific achievement.
+      </Description>
+      <Input>
+        <Parameter name="summaryId" type="string" required="true" description="Identifier of the summary" />
+        <Parameter name="achievementId" type="string" required="true" description="Identifier of the achievement to celebrate" />
+        <Parameter name="animationType" type="string" required="false" description="Type of celebration animation" defaultValue="confetti" />
+      </Input>
+      <Output>
+        <Parameter name="success" type="boolean" description="Whether the celebration was triggered successfully" />
+      </Output>
+      <Errors>
+        <Error code="SS-301" description="Summary not found" />
+        <Error code="SS-302" description="Achievement not found" />
+        <Error code="SS-303" description="Invalid animation type" />
+      </Errors>
+    </Method>
+    
+    <Method name="highlightProgress">
+      <Description>
+        Highlight a specific area of progress in the summary.
+      </Description>
+      <Input>
+        <Parameter name="summaryId" type="string" required="true" description="Identifier of the summary" />
+        <Parameter name="progressType" type="string" required="true" description="Type of progress to highlight (path1, path2, path3, overall)" />
+        <Parameter name="highlightDuration" type="number" required="false" description="Duration of highlight in milliseconds" defaultValue="3000" />
+      </Input>
+      <Output>
+        <Parameter name="success" type="boolean" description="Whether the highlight was triggered successfully" />
+      </Output>
+      <Errors>
+        <Error code="SS-401" description="Summary not found" />
+        <Error code="SS-402" description="Invalid progress type" />
+      </Errors>
+    </Method>
+  </Methods>
+  
+  <Events>
+    <Event name="onSummaryDisplayed">
+      <Description>Fired when a session summary is displayed</Description>
+      <Data>
+        <Field name="summaryId" type="string" description="Identifier of the displayed summary" />
+        <Field name="sessionId" type="string" description="Identifier of the session" />
+        <Field name="displayTime" type="Date" description="When the summary was displayed" />
+      </Data>
+    </Event>
+    
+    <Event name="onSummaryHidden">
+      <Description>Fired when a session summary is hidden</Description>
+      <Data>
+        <Field name="summaryId" type="string" description="Identifier of the hidden summary" />
+        <Field name="viewDuration" type="number" description="How long the summary was viewed (milliseconds)" />
+      </Data>
+    </Event>
+    
+    <Event name="onAchievementCelebrated">
+      <Description>Fired when an achievement celebration is triggered</Description>
+      <Data>
+        <Field name="summaryId" type="string" description="Identifier of the summary" />
+        <Field name="achievementId" type="string" description="Identifier of the celebrated achievement" />
+        <Field name="animationType" type="string" description="Type of celebration animation used" />
+      </Data>
+    </Event>
+    
+    <Event name="onSnapshotGenerated">
+      <Description>Fired when a summary snapshot is generated</Description>
+      <Data>
+        <Field name="summaryId" type="string" description="Identifier of the summary" />
+        <Field name="format" type="string" description="Format of the generated image" />
+        <Field name="imageUrl" type="string" description="URL to the generated image" />
+      </Data>
+    </Event>
+  </Events>
+  
+  <Dependencies>
+    <Dependency interface="ThemeManagerInterface" required="true" description="Used to apply consistent theming to the summary display" />
+    <Dependency interface="FeedbackSystemInterface" required="true" description="Used for celebration animations and visual feedback" />
+    <Dependency interface="MetricsCalculatorInterface" required="true" description="Used to calculate and format metrics for display" />
+  </Dependencies>
+  
+  <ValidationCriteria>
+    <Criterion id="UI-004" description="Session summary shows all metrics with appropriate visualizations and explanations" />
+    <Criterion id="UI-005" description="Achievement celebrations provide positive reinforcement without causing anxiety" />
+    <Criterion id="UI-006" description="UI is accessible for the target audience of school-aged children from age 6 and up" />
+  </ValidationCriteria>
+</Interface>

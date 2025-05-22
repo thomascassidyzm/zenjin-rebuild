@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession component="SessionSummary" version="1.1.0">
+  <ImplementationGoal>
+    Create a comprehensive session summary component that displays metrics, achievements, and progress in an engaging and motivational format for the Zenjin Maths App.
+  </ImplementationGoal>
+  
+  <ContextReferences>
+    <Reference path="/apml/interfaces/SessionSummaryInterface.apml" description="Interface definition for the SessionSummary component" />
+    <Reference path="/apml/phase2/UserInterface.apml" description="Module definition for the UserInterface module" />
+    <Reference path="/apml/phase0r/ExpertKnowledge.apml" description="Expert knowledge about the distinction-based learning approach" />
+    <Reference path="/apml/phase0r/RebuildRequirements.apml" description="Requirements for the Zenjin Maths App rebuild" />
+  </ContextReferences>
+  
+  <ImplementationPrompt>
+    Implement a SessionSummary component for the Zenjin Maths App that displays a comprehensive summary of the user's learning session. The component should show metrics, achievements, and progress in an engaging and motivational format suitable for school-aged children (6+ years old).
+    
+    The implementation should:
+    
+    1. Follow the SessionSummaryInterface definition, implementing all required methods and data structures
+    2. Use Next.js with TypeScript and Tailwind CSS for the implementation
+    3. Create visually appealing displays for metrics with appropriate charts and visualizations
+    4. Implement engaging celebration animations for achievements that are positive without causing anxiety
+    5. Show clear progress indicators for the Triple Helix learning paths
+    6. Provide a shareable snapshot feature for session summaries
+    7. Be fully responsive for both desktop and mobile devices
+    8. Support dark mode through the ThemeManager
+    9. Use the FeedbackSystem for celebration animations
+    10. Be accessible for the target audience of school-aged children
+    
+    The component should support the distinction-based learning approach by:
+    
+    1. Highlighting performance at different boundary levels
+    2. Providing positive reinforcement for achievements
+    3. Showing clear progress indicators for each learning path
+    4. Suggesting focus areas for the next session based on performance
+    
+    Technical requirements:
+    
+    1. Use React hooks for state management
+    2. Implement responsive design with Tailwind CSS
+    3. Use Chart.js or similar for metric visualizations
+    4. Implement animations with GSAP or Framer Motion
+    5. Support keyboard navigation and screen readers
+    6. Optimize for performance with appropriate memoization
+    7. Include comprehensive test coverage
+    
+    Please provide the following files:
+    
+    1. SessionSummary.tsx - Main component implementation
+    2. sessionSummary.css - CSS styles and animations (if needed beyond Tailwind)
+    3. SessionSummaryExample.tsx - Example usage with mock data
+    4. SessionSummary.test.tsx - Test suite
+    5. README.md - Implementation documentation
+    
+    Include detailed comments explaining the implementation decisions and how they support the distinction-based learning approach.
+  </ImplementationPrompt>
+  
+  <MockInputs>
+    <MockInput name="Example 1: Basic Session Summary">
+      ```typescript
+      // Example usage of SessionSummary component
+      import { SessionSummary } from './SessionSummary';
+      
+      function ExampleApp() {
+        // Mock session data
+        const sessionData = {
+          sessionId: "session-123",
+          startTime: new Date("2025-05-19T14:00:00Z"),
+          endTime: new Date("2025-05-19T14:30:00Z"),
+          duration: 1800, // 30 minutes in seconds
+          questionsAnswered: 45,
+          correctAnswers: 38,
+          incorrectAnswers: 7,
+          timeouts: 0,
+          averageResponseTime: 2350, // milliseconds
+          boundaryLevels: {
+            level1: 95, // percentage correct
+            level2: 90,
+            level3: 85,
+            level4: 75,
+            level5: 65
+          }
+        };
+        
+        // Mock metrics data
+        const metricsData = {
+          ftcPoints: 380,
+          ecPoints: 420,
+          basePoints: 800,
+          bonusMultiplier: 1.25,
+          blinkSpeed: 2350,
+          totalPoints: 1000,
+          evolution: 15
+        };
+        
+        // Mock achievement data
+        const achievementData = {
+          newAchievements: [
+            {
+              id: "achievement-1",
+              name: "Quick Thinker",
+              description: "Answer 10 questions in under 3 seconds each",
+              icon: "/icons/quick-thinker.svg",
+              pointsAwarded: 50
+            },
+            {
+              id: "achievement-2",
+              name: "Perfect Streak",
+              description: "Get 10 correct answers in a row",
+              icon: "/icons/perfect-streak.svg",
+              pointsAwarded: 100
+            }
+          ],
+          progressAchievements: [
+            {
+              id: "achievement-3",
+              name: "Math Master",
+              description: "Complete all units in a learning path",
+              icon: "/icons/math-master.svg",
+              progress: 65,
+              target: 100
+            }
+          ]
+        };
+        
+        // Mock progress data
+        const progressData = {
+          learningPaths: {
+            path1: {
+              name: "Addition & Subtraction",
+              progress: 75,
+              unitsCompleted: 15,
+              totalUnits: 20,
+              currentUnit: "Two-digit Addition"
+            },
+            path2: {
+              name: "Multiplication & Division",
+              progress: 40,
+              unitsCompleted: 8,
+              totalUnits: 20,
+              currentUnit: "Multiplication Tables"
+            },
+            path3: {
+              name: "Fractions & Decimals",
+              progress: 25,
+              unitsCompleted: 5,
+              totalUnits: 20,
+              currentUnit: "Basic Fractions"
+            }
+          },
+          overallProgress: 47,
+          nextSessionFocus: [
+            "Multiplication Tables",
+            "Basic Fractions"
+          ]
+        };
+        
+        // Display options
+        const options = {
+          showMetrics: true,
+          showAchievements: true,
+          showProgress: true,
+          showNextSteps: true,
+          animateEntrance: true,
+          celebrateAchievements: true
+        };
+        
+        return (
+          <div className="p-4">
+            <h1 className="text-2xl font-bold mb-4">Session Summary Example</h1>
+            <SessionSummary
+              sessionData={sessionData}
+              metricsData={metricsData}
+              achievementData={achievementData}
+              progressData={progressData}
+              options={options}
+            />
+          </div>
+        );
+      }
+      ```
+    </MockInput>
+    
+    <MockInput name="Example 2: Minimal Session Summary">
+      ```typescript
+      // Example of minimal session summary
+      import { SessionSummary } from './SessionSummary';
+      
+      function MinimalExample() {
+        // Minimal session data
+        const sessionData = {
+          sessionId: "session-456",
+          startTime: new Date("2025-05-19T15:00:00Z"),
+          endTime: new Date("2025-05-19T15:15:00Z"),
+          duration: 900, // 15 minutes in seconds
+          questionsAnswered: 20,
+          correctAnswers: 15,
+          incorrectAnswers: 5,
+          timeouts: 0,
+          averageResponseTime: 3000, // milliseconds
+          boundaryLevels: {
+            level1: 90, // percentage correct
+            level2: 80,
+            level3: 70,
+            level4: 60,
+            level5: 50
+          }
+        };
+        
+        // Minimal metrics data
+        const metricsData = {
+          ftcPoints: 150,
+          ecPoints: 200,
+          basePoints: 350,
+          bonusMultiplier: 1.0,
+          blinkSpeed: 3000,
+          totalPoints: 350,
+          evolution: 5
+        };
+        
+        // No achievements
+        const achievementData = {
+          newAchievements: [],
+          progressAchievements: []
+        };
+        
+        // Minimal progress data
+        const progressData = {
+          learningPaths: {
+            path1: {
+              name: "Addition & Subtraction",
+              progress: 30,
+              unitsCompleted: 6,
+              totalUnits: 20,
+              currentUnit: "Single-digit Addition"
+            },
+            path2: {
+              name: "Multiplication & Division",
+              progress: 10,
+              unitsCompleted: 2,
+              totalUnits: 20,
+              currentUnit: "Introduction to Multiplication"
+            },
+            path3: {
+              name: "Fractions & Decimals",
+              progress: 5,
+              unitsCompleted: 1,
+              totalUnits: 20,
+              currentUnit: "Introduction to Fractions"
+            }
+          },
+          overallProgress: 15,
+          nextSessionFocus: [
+            "Single-digit Addition"
+          ]
+        };
+        
+        // Minimal options
+        const options = {
+          showMetrics: true,
+          showAchievements: false,
+          showProgress: true,
+          showNextSteps: true,
+          animateEntrance: false,
+          celebrateAchievements: false
+        };
+        
+        return (
+          <div className="p-4">
+            <h1 className="text-2xl font-bold mb-4">Minimal Session Summary</h1>
+            <SessionSummary
+              sessionData={sessionData}
+              metricsData={metricsData}
+              achievementData={achievementData}
+              progressData={progressData}
+              options={options}
+            />
+          </div>
+        );
+      }
+      ```
+    </MockInput>
+  </MockInputs>
+  
+  <ExpectedOutput>
+    <Output name="SessionSummary.tsx">
+      A TypeScript React component that implements the SessionSummaryInterface, with all required methods and data structures. The component should display a comprehensive summary of the user's learning session, with metrics, achievements, and progress in an engaging and motivational format.
+    </Output>
+    
+    <Output name="sessionSummary.css">
+      CSS styles and animations for the SessionSummary component, if needed beyond what Tailwind CSS provides.
+    </Output>
+    
+    <Output name="SessionSummaryExample.tsx">
+      An example usage of the SessionSummary component with mock data, demonstrating how to use the component in different scenarios.
+    </Output>
+    
+    <Output name="SessionSummary.test.tsx">
+      A comprehensive test suite for the SessionSummary component, covering all methods and edge cases.
+    </Output>
+    
+    <Output name="README.md">
+      Detailed documentation of the SessionSummary component implementation, including usage examples, design decisions, and how it supports the distinction-based learning approach.
+    </Output>
+  </ExpectedOutput>
+  
+  <ValidationCriteria>
+    <Criterion id="UI-004" description="Session summary shows all metrics with appropriate visualizations and explanations">
+      The component must display all metrics (FTCPoints, ECPoints, BasePoints, BonusMultipliers, BlinkSpeed, TotalPoints, Evolution) with appropriate visualizations and clear explanations suitable for the target audience.
+    </Criterion>
+    
+    <Criterion id="UI-005" description="Achievement celebrations provide positive reinforcement without causing anxiety">
+      Achievement celebrations must be visually engaging and provide positive reinforcement without causing anxiety or overwhelming the user. Animations should be smooth and appropriate for the target audience.
+    </Criterion>
+    
+    <Criterion id="UI-006" description="UI is accessible for the target audience of school-aged children from age 6 and up">
+      The component must be accessible for school-aged children (6+ years old), with clear visual cues, appropriate language, and intuitive interactions. It should support keyboard navigation and screen readers.
+    </Criterion>
+  </ValidationCriteria>
+</DevelopmentSession>

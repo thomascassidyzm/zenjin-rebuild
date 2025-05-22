@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="SubscriptionManager" module="SubscriptionSystem">
+    <ImplementationGoal>
+      Implement the SubscriptionManager component that manages user subscription tiers and status, handling transitions between Anonymous, Free, and Premium tiers.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/SubscriptionSystem.apml" section="Interfaces.SubscriptionManagerInterface" />
+      <Reference type="BusinessModel" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="BusinessModelInsights.SubscriptionTiers" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-006" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/SubscriptionSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the SubscriptionManager component for the Zenjin Maths App, which is responsible for managing user subscription tiers and status.
+      
+      The SubscriptionManager must implement:
+      1. Management of three subscription tiers:
+         - Anonymous: Same as Free tier but with TTL badge, progress only saved on current device
+         - Free: Access to 10 stitches per tube (30 total), each with 20 questions × 5 distractor variations
+         - Premium: Complete access to all content and advanced features
+      
+      2. Methods to:
+         - Get a user's current subscription information
+         - Upgrade a user's subscription to a new tier
+         - Cancel a subscription
+         - Get information about available subscription tiers
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the SubscriptionManagerInterface as defined in the SubscriptionSystem module
+      - Integrate with the PaymentProcessingInterface for premium subscriptions
+      - Ensure the implementation is testable with mock inputs
+      - Design for secure handling of subscription status
+      
+      Please implement the SubscriptionManager component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how subscription tier transitions are handled.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="getUserSubscription" value="{userId: 'user123'}" />
+      <Input name="upgradeSubscription" value="{userId: 'user123', newTier: 'premium', paymentDetails: {method: 'card', token: 'tok_visa'}}" />
+      <Input name="getSubscriptionTiers" value="{}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="subscription" value="{
+        userId: 'user123',
+        tier: 'free',
+        startDate: '2025-01-15T00:00:00Z',
+        expiryDate: null,
+        features: {
+          stitchesPerTube: 10,
+          totalStitches: 30,
+          advancedFeatures: false
+        }
+      }" />
+      <Output name="result" value="{
+        success: true,
+        previousTier: 'free',
+        newTier: 'premium',
+        effectiveDate: '2025-05-18T15:22:30Z',
+        paymentStatus: 'completed',
+        features: {
+          stitchesPerTube: 'unlimited',
+          totalStitches: 'unlimited',
+          advancedFeatures: true
+        }
+      }" />
+      <Output name="tiers" value="[
+        {
+          id: 'anonymous',
+          name: 'Anonymous',
+          features: {
+            stitchesPerTube: 10,
+            totalStitches: 30,
+            advancedFeatures: false,
+            ttl: true,
+            localStorageOnly: true
+          },
+          price: 0
+        },
+        {
+          id: 'free',
+          name: 'Free',
+          features: {
+            stitchesPerTube: 10,
+            totalStitches: 30,
+            advancedFeatures: false
+          },
+          price: 0
+        },
+        {
+          id: 'premium',
+          name: 'Premium',
+          features: {
+            stitchesPerTube: 'unlimited',
+            totalStitches: 'unlimited',
+            advancedFeatures: true
+          },
+          price: 4.99
+        }
+      ]" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="SS-001">
+        SubscriptionManager must correctly manage transitions between Anonymous, Free, and Premium tiers.
+      </Criterion>
+      <Criterion id="SS-005">
+        Each subscription tier must provide the correct set of features and limitations.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

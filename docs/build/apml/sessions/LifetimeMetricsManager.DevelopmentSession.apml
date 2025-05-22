@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="LifetimeMetricsManager" module="MetricsSystem">
+    <ImplementationGoal>
+      Implement the LifetimeMetricsManager component that calculates and manages lifetime metrics across all user sessions, including TotalPoints, CurrentBlinkSpeed, Evolution, and GlobalRanking.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/MetricsSystem.apml" section="Interfaces.LifetimeMetricsInterface" />
+      <Reference type="MetricsInsights" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="LearningEngineInsights.Metrics.LifetimeStats" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-004" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/MetricsSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the LifetimeMetricsManager component for the Zenjin Maths App, which is responsible for calculating and managing lifetime metrics across all user sessions.
+      
+      The LifetimeMetricsManager must implement:
+      1. Lifetime metrics calculation and aggregation:
+         - TotalPoints: Cumulative points across all sessions
+         - CurrentBlinkSpeed: User's current BlinkSpeed performance
+         - Evolution: Total Points / Blink Speed
+         - GlobalRanking: Calculated daily: today you are in the top X% of learners globally
+      
+      2. Methods to:
+         - Get lifetime metrics for a user
+         - Update lifetime metrics based on session results
+         - Calculate the Evolution metric
+         - Get global ranking information
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the LifetimeMetricsInterface as defined in the MetricsSystem module
+      - Ensure the implementation is testable with mock inputs
+      - Design for efficient aggregation of metrics across potentially hundreds of sessions
+      - Support daily calculation of global rankings
+      
+      Please implement the LifetimeMetricsManager component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and the calculation formulas for each metric.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="getLifetimeMetrics" value="{userId: 'user123'}" />
+      <Input name="updateLifetimeMetrics" value="{userId: 'user123', sessionSummary: {
+        sessionId: 'session123',
+        ftcPoints: 80,
+        ecPoints: 9,
+        basePoints: 89,
+        bonusMultiplier: 1.25,
+        blinkSpeed: 15000,
+        totalPoints: 111.25
+      }}" />
+      <Input name="calculateEvolution" value="{userId: 'user123'}" />
+      <Input name="getGlobalRanking" value="{userId: 'user123'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="metrics" value="{
+        totalSessions: 42,
+        totalPoints: 4250,
+        currentBlinkSpeed: 12500,
+        evolution: 0.34,
+        lastSessionDate: '2025-05-17T15:30:00Z'
+      }" />
+      <Output name="updatedMetrics" value="{
+        totalSessions: 43,
+        totalPoints: 4361.25,
+        currentBlinkSpeed: 13750,
+        evolution: 0.317,
+        lastSessionDate: '2025-05-18T15:30:00Z'
+      }" />
+      <Output name="evolution" value="0.317" />
+      <Output name="ranking" value="{
+        percentile: 85,
+        rank: 1250,
+        totalUsers: 8500,
+        calculationDate: '2025-05-18T00:00:00Z'
+      }" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="MS-002">
+        LifetimeMetricsManager must correctly aggregate session metrics into lifetime metrics and calculate Evolution.
+      </Criterion>
+      <Criterion id="MS-003">
+        LifetimeMetricsManager must correctly calculate global ranking percentile.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

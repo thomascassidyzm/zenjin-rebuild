@@ -1,0 +1,214 @@
+/* feedbackSystem.css */
+/* CSS styles and animations for the FeedbackSystem component */
+
+/* Base feedback classes */
+.feedback-correct {
+  --feedback-color: rgba(34, 197, 94, 0.6); /* Green */
+  box-shadow: 0 0 10px 2px var(--feedback-color);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.feedback-incorrect {
+  --feedback-color: rgba(239, 68, 68, 0.6); /* Red */
+  box-shadow: 0 0 10px 2px var(--feedback-color);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.feedback-neutral {
+  --feedback-color: rgba(59, 130, 246, 0.4); /* Blue */
+  box-shadow: 0 0 10px 2px var(--feedback-color);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.feedback-timeout {
+  --feedback-color: rgba(59, 130, 246, 0.5); /* Brighter blue */
+  box-shadow: 0 0 10px 2px var(--feedback-color);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.feedback-custom {
+  --feedback-color: rgba(139, 92, 246, 0.5); /* Purple */
+  box-shadow: 0 0 10px 2px var(--feedback-color);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+/* Animation: Glow */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 10px 2px var(--feedback-color);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px var(--feedback-color);
+  }
+}
+
+.animate-glow {
+  animation: glow var(--feedback-duration, 1000ms) ease-in-out;
+}
+
+/* Animation: Shake */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-shake {
+  animation: shake var(--feedback-duration, 1000ms) cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Animation: Pulse */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse {
+  animation: pulse var(--feedback-duration, 1000ms) ease-in-out infinite;
+}
+
+/* Animation: Bounce */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce var(--feedback-duration, 1000ms) ease-in-out;
+}
+
+/* Animation: Fade */
+@keyframes fade {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.animate-fade {
+  animation: fade var(--feedback-duration, 1000ms) ease-in-out;
+}
+
+/* Intensity levels (1-10) */
+.intensity-1 { --intensity-multiplier: 0.1; }
+.intensity-2 { --intensity-multiplier: 0.2; }
+.intensity-3 { --intensity-multiplier: 0.3; }
+.intensity-4 { --intensity-multiplier: 0.4; }
+.intensity-5 { --intensity-multiplier: 0.5; }
+.intensity-6 { --intensity-multiplier: 0.6; }
+.intensity-7 { --intensity-multiplier: 0.7; }
+.intensity-8 { --intensity-multiplier: 0.8; }
+.intensity-9 { --intensity-multiplier: 0.9; }
+.intensity-10 { --intensity-multiplier: 1.0; }
+
+/* Apply intensity to animations */
+.feedback-correct.intensity-1 { --feedback-color: rgba(34, 197, 94, 0.1); }
+.feedback-correct.intensity-2 { --feedback-color: rgba(34, 197, 94, 0.2); }
+.feedback-correct.intensity-3 { --feedback-color: rgba(34, 197, 94, 0.3); }
+.feedback-correct.intensity-4 { --feedback-color: rgba(34, 197, 94, 0.4); }
+.feedback-correct.intensity-5 { --feedback-color: rgba(34, 197, 94, 0.5); }
+.feedback-correct.intensity-6 { --feedback-color: rgba(34, 197, 94, 0.6); }
+.feedback-correct.intensity-7 { --feedback-color: rgba(34, 197, 94, 0.7); }
+.feedback-correct.intensity-8 { --feedback-color: rgba(34, 197, 94, 0.8); }
+.feedback-correct.intensity-9 { --feedback-color: rgba(34, 197, 94, 0.9); }
+.feedback-correct.intensity-10 { --feedback-color: rgba(34, 197, 94, 1.0); }
+
+.feedback-incorrect.intensity-1 { --feedback-color: rgba(239, 68, 68, 0.1); }
+.feedback-incorrect.intensity-2 { --feedback-color: rgba(239, 68, 68, 0.2); }
+.feedback-incorrect.intensity-3 { --feedback-color: rgba(239, 68, 68, 0.3); }
+.feedback-incorrect.intensity-4 { --feedback-color: rgba(239, 68, 68, 0.4); }
+.feedback-incorrect.intensity-5 { --feedback-color: rgba(239, 68, 68, 0.5); }
+.feedback-incorrect.intensity-6 { --feedback-color: rgba(239, 68, 68, 0.6); }
+.feedback-incorrect.intensity-7 { --feedback-color: rgba(239, 68, 68, 0.7); }
+.feedback-incorrect.intensity-8 { --feedback-color: rgba(239, 68, 68, 0.8); }
+.feedback-incorrect.intensity-9 { --feedback-color: rgba(239, 68, 68, 0.9); }
+.feedback-incorrect.intensity-10 { --feedback-color: rgba(239, 68, 68, 1.0); }
+
+.feedback-neutral.intensity-1 { --feedback-color: rgba(59, 130, 246, 0.1); }
+.feedback-neutral.intensity-2 { --feedback-color: rgba(59, 130, 246, 0.2); }
+.feedback-neutral.intensity-3 { --feedback-color: rgba(59, 130, 246, 0.3); }
+.feedback-neutral.intensity-4 { --feedback-color: rgba(59, 130, 246, 0.4); }
+.feedback-neutral.intensity-5 { --feedback-color: rgba(59, 130, 246, 0.5); }
+.feedback-neutral.intensity-6 { --feedback-color: rgba(59, 130, 246, 0.6); }
+.feedback-neutral.intensity-7 { --feedback-color: rgba(59, 130, 246, 0.7); }
+.feedback-neutral.intensity-8 { --feedback-color: rgba(59, 130, 246, 0.8); }
+.feedback-neutral.intensity-9 { --feedback-color: rgba(59, 130, 246, 0.9); }
+.feedback-neutral.intensity-10 { --feedback-color: rgba(59, 130, 246, 1.0); }
+
+.feedback-timeout.intensity-1 { --feedback-color: rgba(59, 130, 246, 0.15); }
+.feedback-timeout.intensity-2 { --feedback-color: rgba(59, 130, 246, 0.25); }
+.feedback-timeout.intensity-3 { --feedback-color: rgba(59, 130, 246, 0.35); }
+.feedback-timeout.intensity-4 { --feedback-color: rgba(59, 130, 246, 0.45); }
+.feedback-timeout.intensity-5 { --feedback-color: rgba(59, 130, 246, 0.55); }
+.feedback-timeout.intensity-6 { --feedback-color: rgba(59, 130, 246, 0.65); }
+.feedback-timeout.intensity-7 { --feedback-color: rgba(59, 130, 246, 0.75); }
+.feedback-timeout.intensity-8 { --feedback-color: rgba(59, 130, 246, 0.85); }
+.feedback-timeout.intensity-9 { --feedback-color: rgba(59, 130, 246, 0.95); }
+.feedback-timeout.intensity-10 { --feedback-color: rgba(59, 130, 246, 1.0); }
+
+/* Reduced motion support */
+@media (prefers-reduced-motion) {
+  .animate-glow,
+  .animate-shake,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-fade {
+    animation: none !important;
+    transition: box-shadow 0.3s ease-in-out !important;
+  }
+  
+  .feedback-correct,
+  .feedback-incorrect,
+  .feedback-neutral,
+  .feedback-timeout,
+  .feedback-custom {
+    transition: box-shadow 0.3s ease-in-out !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .feedback-correct {
+    --feedback-color: rgba(0, 128, 0, 1.0) !important; /* Solid green */
+    outline: 3px solid var(--feedback-color) !important;
+    box-shadow: none !important;
+  }
+  
+  .feedback-incorrect {
+    --feedback-color: rgba(255, 0, 0, 1.0) !important; /* Solid red */
+    outline: 3px solid var(--feedback-color) !important;
+    box-shadow: none !important;
+  }
+  
+  .feedback-neutral,
+  .feedback-timeout {
+    --feedback-color: rgba(0, 0, 255, 1.0) !important; /* Solid blue */
+    outline: 3px solid var(--feedback-color) !important;
+    box-shadow: none !important;
+  }
+  
+  .feedback-custom {
+    --feedback-color: rgba(128, 0, 128, 1.0) !important; /* Solid purple */
+    outline: 3px solid var(--feedback-color) !important;
+    box-shadow: none !important;
+  }
+}

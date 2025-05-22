@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="MetricsCalculator" module="MetricsSystem">
+    <ImplementationGoal>
+      Create a MetricsCalculator component that performs calculations for various metrics in the Zenjin Maths App. This component will implement the core calculation logic for session metrics, including FTCPoints, ECPoints, BasePoints, BonusMultiplier, BlinkSpeed, and Evolution, providing consistent and accurate metric calculations throughout the system.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/docs/build/apml/interfaces/MetricsCalculatorInterface.apml" section="Interfaces.MetricsCalculationInterface" />
+      <Reference type="Module" path="/home/ubuntu/zenjin-rebuild/docs/build/apml/modules/MetricsSystem.apml" section="Components.MetricsCalculator" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/docs/build/apml/modules/MetricsSystem.apml" section="ValidationCriteria.MS-005" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      Implement the MetricsCalculator component according to the interface definition and requirements. The implementation should:
+
+      1. Provide accurate and consistent calculations for all metrics used in the Zenjin Maths App.
+
+      2. Implement all methods defined in the MetricsCalculatorInterface, including calculateSessionMetrics, calculateFTCPoints, calculateECPoints, calculateBonusMultiplier, calculateBlinkSpeed, and calculateEvolution.
+
+      3. Include thorough input validation and error handling for all methods.
+
+      4. Ensure appropriate precision in calculations, especially for floating-point values.
+
+      5. Handle edge cases such as division by zero, negative inputs, and out-of-range values.
+
+      6. Include comprehensive comments explaining the implementation details and the calculation formulas for each metric.
+
+      7. Ensure the implementation is testable with mock inputs.
+
+      8. Use TypeScript for type safety and implement the MetricsCalculatorInterface as defined in the MetricsSystem module.
+      
+      The component must implement the following calculation formulas:
+      
+      - FTCPoints = FTCCount × 5
+      - ECPoints = ECCount × 3
+      - BasePoints = FTCPoints + ECPoints
+      - Consistency = 1 - (StreakBreaks / (QuestionCount - 1)) or (FTCCount + ECCount) / QuestionCount if response data unavailable
+      - Accuracy = (FTCCount + ECCount) / QuestionCount
+      - Speed = 1 - min(1, AverageResponseTime / ExpectedResponseTime) or 0.5 if response data unavailable
+      - BonusMultiplier = 1 + (Consistency × 0.1) + (Accuracy × 0.1) + (Speed × 0.1)
+      - BlinkSpeed = SessionDuration / FTCCount (or SessionDuration if FTCCount is 0)
+      - TotalPoints = BasePoints × BonusMultiplier
+      - Evolution = TotalPoints / BlinkSpeed (or 0 if BlinkSpeed is 0)
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="calculateSessionMetrics" value="{
+        duration: 240000,
+        questionCount: 20,
+        ftcCount: 16,
+        ecCount: 3,
+        incorrectCount: 1,
+        responseTimeData: [1200, 1500, 1800, 1300, 1600, 1400, 1700, 1200, 1900, 1500, 
+                          1400, 1600, 1300, 1800, 1500, 1700, 1400, 1600, 1500, 1700]
+      }" />
+      <Input name="calculateFTCPoints" value="16" />
+      <Input name="calculateECPoints" value="3" />
+      <Input name="calculateBonusMultiplier" value="{
+        consistency: 0.85,
+        accuracy: 0.95,
+        speed: 0.78
+      }" />
+      <Input name="calculateBlinkSpeed" value="{
+        duration: 240000,
+        ftcCount: 16
+      }" />
+      <Input name="calculateEvolution" value="{
+        totalPoints: 4250,
+        blinkSpeed: 12500
+      }" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="sessionMetrics" value="{
+        ftcPoints: 80,
+        ecPoints: 9,
+        basePoints: 89,
+        consistency: 0.85,
+        accuracy: 0.95,
+        speed: 0.78,
+        bonusMultiplier: 1.25,
+        blinkSpeed: 15000,
+        totalPoints: 111.25
+      }" />
+      <Output name="ftcPoints" value="80" />
+      <Output name="ecPoints" value="9" />
+      <Output name="bonusMultiplier" value="1.25" />
+      <Output name="blinkSpeed" value="15000" />
+      <Output name="evolution" value="0.34" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="MS-005">
+        MetricsCalculator must perform calculations with the correct formulas and precision.
+      </Criterion>
+    </ValidationCriteria>
+    
+    <DataStructures>
+      <Structure name="SessionData">
+        <Field name="duration" type="number" required="true" description="Session duration in milliseconds" />
+        <Field name="questionCount" type="number" required="true" description="Number of questions answered" />
+        <Field name="ftcCount" type="number" required="true" description="Number of first-time correct answers" />
+        <Field name="ecCount" type="number" required="true" description="Number of eventually correct answers" />
+        <Field name="incorrectCount" type="number" required="true" description="Number of incorrect answers" />
+        <Field name="responseTimeData" type="number[]" required="false" description="Array of response times in milliseconds (optional)" />
+      </Structure>
+      
+      <Structure name="MetricsResult">
+        <Field name="ftcPoints" type="number" required="true" description="First-time correct points" />
+        <Field name="ecPoints" type="number" required="true" description="Eventually correct points" />
+        <Field name="basePoints" type="number" required="true" description="Base points (FTC + EC)" />
+        <Field name="consistency" type="number" required="true" description="Consistency score (0.0-1.0)" />
+        <Field name="accuracy" type="number" required="true" description="Accuracy score (0.0-1.0)" />
+        <Field name="speed" type="number" required="true" description="Speed score (0.0-1.0)" />
+        <Field name="bonusMultiplier" type="number" required="true" description="Bonus multiplier" />
+        <Field name="blinkSpeed" type="number" required="true" description="Blink speed (ms per FTC answer)" />
+        <Field name="totalPoints" type="number" required="true" description="Total points (base × bonus)" />
+      </Structure>
+    </DataStructures>
+    
+    <ErrorHandling>
+      <Error code="INVALID_SESSION_DATA" description="Session data is invalid or inconsistent" />
+      <Error code="CALCULATION_FAILED" description="Failed to calculate metrics" />
+      <Error code="INVALID_COUNT" description="Count is invalid (negative or non-integer)" />
+      <Error code="INVALID_SCORE" description="Score is invalid (outside 0-1 range)" />
+      <Error code="INVALID_DURATION" description="Duration is invalid (negative)" />
+      <Error code="DIVISION_BY_ZERO" description="Cannot perform division with zero divisor" />
+      <Error code="INVALID_POINTS" description="Points value is invalid (negative)" />
+      <Error code="INVALID_BLINK_SPEED" description="Blink speed is invalid (negative)" />
+    </ErrorHandling>
+    
+    <ImplementationNotes>
+      <Note type="Performance">
+        All metrics calculations must complete within 50ms to ensure responsive UI updates.
+      </Note>
+      <Note type="Accuracy">
+        Metrics calculations must maintain precision to at least 2 decimal places.
+      </Note>
+      <Note type="EdgeCases">
+        Handle edge cases such as division by zero (e.g., when ftcCount is 0 for BlinkSpeed calculation), negative inputs, and out-of-range values.
+      </Note>
+      <Note type="DefaultValues">
+        Provide sensible default values for optional parameters and edge cases.
+      </Note>
+    </ImplementationNotes>
+  </Component>
+</DevelopmentSession>

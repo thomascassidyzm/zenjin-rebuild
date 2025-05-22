@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="DistinctionManager" module="LearningEngine">
+    <ImplementationGoal>
+      Implement the DistinctionManager component that manages the five boundary levels of distinction and tracks user mastery at each level, forming the core of the distinction-based learning approach.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/LearningEngine.apml" section="Interfaces.DistinctionManagerInterface" />
+      <Reference type="MetaTheoretical" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MathematicalImplementation.BoundaryLevels" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-001" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/LearningEngine.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the DistinctionManager component for the Zenjin Maths App, which is responsible for managing the five boundary levels of distinction and tracking user mastery at each level.
+      
+      The DistinctionManager must implement:
+      1. The five boundary levels:
+         - Category Boundaries (Level 1): Mathematical answers must be numerical
+         - Magnitude Boundaries (Level 2): Awareness of appropriate numerical ranges
+         - Operation Boundaries (Level 3): Differentiation between mathematical operations
+         - Related Fact Boundaries (Level 4): Distinction between adjacent facts in the same operation
+         - Near Miss Boundaries (Level 5): Precise differentiation between very similar numerical answers
+      
+      2. Methods to:
+         - Get the current boundary level for a user and fact
+         - Update boundary levels based on user performance
+         - Provide descriptions of boundary levels
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the DistinctionManagerInterface as defined in the LearningEngine module
+      - Ensure the implementation is testable with mock inputs
+      - Design for performance with potentially thousands of facts per user
+      - Implement adaptive progression through boundary levels based on user performance
+      
+      Please implement the DistinctionManager component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how they relate to the distinction-based learning principles.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="getCurrentBoundaryLevel" value="{userId: 'user123', factId: 'mult-7-8'}" />
+      <Input name="updateBoundaryLevel" value="{userId: 'user123', factId: 'mult-7-8', performance: {correctFirstAttempt: true, responseTime: 1200, consecutiveCorrect: 3}}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="boundaryLevel" value="3" />
+      <Output name="newBoundaryLevel" value="4" />
+      <Output name="description" value="Related Fact Boundaries: Distinguishes between adjacent facts in the same operation (e.g., 7 × 8 = 63 vs. 56)" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="LE-001">
+        DistinctionManager must correctly implement all five boundary levels: Category, Magnitude, Operation, Related Fact, and Near Miss.
+      </Criterion>
+      <Criterion id="LE-005">
+        DistinctionManager must appropriately update boundary levels based on user performance.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

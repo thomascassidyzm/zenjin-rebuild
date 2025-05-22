@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="QuestionGenerator" module="LearningEngine">
+    <ImplementationGoal>
+      Implement the QuestionGenerator component that generates questions based on the active learning path and user's progress, providing appropriate content for the distinction-based learning approach.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/LearningEngine.apml" section="Interfaces.QuestionGeneratorInterface" />
+      <Reference type="MetaTheoretical" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MathematicalImplementation.BoundaryLevels" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-001" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/LearningEngine.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the QuestionGenerator component for the Zenjin Maths App, which is responsible for generating questions based on the active learning path and user's progress.
+      
+      The QuestionGenerator must implement:
+      1. Question generation functionality:
+         - Generate questions appropriate for the user's current learning path
+         - Ensure questions match the user's current mastery level
+         - Provide a sequence of questions that follows the distinction-based learning principles
+      
+      2. Methods to:
+         - Generate a question for a specific user and learning path
+         - Get the next question in the sequence
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the QuestionGeneratorInterface as defined in the LearningEngine module
+      - Integrate with the FactRepositoryInterface to access mathematical facts
+      - Ensure the implementation is testable with mock inputs
+      - Design for performance with question generation completing quickly
+      
+      Please implement the QuestionGenerator component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how the questions support the distinction-based learning approach.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="generateQuestion" value="{userId: 'user123', learningPathId: 'path1'}" />
+      <Input name="getNextQuestion" value="{userId: 'user123', learningPathId: 'path1'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="question" value="{
+        factId: 'mult-7-8',
+        questionText: 'What is 7 × 8?',
+        correctAnswer: '56',
+        boundaryLevel: 5
+      }" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="LE-003">
+        QuestionGenerator must generate questions appropriate for the user's current learning path and mastery level.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

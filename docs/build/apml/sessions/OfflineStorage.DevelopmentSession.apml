@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="OfflineStorage" module="OfflineSupport">
+    <ImplementationGoal>
+      Implement the OfflineStorage component that manages local storage of user data and content using IndexedDB, ensuring reliable data persistence across application restarts.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/OfflineSupport.apml" section="Interfaces.OfflineStorageInterface" />
+      <Reference type="BusinessModel" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="BusinessModelInsights.OfflineStrategy" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-007" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/OfflineSupport.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the OfflineStorage component for the Zenjin Maths App, which is responsible for managing local storage of user data and content using IndexedDB.
+      
+      The OfflineStorage must implement:
+      1. Local storage functionality:
+         - Store and retrieve data with reliable persistence
+         - Support different data categories (user progress, content, metrics)
+         - Handle large data sets efficiently
+         - Provide data encryption for sensitive information
+      
+      2. Methods to:
+         - Store data with a specified key
+         - Retrieve data by key
+         - Remove data by key
+         - Clear all data or data in a specific category
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the OfflineStorageInterface as defined in the OfflineSupport module
+      - Utilize IndexedDB for efficient local storage
+      - Ensure the implementation is testable with mock inputs
+      - Design for performance with potentially large data sets
+      
+      Please implement the OfflineStorage component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details, storage strategies, and security considerations.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="storeData" value="{key: 'user123.progress', data: {factId: 'mult-7-8', level: 4}, options: {encrypt: true}}" />
+      <Input name="retrieveData" value="{key: 'user123.progress'}" />
+      <Input name="removeData" value="{key: 'user123.progress'}" />
+      <Input name="clearAllData" value="{category: 'progress'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="success" value="true" />
+      <Output name="data" value="{factId: 'mult-7-8', level: 4}" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="OS-001">
+        OfflineStorage must reliably store and retrieve data across application restarts.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

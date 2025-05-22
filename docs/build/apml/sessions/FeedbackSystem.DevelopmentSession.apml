@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="FeedbackSystem" module="UserInterface">
+    <ImplementationGoal>
+      Implement the FeedbackSystem component that manages visual and interactive feedback for user actions throughout the application, providing appropriate responses for correct, incorrect, neutral, and timeout scenarios.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/UserInterface.apml" section="Interfaces.FeedbackSystemInterface" />
+      <Reference type="UserExperience" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="UserExperienceInsights.CoreInteractions.PlayerCard.Responses" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-003" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/UserInterface.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the FeedbackSystem component for the Zenjin Maths App, which is responsible for managing visual and interactive feedback for user actions throughout the application.
+      
+      The FeedbackSystem must implement:
+      1. Visual feedback for different user responses:
+         - Correct Answer: Circle glows greenish
+         - Wrong Answer: Card shudders and circle glows reddish
+         - No Answer: Answer circles go neutral blue and question repeats
+         - Timeout: Appropriate feedback for when learner loses focus/gets distracted
+      
+      2. Methods to:
+         - Show correct feedback on UI elements
+         - Show incorrect feedback on UI elements
+         - Show neutral feedback on UI elements
+         - Show timeout feedback on UI elements
+      
+      Technical requirements:
+      - Use Next.js with TypeScript and Tailwind CSS
+      - Implement the FeedbackSystemInterface as defined in the UserInterface module
+      - Ensure the implementation is testable with mock inputs
+      - Design for smooth animations and transitions
+      - Support customizable feedback intensity
+      
+      Please implement the FeedbackSystem component with all necessary TypeScript types, React hooks, and styling. Include comprehensive comments explaining the implementation details and how the feedback supports the distinction-based learning approach.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="showCorrectFeedback" value="{element: {id: 'answer-circle-1'}, intensity: 0.8}" />
+      <Input name="showIncorrectFeedback" value="{element: {id: 'answer-circle-2'}, intensity: 1.0}" />
+      <Input name="showNeutralFeedback" value="{element: {id: 'answer-circle-1'}}" />
+      <Input name="showTimeoutFeedback" value="{element: {id: 'player-card'}}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="visualFeedback" value="Appropriate visual effects applied to the specified elements" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="UI-001">
+        Player Card must show greenish glow for correct answers, reddish glow with card shudder for incorrect answers, and neutral blue for no-answer scenarios.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="ContentAccessController" module="SubscriptionSystem">
+    <ImplementationGoal>
+      Implement the ContentAccessController component that controls access to content based on subscription tier, enforcing the appropriate limitations for Anonymous, Free, and Premium users.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/SubscriptionSystem.apml" section="Interfaces.ContentAccessInterface" />
+      <Reference type="BusinessModel" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="BusinessModelInsights.SubscriptionTiers" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-006" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/SubscriptionSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the ContentAccessController component for the Zenjin Maths App, which is responsible for controlling access to content based on the user's subscription tier.
+      
+      The ContentAccessController must implement:
+      1. Content access control for three subscription tiers:
+         - Anonymous: Same as Free tier but with TTL badge, progress only saved on current device
+         - Free: Access to 10 stitches per tube (30 total), each with 20 questions × 5 distractor variations
+         - Premium: Complete access to all content and advanced features
+      
+      2. Methods to:
+         - Check if a user has access to specific content
+         - Get a list of all content accessible to a user
+         - Get content access limits based on subscription tier
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the ContentAccessInterface as defined in the SubscriptionSystem module
+      - Ensure the implementation is testable with mock inputs
+      - Design for efficient access checks to minimize latency
+      - Support seamless transitions between subscription tiers
+      
+      Please implement the ContentAccessController component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how the content access rules are enforced.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="checkContentAccess" value="{userId: 'user123', contentId: 'stitch-mult-11'}" />
+      <Input name="getAccessibleContent" value="{userId: 'user123', contentType: 'stitch'}" />
+      <Input name="getContentLimits" value="{userId: 'user123'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="hasAccess" value="false" />
+      <Output name="content" value="[
+        {id: 'stitch-add-1', type: 'stitch', tube: 'addition'},
+        {id: 'stitch-add-2', type: 'stitch', tube: 'addition'},
+        ...
+        {id: 'stitch-mult-10', type: 'stitch', tube: 'multiplication'}
+      ]" />
+      <Output name="limits" value="{
+        stitchesPerTube: 10,
+        totalStitches: 30,
+        questionsPerStitch: 20,
+        distractorVariations: 5,
+        advancedFeatures: false
+      }" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="SS-002">
+        ContentAccessController must correctly enforce content access limitations based on subscription tier.
+      </Criterion>
+      <Criterion id="SS-005">
+        Each subscription tier must provide the correct set of features and limitations.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

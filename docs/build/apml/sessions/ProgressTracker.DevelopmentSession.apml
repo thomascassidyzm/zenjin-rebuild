@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="ProgressTracker" module="ProgressionSystem">
+    <ImplementationGoal>
+      Implement the ProgressTracker component that tracks user progress through learning paths and content mastery, providing data for adaptive difficulty adjustment.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="Interfaces.ProgressTrackingInterface" />
+      <Reference type="LearningMechanics" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MathematicalImplementation.TripleHelixModel.CorePrinciples.AdaptiveDifficulty" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-002" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the ProgressTracker component for the Zenjin Maths App, which is responsible for tracking user progress through learning paths and content mastery.
+      
+      The ProgressTracker must implement:
+      1. Progress tracking functionality:
+         - Track overall user progress across all learning paths
+         - Track mastery level for specific content items
+         - Update progress based on session results
+         - Support adaptive difficulty adjustment
+      
+      2. Methods to:
+         - Get a user's overall progress
+         - Update progress based on session results
+         - Get mastery data for specific content
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the ProgressTrackingInterface as defined in the ProgressionSystem module
+      - Ensure the implementation is testable with mock inputs
+      - Design for efficient storage and retrieval of progress data
+      - Support detailed progress tracking without overwhelming the user
+      
+      Please implement the ProgressTracker component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how progress tracking supports adaptive learning.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="getUserProgress" value="{userId: 'user123'}" />
+      <Input name="updateProgress" value="{userId: 'user123', sessionResults: {
+        learningPathId: 'path1',
+        stitchId: 'stitch123',
+        correctCount: 18,
+        totalCount: 20,
+        completionTime: 240000
+      }}" />
+      <Input name="getContentMastery" value="{userId: 'user123', contentId: 'stitch123'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="progress" value="{
+        overallCompletion: 0.35,
+        pathProgress: {
+          'path1': 0.42,
+          'path2': 0.28,
+          'path3': 0.35
+        },
+        masteredContent: 28,
+        totalContent: 80
+      }" />
+      <Output name="updatedProgress" value="{
+        overallCompletion: 0.36,
+        pathProgress: {
+          'path1': 0.44,
+          'path2': 0.28,
+          'path3': 0.35
+        },
+        masteredContent: 29,
+        totalContent: 80
+      }" />
+      <Output name="mastery" value="{
+        contentId: 'stitch123',
+        masteryLevel: 0.9,
+        attemptsCount: 3,
+        lastAttemptDate: '2025-05-18T15:10:00Z',
+        nextReviewDate: '2025-05-25T15:10:00Z'
+      }" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="PS-003">
+        ProgressTracker must accurately track and update user progress based on session results.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

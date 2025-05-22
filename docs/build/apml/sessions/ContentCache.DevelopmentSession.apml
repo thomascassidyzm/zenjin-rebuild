@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="ContentCache" module="OfflineSupport">
+    <ImplementationGoal>
+      Implement the ContentCache component that manages caching of content for offline use, ensuring users can access learning materials without an internet connection.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/OfflineSupport.apml" section="Interfaces.ContentCachingInterface" />
+      <Reference type="BusinessModel" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="BusinessModelInsights.OfflineStrategy" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-007" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/OfflineSupport.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the ContentCache component for the Zenjin Maths App, which is responsible for managing the caching of content for offline use.
+      
+      The ContentCache must implement:
+      1. Content caching functionality:
+         - Cache content for offline access similar to Spotify model
+         - Efficiently store and retrieve cached content
+         - Track cache status for content items
+         - Support prioritized caching of essential content
+      
+      2. Methods to:
+         - Cache specified content items
+         - Retrieve cached content
+         - Check if content is cached
+         - Get cache status for content items
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the ContentCachingInterface as defined in the OfflineSupport module
+      - Utilize IndexedDB for efficient local storage
+      - Ensure the implementation is testable with mock inputs
+      - Design for space efficiency with potentially large content sets
+      
+      Please implement the ContentCache component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details, caching strategies, and storage optimization techniques.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="cacheContent" value="{contentIds: ['stitch-add-1', 'stitch-add-2', 'stitch-mult-1'], options: {priority: 'high'}}" />
+      <Input name="getCachedContent" value="{contentId: 'stitch-add-1'}" />
+      <Input name="isCached" value="{contentId: 'stitch-add-1'}" />
+      <Input name="getCacheStatus" value="{contentIds: ['stitch-add-1', 'stitch-add-2', 'stitch-mult-3']}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="result" value="{
+        success: true,
+        cachedCount: 3,
+        failedCount: 0,
+        totalSize: 256000
+      }" />
+      <Output name="content" value="{
+        id: 'stitch-add-1',
+        type: 'stitch',
+        questions: [...],
+        metadata: {...}
+      }" />
+      <Output name="cached" value="true" />
+      <Output name="status" value="{
+        'stitch-add-1': {cached: true, size: 85000, timestamp: 1621234567890},
+        'stitch-add-2': {cached: true, size: 92000, timestamp: 1621234567890},
+        'stitch-mult-3': {cached: false}
+      }" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="OS-003">
+        ContentCache must efficiently cache and retrieve content for offline use.
+      </Criterion>
+      <Criterion id="OS-005">
+        The application must function correctly without an internet connection, using cached content and local storage.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

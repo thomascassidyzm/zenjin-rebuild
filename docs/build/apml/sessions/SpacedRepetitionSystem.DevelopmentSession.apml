@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="SpacedRepetitionSystem" module="ProgressionSystem">
+    <ImplementationGoal>
+      Implement the SpacedRepetitionSystem component that implements the Stitch Repositioning Algorithm for spaced repetition, moving mastered content progressively further back in the queue.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="Interfaces.SpacedRepetitionInterface" />
+      <Reference type="LearningMechanics" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="LearningEngineInsights.ProgressionMechanics.SpacedRepetition" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-005" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the SpacedRepetitionSystem component for the Zenjin Maths App, which is responsible for implementing the Stitch Repositioning Algorithm for spaced repetition.
+      
+      The SpacedRepetitionSystem must implement:
+      1. The Stitch Repositioning Algorithm:
+         - When a stitch is completed with 20/20 correct answers, it's temporarily assigned position -1
+         - All stitches in positions 1 through [skip number] shift down one position
+         - This creates a vacant slot at the position equal to the stitch's skip number
+         - The completed stitch is placed in this vacant slot
+         - This creates spaced repetition where correctly answered content moves progressively further back in the queue as it's mastered
+      
+      2. Methods to:
+         - Reposition a stitch based on performance
+         - Get the next stitch to present to the user
+         - Calculate the skip number based on performance
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the SpacedRepetitionInterface as defined in the ProgressionSystem module
+      - Ensure the implementation is testable with mock inputs
+      - Design for efficient queue management with potentially hundreds of stitches per user
+      - Support adaptive spacing based on performance
+      
+      Please implement the SpacedRepetitionSystem component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how the algorithm optimizes learning through spaced repetition.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="repositionStitch" value="{userId: 'user123', stitchId: 'stitch456', performance: {correctCount: 20, totalCount: 20, averageResponseTime: 1500}}" />
+      <Input name="getNextStitch" value="{userId: 'user123', learningPathId: 'path1'}" />
+      <Input name="calculateSkipNumber" value="{performance: {correctCount: 20, totalCount: 20, averageResponseTime: 1500}}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="newPosition" value="5" />
+      <Output name="nextStitch" value="{id: 'stitch789', content: {...}, position: 1}" />
+      <Output name="skipNumber" value="5" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="PS-002">
+        SpacedRepetitionSystem must correctly implement the Stitch Repositioning Algorithm, moving completed stitches to appropriate positions.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

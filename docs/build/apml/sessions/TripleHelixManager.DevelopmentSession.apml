@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentSession version="1.1.0">
+  <Component name="TripleHelixManager" module="ProgressionSystem">
+    <ImplementationGoal>
+      Implement the TripleHelixManager component that manages three parallel learning paths and their rotation according to the Live Aid Stage Model, optimizing cognitive resource usage through varied learning experiences.
+    </ImplementationGoal>
+    
+    <ContextReferences>
+      <Reference type="Interface" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="Interfaces.TripleHelixManagerInterface" />
+      <Reference type="MetaTheoretical" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/ExpertKnowledge.apml" section="MathematicalImplementation.TripleHelixModel" />
+      <Reference type="Requirements" path="/home/ubuntu/zenjin-rebuild/apml/phase0r/RebuildRequirements.apml" section="FunctionalRequirements.FR-002" />
+      <Reference type="ValidationCriteria" path="/home/ubuntu/zenjin-rebuild/apml/phase2/ProgressionSystem.apml" section="ValidationCriteria" />
+    </ContextReferences>
+    
+    <ImplementationPrompt>
+      You are implementing the TripleHelixManager component for the Zenjin Maths App, which is responsible for managing three parallel learning paths (tubes) and their rotation according to the Live Aid Stage Model.
+      
+      The TripleHelixManager must implement:
+      1. Three parallel learning paths that operate simultaneously
+      2. Rotation between paths to optimize cognitive resource usage
+      3. Adaptive difficulty for each learning path based on user mastery
+      4. The Live Aid Stage Model where two stitches are always being prepared while one is active
+      
+      Key methods to implement:
+      - getActiveLearningPath: Returns the currently active learning path for a user
+      - rotateLearningPaths: Rotates the learning paths, making a prepared path active
+      - getPreparingPaths: Returns the learning paths being prepared
+      - initializeTripleHelix: Sets up the initial learning paths for a new user
+      
+      Technical requirements:
+      - Use TypeScript for type safety
+      - Implement the TripleHelixManagerInterface as defined in the ProgressionSystem module
+      - Ensure the implementation is testable with mock inputs
+      - Design for efficient rotation and path management
+      - Support independent adaptation of difficulty for each learning path
+      
+      Please implement the TripleHelixManager component with all necessary TypeScript types, classes, and methods. Include comprehensive comments explaining the implementation details and how they relate to the Triple Helix learning model principles.
+    </ImplementationPrompt>
+    
+    <MockInputs>
+      <Input name="getActiveLearningPath" value="{userId: 'user123'}" />
+      <Input name="rotateLearningPaths" value="{userId: 'user123'}" />
+      <Input name="getPreparingPaths" value="{userId: 'user123'}" />
+    </MockInputs>
+    
+    <ExpectedOutputs>
+      <Output name="activePath" value="{id: 'path1', name: 'Addition Facts', currentStitchId: 'stitch123', difficulty: 3}" />
+      <Output name="newActivePath" value="{id: 'path2', name: 'Multiplication Facts', currentStitchId: 'stitch456', difficulty: 2}" />
+      <Output name="preparingPaths" value="[{id: 'path3', name: 'Division Facts', nextStitchId: 'stitch789', difficulty: 4}, {id: 'path1', name: 'Addition Facts', nextStitchId: 'stitch234', difficulty: 3}]" />
+    </ExpectedOutputs>
+    
+    <ValidationCriteria>
+      <Criterion id="PS-001">
+        TripleHelixManager must correctly rotate between three parallel learning paths according to the Live Aid Stage Model.
+      </Criterion>
+      <Criterion id="PS-005">
+        TripleHelixManager must adapt difficulty independently for each learning path based on user mastery.
+      </Criterion>
+    </ValidationCriteria>
+  </Component>
+</DevelopmentSession>

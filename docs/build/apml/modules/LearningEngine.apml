@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="LearningEngine" version="1.1.0">
+  <Purpose>
+    Implement the distinction-based learning approach with five boundary levels and manage the generation of appropriate distractors for each question based on the user's current mastery level.
+  </Purpose>
+  
+  <ContextBoundary size="large" tokenEstimate="50000">
+    <Description>
+      This module encompasses the core learning algorithms, including distinction management, 
+      question generation, and distractor generation. It is responsible for implementing the 
+      theoretical foundation of distinction-based learning and providing appropriate content 
+      for the user interface to present.
+    </Description>
+  </ContextBoundary>
+  
+  <Interfaces>
+    <Interface name="DistinctionManagerInterface">
+      <Description>
+        Manages the five boundary levels of distinction and tracks user mastery at each level.
+      </Description>
+      <Methods>
+        <Method name="getCurrentBoundaryLevel">
+          <Input name="userId" type="string" required="true" description="User identifier" />
+          <Input name="factId" type="string" required="true" description="Identifier for the mathematical fact" />
+          <Output name="boundaryLevel" type="number" description="Current boundary level (1-5) for the user and fact" />
+        </Method>
+        <Method name="updateBoundaryLevel">
+          <Input name="userId" type="string" required="true" description="User identifier" />
+          <Input name="factId" type="string" required="true" description="Identifier for the mathematical fact" />
+          <Input name="performance" type="object" required="true" description="User performance data for the fact" />
+          <Output name="newBoundaryLevel" type="number" description="Updated boundary level (1-5)" />
+        </Method>
+        <Method name="getBoundaryLevelDescription">
+          <Input name="level" type="number" required="true" description="Boundary level (1-5)" />
+          <Output name="description" type="string" description="Description of the boundary level" />
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="DistractorGeneratorInterface">
+      <Description>
+        Generates appropriate distractors based on the boundary level and mathematical fact.
+      </Description>
+      <Methods>
+        <Method name="generateDistractor">
+          <Input name="factId" type="string" required="true" description="Identifier for the mathematical fact" />
+          <Input name="boundaryLevel" type="number" required="true" description="Boundary level (1-5)" />
+          <Input name="correctAnswer" type="string" required="true" description="The correct answer" />
+          <Output name="distractor" type="string" description="Generated distractor appropriate for the boundary level" />
+        </Method>
+        <Method name="getDistractorExplanation">
+          <Input name="factId" type="string" required="true" description="Identifier for the mathematical fact" />
+          <Input name="distractor" type="string" required="true" description="The generated distractor" />
+          <Input name="boundaryLevel" type="number" required="true" description="Boundary level (1-5)" />
+          <Output name="explanation" type="string" description="Explanation of why the distractor was chosen" />
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="QuestionGeneratorInterface">
+      <Description>
+        Generates questions based on the active learning path and user's progress.
+      </Description>
+      <Methods>
+        <Method name="generateQuestion">
+          <Input name="userId" type="string" required="true" description="User identifier" />
+          <Input name="learningPathId" type="string" required="true" description="Identifier for the active learning path" />
+          <Output name="question" type="object" description="Generated question with fact ID, question text, and correct answer" />
+        </Method>
+        <Method name="getNextQuestion">
+          <Input name="userId" type="string" required="true" description="User identifier" />
+          <Input name="learningPathId" type="string" required="true" description="Identifier for the active learning path" />
+          <Output name="question" type="object" description="Next question in the sequence" />
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="FactRepositoryInterface">
+      <Description>
+        Manages the repository of mathematical facts used in the learning process.
+      </Description>
+      <Methods>
+        <Method name="getFact">
+          <Input name="factId" type="string" required="true" description="Identifier for the mathematical fact" />
+          <Output name="fact" type="object" description="Mathematical fact data" />
+        </Method>
+        <Method name="getFactsByOperation">
+          <Input name="operation" type="string" required="true" description="Mathematical operation (e.g., 'multiplication')" />
+          <Output name="facts" type="array" description="Array of facts for the specified operation" />
+        </Method>
+        <Method name="getRelatedFacts">
+          <Input name="factId" type="string" required="true" description="Identifier for the mathematical fact" />
+          <Input name="relationshipType" type="string" required="true" description="Type of relationship (e.g., 'adjacent', 'inverse')" />
+          <Output name="relatedFacts" type="array" description="Array of related facts" />
+        </Method>
+      </Methods>
+    </Interface>
+    
+    <Interface name="ContentManagerInterface">
+      <Description>
+        Provides administrative interfaces for managing mathematical facts and curriculum content.
+      </Description>
+      <Methods>
+        <Method name="createFact">
+          <Input name="factInput" type="object" required="true" description="Fact data to create" />
+          <Output name="fact" type="object" description="The created mathematical fact" />
+        </Method>
+        <Method name="updateFact">
+          <Input name="factId" type="string" required="true" description="ID of the fact to update" />
+          <Input name="factUpdates" type="object" required="true" description="Fact data updates" />
+          <Output name="fact" type="object" description="The updated mathematical fact" />
+        </Method>
+        <Method name="deleteFact">
+          <Input name="factId" type="string" required="true" description="ID of the fact to delete" />
+          <Output name="success" type="boolean" description="Whether the deletion was successful" />
+        </Method>
+        <Method name="importCurriculum">
+          <Input name="jsonData" type="string" required="true" description="JSON curriculum data" />
+          <Input name="options" type="object" required="false" description="Import options" />
+          <Output name="result" type="object" description="Import operation result" />
+        </Method>
+        <Method name="exportCurriculum">
+          <Input name="curriculumName" type="string" required="true" description="Name for the exported curriculum" />
+          <Input name="description" type="string" required="false" description="Description of the curriculum" />
+          <Input name="query" type="object" required="false" description="Optional query to filter facts to export" />
+          <Output name="json" type="string" description="JSON curriculum data" />
+        </Method>
+        <Method name="generateFactRelationships">
+          <Input name="factIds" type="array" required="false" description="IDs of facts to process (all if not specified)" />
+          <Input name="relationshipTypes" type="array" required="false" description="Types of relationships to generate" />
+          <Output name="updatedCount" type="number" description="Number of facts updated with new relationships" />
+        </Method>
+        <Method name="generateDifficultyRatings">
+          <Input name="factIds" type="array" required="false" description="IDs of facts to process (all if not specified)" />
+          <Input name="algorithm" type="string" required="false" description="Difficulty calculation algorithm to use" />
+          <Output name="updatedCount" type="number" description="Number of facts updated with new difficulty ratings" />
+        </Method>
+        <Method name="listCurriculumSets">
+          <Input name="tags" type="array" required="false" description="Filter by tags" />
+          <Output name="curriculumSets" type="array" description="Available curriculum sets" />
+        </Method>
+        <Method name="getCurriculumSet">
+          <Input name="curriculumId" type="string" required="true" description="Curriculum identifier" />
+          <Output name="curriculum" type="object" description="The curriculum data" />
+        </Method>
+      </Methods>
+    </Interface>
+  </Interfaces>
+  
+  <Components>
+    <Component name="DistinctionManager">
+      <Description>
+        Implements the five boundary levels of distinction and tracks user mastery.
+      </Description>
+      <Implements>DistinctionManagerInterface</Implements>
+      <Dependencies>
+        <Dependency interface="FactRepositoryInterface" />
+      </Dependencies>
+    </Component>
+    
+    <Component name="DistractorGenerator">
+      <Description>
+        Generates distractors based on boundary levels and mathematical facts.
+      </Description>
+      <Implements>DistractorGeneratorInterface</Implements>
+      <Dependencies>
+        <Dependency interface="FactRepositoryInterface" />
+        <Dependency interface="DistinctionManagerInterface" />
+      </Dependencies>
+    </Component>
+    
+    <Component name="QuestionGenerator">
+      <Description>
+        Generates questions based on learning paths and user progress.
+      </Description>
+      <Implements>QuestionGeneratorInterface</Implements>
+      <Dependencies>
+        <Dependency interface="FactRepositoryInterface" />
+        <Dependency interface="DistinctionManagerInterface" />
+      </Dependencies>
+    </Component>
+    
+    <Component name="FactRepository">
+      <Description>
+        Manages the repository of mathematical facts.
+      </Description>
+      <Implements>FactRepositoryInterface</Implements>
+    </Component>
+    
+    <Component name="ContentManager">
+      <Description>
+        Provides administrative tools for managing mathematical facts and curriculum content.
+      </Description>
+      <Implements>ContentManagerInterface</Implements>
+      <Dependencies>
+        <Dependency interface="FactRepositoryInterface" />
+      </Dependencies>
+    </Component>
+  </Components>
+  
+  <ModuleDependencies>
+    <ModuleDependency name="ProgressionSystem">
+      <Interface>TripleHelixManagerInterface</Interface>
+      <Interface>ProgressTrackingInterface</Interface>
+    </ModuleDependency>
+    <ModuleDependency name="MetricsSystem">
+      <Interface>SessionMetricsInterface</Interface>
+    </ModuleDependency>
+  </ModuleDependencies>
+  
+  <ValidationCriteria>
+    <Criterion id="LE-001" test="tests/learning/boundary_levels_test.js">
+      DistinctionManager must correctly implement all five boundary levels: Category, Magnitude, Operation, Related Fact, and Near Miss.
+    </Criterion>
+    <Criterion id="LE-002" test="tests/learning/distractor_generation_test.js">
+      DistractorGenerator must generate appropriate distractors for each boundary level that isolate the specific boundary being tested.
+    </Criterion>
+    <Criterion id="LE-003" test="tests/learning/question_generation_test.js">
+      QuestionGenerator must generate questions appropriate for the user's current learning path and mastery level.
+    </Criterion>
+    <Criterion id="LE-004" test="tests/learning/fact_repository_test.js">
+      FactRepository must correctly store and retrieve mathematical facts and their relationships.
+    </Criterion>
+    <Criterion id="LE-005" test="tests/learning/boundary_progression_test.js">
+      DistinctionManager must appropriately update boundary levels based on user performance.
+    </Criterion>
+    <Criterion id="LE-006" test="tests/learning/content_manager_test.js">
+      ContentManager must correctly manage curriculum content, including import/export, relationship generation, and difficulty calculation.
+    </Criterion>
+  </ValidationCriteria>
+  
+  <SystemRequirements>
+    <Requirement type="Performance" name="DistractorGenerationTime">
+      Distractor generation must complete within 50ms to ensure smooth user experience.
+    </Requirement>
+    <Requirement type="Accuracy" name="DistractorRelevance">
+      Distractors must be relevant to the specific boundary level being tested.
+    </Requirement>
+    <Requirement type="Scalability" name="FactRepositorySize">
+      FactRepository must efficiently handle at least 10,000 mathematical facts.
+    </Requirement>
+    <Requirement type="Adaptability" name="BoundaryLevelAdjustment">
+      Boundary level adjustments must be responsive to user performance while avoiding oscillation.
+    </Requirement>
+    <Requirement type="Performance" name="CurriculumImportTime">
+      Curriculum import operations must complete within 5 seconds for datasets of up to 1,000 facts.
+    </Requirement>
+  </SystemRequirements>
+</Module>

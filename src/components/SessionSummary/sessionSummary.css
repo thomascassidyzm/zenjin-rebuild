@@ -1,0 +1,240 @@
+/* sessionSummary.css - Additional styles for the SessionSummary component */
+
+/* Child-friendly fonts */
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Bubblegum+Sans&display=swap');
+
+/* Base styles */
+.session-summary {
+  --primary-color: #4F46E5;
+  --secondary-color: #10B981;
+  --accent-color: #F59E0B;
+  --success-color: #10B981;
+  --warning-color: #F59E0B;
+  --error-color: #EF4444;
+  font-family: 'Comic Neue', 'Comic Sans MS', sans-serif;
+}
+
+/* Header styles */
+.session-summary h2, 
+.session-summary h3 {
+  font-family: 'Bubblegum Sans', 'Comic Sans MS', cursive;
+  letter-spacing: 0.5px;
+}
+
+/* Achievement celebration animations */
+.achievement-card.achievement-unlocked {
+  position: relative;
+  overflow: hidden;
+}
+
+.achievement-card.achievement-unlocked::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.8) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  z-index: 1;
+  transform: translateX(-100%) rotate(45deg);
+  animation: achievement-shine 2s ease-in-out infinite;
+}
+
+@keyframes achievement-shine {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  20%, 100% {
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+/* Progress bar animations */
+.progress-fill {
+  transition: width 1.5s ease-in-out;
+}
+
+/* Highlight animation for progress elements */
+.highlight-progress {
+  animation: highlight-pulse 3s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.3);
+  }
+}
+
+/* Achievement celebration sparkles */
+.achievement-sparkle {
+  position: absolute;
+  pointer-events: none;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px gold;
+  opacity: 0;
+}
+
+.achievement-sparkle.animate {
+  animation: sparkle 0.8s ease-in-out forwards;
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+/* Quick stats card hover effect */
+.stat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .session-summary {
+    padding: 1rem;
+  }
+  
+  .quick-stats {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .chart-container {
+    height: 250px;
+  }
+}
+
+/* Accessibility focus styles */
+.session-summary button:focus,
+.session-summary a:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Dark mode adjustments */
+.dark .session-summary {
+  --primary-color: #818CF8;
+  --secondary-color: #34D399;
+  --accent-color: #FBBF24;
+}
+
+.dark .stat-card {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .achievement-card,
+.dark .path-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom chart styles */
+.chart-container canvas {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* Achievement badge glow effect */
+.achievement-icon {
+  position: relative;
+}
+
+.achievement-icon::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid transparent;
+  animation: glow-pulse 2s infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    border-color: rgba(79, 70, 229, 0);
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+  50% {
+    border-color: rgba(79, 70, 229, 0.5);
+    box-shadow: 0 0 8px 2px rgba(79, 70, 229, 0.3);
+  }
+}
+
+/* Print styles for the snapshot feature */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .session-summary, .session-summary * {
+    visibility: visible;
+  }
+  
+  .session-summary {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  .action-buttons {
+    display: none;
+  }
+}
+
+/* Skip navigation for accessibility */
+.skip-nav {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-nav:focus {
+  top: 0;
+}
+
+/* ARIA live regions for screen readers */
+.sr-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

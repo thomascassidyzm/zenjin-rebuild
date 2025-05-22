@@ -1,0 +1,73 @@
+/* playerCardAnimations.css */
+/* Custom animations for the PlayerCard component */
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Glow animations */
+@keyframes glow-green {
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: 0 0 20px 5px rgba(34, 197, 94, 0.5); }
+}
+
+@keyframes glow-red {
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.5); }
+}
+
+@keyframes glow-blue {
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 15px 3px rgba(59, 130, 246, 0.4); }
+}
+
+.glow-green {
+  animation: glow-green 1.5s ease-in-out infinite;
+}
+
+.glow-red {
+  animation: glow-red 1.5s ease-in-out infinite;
+}
+
+.glow-blue {
+  animation: glow-blue 2s ease-in-out infinite;
+}
+
+/* Accessibility focus styles */
+.focus-visible:focus {
+  outline: 3px solid rgba(59, 130, 246, 0.6);
+  outline-offset: 3px;
+}
+
+/* Child-friendly touch target styles */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Responsive scaling for different screen sizes */
+@media (max-width: 640px) {
+  .text-scaling {
+    font-size: 90%;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-shake {
+    animation: none !important;
+  }
+
+  .glow-green,
+  .glow-red,
+  .glow-blue {
+    animation: none !important;
+    box-shadow: 0 0 8px 2px rgba(125, 125, 125, 0.3) !important;
+  }
+}

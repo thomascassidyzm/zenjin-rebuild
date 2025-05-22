@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="MetricsCalculatorInterface" version="1.1.0" module="MetricsSystem">
+  <Purpose>
+    Defines the contract for the MetricsCalculator component that performs calculations for various metrics in the system.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="SessionData">
+      <Field name="duration" type="number" required="true" description="Session duration in milliseconds" />
+      <Field name="questionCount" type="number" required="true" description="Number of questions answered" />
+      <Field name="ftcCount" type="number" required="true" description="Number of first-time correct answers" />
+      <Field name="ecCount" type="number" required="true" description="Number of eventually correct answers" />
+      <Field name="incorrectCount" type="number" required="true" description="Number of incorrect answers" />
+      <Field name="responseTimeData" type="number[]" required="false" description="Array of response times in milliseconds" />
+    </Structure>
+    
+    <Structure name="MetricsResult">
+      <Field name="ftcPoints" type="number" required="true" description="First-time correct points" />
+      <Field name="ecPoints" type="number" required="true" description="Eventually correct points" />
+      <Field name="basePoints" type="number" required="true" description="Base points (FTC + EC)" />
+      <Field name="consistency" type="number" required="true" description="Consistency score (0.0-1.0)" />
+      <Field name="accuracy" type="number" required="true" description="Accuracy score (0.0-1.0)" />
+      <Field name="speed" type="number" required="true" description="Speed score (0.0-1.0)" />
+      <Field name="bonusMultiplier" type="number" required="true" description="Bonus multiplier" />
+      <Field name="blinkSpeed" type="number" required="true" description="Blink speed (ms per FTC answer)" />
+      <Field name="totalPoints" type="number" required="true" description="Total points (base × bonus)" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="calculateSessionMetrics">
+      <Description>Calculates metrics for a learning session</Description>
+      <Input name="sessionData" type="SessionData" required="true" description="Session data for calculation" />
+      <Output name="metrics" type="MetricsResult" description="Calculated metrics" />
+      <Errors>
+        <Error code="INVALID_SESSION_DATA" description="The session data is invalid" />
+        <Error code="CALCULATION_FAILED" description="Failed to calculate metrics" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="calculateFTCPoints">
+      <Description>Calculates first-time correct points</Description>
+      <Input name="ftcCount" type="number" required="true" description="Number of first-time correct answers" />
+      <Output name="points" type="number" description="Calculated FTC points" />
+      <Errors>
+        <Error code="INVALID_COUNT" description="The count is invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="calculateECPoints">
+      <Description>Calculates eventually correct points</Description>
+      <Input name="ecCount" type="number" required="true" description="Number of eventually correct answers" />
+      <Output name="points" type="number" description="Calculated EC points" />
+      <Errors>
+        <Error code="INVALID_COUNT" description="The count is invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="calculateBonusMultiplier">
+      <Description>Calculates bonus multiplier based on consistency, accuracy, and speed</Description>
+      <Input name="consistency" type="number" required="true" description="Consistency score (0.0-1.0)" />
+      <Input name="accuracy" type="number" required="true" description="Accuracy score (0.0-1.0)" />
+      <Input name="speed" type="number" required="true" description="Speed score (0.0-1.0)" />
+      <Output name="multiplier" type="number" description="Calculated bonus multiplier" />
+      <Errors>
+        <Error code="INVALID_SCORE" description="One or more scores are invalid" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="calculateBlinkSpeed">
+      <Description>Calculates blink speed (ms per FTC answer)</Description>
+      <Input name="duration" type="number" required="true" description="Session duration in milliseconds" />
+      <Input name="ftcCount" type="number" required="true" description="Number of first-time correct answers" />
+      <Output name="blinkSpeed" type="number" description="Calculated blink speed" />
+      <Errors>
+        <Error code="INVALID_DURATION" description="The duration is invalid" />
+        <Error code="INVALID_COUNT" description="The count is invalid" />
+        <Error code="DIVISION_BY_ZERO" description="Cannot calculate blink speed with zero FTC answers" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="calculateEvolution">
+      <Description>Calculates the Evolution metric</Description>
+      <Input name="totalPoints" type="number" required="true" description="Total points" />
+      <Input name="blinkSpeed" type="number" required="true" description="Blink speed in milliseconds" />
+      <Output name="evolution" type="number" description="Calculated Evolution metric" />
+      <Errors>
+        <Error code="INVALID_POINTS" description="The points value is invalid" />
+        <Error code="INVALID_BLINK_SPEED" description="The blink speed is invalid" />
+        <Error code="DIVISION_BY_ZERO" description="Cannot calculate Evolution with zero blink speed" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+  </Methods>
+  
+  <Dependencies>
+    <!-- No external dependencies -->
+  </Dependencies>
+  
+  <UsageExample>
+```typescript
+// Example usage of MetricsCalculatorInterface
+import { MetricsCalculator } from './components/MetricsCalculator';
+
+// Create metrics calculator
+const metricsCalculator = new MetricsCalculator();
+
+// Calculate session metrics
+const sessionMetrics = metricsCalculator.calculateSessionMetrics({
+  duration: 240000,
+  questionCount: 20,
+  ftcCount: 16,
+  ecCount: 3,
+  incorrectCount: 1,
+  responseTimeData: [1200, 1500, 1800, 1300, /* ... */]
+});
+
+console.log(`FTC Points: ${sessionMetrics.ftcPoints}`);
+console.log(`EC Points: ${sessionMetrics.ecPoints}`);
+console.log(`Base Points: ${sessionMetrics.basePoints}`);
+console.log(`Consistency: ${sessionMetrics.consistency}`);
+console.log(`Accuracy: ${sessionMetrics.accuracy}`);
+console.log(`Speed: ${sessionMetrics.speed}`);
+console.log(`Bonus Multiplier: ${sessionMetrics.bonusMultiplier}`);
+console.log(`Blink Speed: ${sessionMetrics.blinkSpeed} ms`);
+console.log(`Total Points: ${sessionMetrics.totalPoints}`);
+
+// Calculate individual metrics
+const ftcPoints = metricsCalculator.calculateFTCPoints(16);
+const ecPoints = metricsCalculator.calculateECPoints(3);
+const bonusMultiplier = metricsCalculator.calculateBonusMultiplier(0.85, 0.95, 0.78);
+const blinkSpeed = metricsCalculator.calculateBlinkSpeed(240000, 16);
+const evolution = metricsCalculator.calculateEvolution(4250, 12500);
+
+console.log(`Evolution: ${evolution}`);
+```
+  </UsageExample>
+</Interface>
