@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interface name="SessionMetricsManagerInterface" version="1.1.0" module="MetricsSystem">
+  <Purpose>
+    Defines the contract for the SessionMetricsManager component that calculates and manages metrics for individual learning sessions.
+  </Purpose>
+  
+  <DataStructures>
+    <Structure name="SessionConfig">
+      <Field name="duration" type="number" required="false" description="Target session duration in seconds" />
+      <Field name="questionCount" type="number" required="false" description="Target number of questions" />
+      <Field name="learningPathId" type="string" required="false" description="Learning path identifier" />
+      <Field name="stitchId" type="string" required="false" description="Stitch identifier" />
+    </Structure>
+    
+    <Structure name="AnswerRecord">
+      <Field name="questionId" type="string" required="true" description="Question identifier" />
+      <Field name="isCorrect" type="boolean" required="true" description="Whether the answer was correct" />
+      <Field name="isFirstAttempt" type="boolean" required="true" description="Whether this was the first attempt" />
+      <Field name="responseTime" type="number" required="true" description="Response time in milliseconds" />
+      <Field name="timestamp" type="string" required="true" description="ISO date string of the answer" />
+    </Structure>
+    
+    <Structure name="SessionSummary">
+      <Field name="sessionId" type="string" required="true" description="Session identifier" />
+      <Field name="userId" type="string" required="true" description="User identifier" />
+      <Field name="duration" type="number" required="true" description="Actual session duration in milliseconds" />
+      <Field name="questionCount" type="number" required="true" description="Number of questions answered" />
+      <Field name="ftcCount" type="number" required="true" description="Number of first-time correct answers" />
+      <Field name="ecCount" type="number" required="true" description="Number of eventually correct answers" />
+      <Field name="incorrectCount" type="number" required="true" description="Number of incorrect answers" />
+      <Field name="ftcPoints" type="number" required="true" description="First-time correct points" />
+      <Field name="ecPoints" type="number" required="true" description="Eventually correct points" />
+      <Field name="basePoints" type="number" required="true" description="Base points (FTC + EC)" />
+      <Field name="consistency" type="number" required="true" description="Consistency score (0.0-1.0)" />
+      <Field name="accuracy" type="number" required="true" description="Accuracy score (0.0-1.0)" />
+      <Field name="speed" type="number" required="true" description="Speed score (0.0-1.0)" />
+      <Field name="bonusMultiplier" type="number" required="true" description="Bonus multiplier" />
+      <Field name="blinkSpeed" type="number" required="true" description="Blink speed (ms per FTC answer)" />
+      <Field name="totalPoints" type="number" required="true" description="Total points (base × bonus)" />
+      <Field name="startTime" type="string" required="true" description="ISO date string of session start" />
+      <Field name="endTime" type="string" required="true" description="ISO date string of session end" />
+    </Structure>
+  </DataStructures>
+  
+  <Methods>
+    <Method name="startSession">
+      <Description>Starts a new learning session</Description>
+      <Input name="userId" type="string" required="true" description="User identifier" />
+      <Input name="sessionConfig" type="SessionConfig" required="false" description="Session configuration" />
+      <Output name="sessionId" type="string" description="Identifier for the new session" />
+      <Errors>
+        <Error code="USER_NOT_FOUND" description="The specified user was not found" />
+        <Error code="INVALID_CONFIG" description="The session configuration is invalid" />
+        <Error code="SESSION_START_FAILED" description="Failed to start the session" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="recordAnswer">
+      <Description>Records an answer during the session</Description>
+      <Input name="sessionId" type="string" required="true" description="Session identifier" />
+      <Input name="answer" type="AnswerRecord" required="true" description="Answer record" />
+      <Output name="success" type="boolean" description="Whether the answer was successfully recorded" />
+      <Errors>
+        <Error code="SESSION_NOT_FOUND" description="The specified session was not found" />
+        <Error code="INVALID_ANSWER" description="The answer record is invalid" />
+        <Error code="SESSION_ENDED" description="The session has already ended" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getCurrentMetrics">
+      <Description>Gets the current metrics for an active session</Description>
+      <Input name="sessionId" type="string" required="true" description="Session identifier" />
+      <Output name="metrics" type="object" description="Current session metrics">
+        <Field name="duration" type="number" description="Current duration in milliseconds" />
+        <Field name="questionCount" type="number" description="Current question count" />
+        <Field name="ftcCount" type="number" description="Current first-time correct count" />
+        <Field name="ecCount" type="number" description="Current eventually correct count" />
+        <Field name="incorrectCount" type="number" description="Current incorrect count" />
+        <Field name="currentPoints" type="number" description="Current points estimate" />
+      </Output>
+      <Errors>
+        <Error code="SESSION_NOT_FOUND" description="The specified session was not found" />
+        <Error code="SESSION_ENDED" description="The session has already ended" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="endSession">
+      <Description>Ends a session and generates a summary</Description>
+      <Input name="sessionId" type="string" required="true" description="Session identifier" />
+      <Output name="summary" type="SessionSummary" description="Session summary" />
+      <Errors>
+        <Error code="SESSION_NOT_FOUND" description="The specified session was not found" />
+        <Error code="SESSION_ALREADY_ENDED" description="The session has already ended" />
+        <Error code="SUMMARY_GENERATION_FAILED" description="Failed to generate session summary" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+    
+    <Method name="getSessionSummary">
+      <Description>Gets the summary for a completed session</Description>
+      <Input name="sessionId" type="string" required="true" description="Session identifier" />
+      <Output name="summary" type="SessionSummary" description="Session summary" />
+      <Errors>
+        <Error code="SESSION_NOT_FOUND" description="The specified session was not found" />
+        <Error code="SESSION_NOT_ENDED" description="The session has not ended yet" />
+      </Errors>
+      <Async>false</Async>
+    </Method>
+  </Methods>
+  
+  <Dependencies>
+    <Dependency interface="MetricsCalculatorInterface" module="MetricsSystem" />
+  </Dependencies>
+  
+  <UsageExample>
+```typescript
+// Example usage of SessionMetricsManagerInterface
+import { SessionMetricsManager } from './components/SessionMetricsManager';
+
+// Create session metrics manager
+const sessionMetricsManager = new SessionMetricsManager();
+
+// Start a new session
+const sessionId = sessionMetricsManager.startSession('user123', {
+  duration: 300,
+  questionCount: 20
+});
+
+console.log(`Started session: ${sessionId}`);
+
+// Record answers during the session
+sessionMetricsManager.recordAnswer(sessionId, {
+  questionId: 'q001',
+  isCorrect: true,
+  isFirstAttempt: true,
+  responseTime: 1500,
+  timestamp: new Date().toISOString()
+});
+
+// Get current metrics during the session
+const currentMetrics = sessionMetricsManager.getCurrentMetrics(sessionId);
+console.log(`Questions answered: ${currentMetrics.questionCount}`);
+console.log(`FTC count: ${currentMetrics.ftcCount}`);
+console.log(`Current points: ${currentMetrics.currentPoints}`);
+
+// Record more answers...
+
+// End the session and get summary
+const summary = sessionMetricsManager.endSession(sessionId);
+console.log(`Session duration: ${summary.duration / 1000} seconds`);
+console.log(`FTC points: ${summary.ftcPoints}`);
+console.log(`EC points: ${summary.ecPoints}`);
+console.log(`Base points: ${summary.basePoints}`);
+console.log(`Bonus multiplier: ${summary.bonusMultiplier}`);
+console.log(`Total points: ${summary.totalPoints}`);
+console.log(`Blink speed: ${summary.blinkSpeed} ms`);
+```
+  </UsageExample>
+</Interface>

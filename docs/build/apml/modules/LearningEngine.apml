@@ -201,10 +201,10 @@
   <ModuleDependencies>
     <ModuleDependency name="ProgressionSystem">
       <Interface>TripleHelixManagerInterface</Interface>
-      <Interface>ProgressTrackingInterface</Interface>
+      <Interface>ProgressTrackerInterface</Interface>
     </ModuleDependency>
     <ModuleDependency name="MetricsSystem">
-      <Interface>SessionMetricsInterface</Interface>
+      <Interface>SessionMetricsManagerInterface</Interface>
     </ModuleDependency>
   </ModuleDependencies>
   
