@@ -305,38 +305,38 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   // Get option button styles based on state and answer
   const getOptionButtonClasses = (option: string) => {
-    // Using circles rather than full width buttons for a more modern look
-    const baseClasses = "relative flex items-center justify-center h-28 w-28 rounded-full text-2xl font-bold transition-all duration-300 transform touch-target";
+    // Using circles rather than full width buttons for a more modern look - bigger relative to card
+    const baseClasses = "relative flex items-center justify-center h-36 w-36 rounded-full text-3xl font-bold transition-all duration-300 transform touch-target";
     
     // If showing feedback and this is the correct answer
     if ((feedbackState === 'correct' || feedbackState === 'incorrect') && 
         currentQuestion && option === currentQuestion.correctAnswer) {
-      return `${baseClasses} bg-green-500 text-white border-2 border-green-400 shadow-lg shadow-green-500/30`;
+      return `${baseClasses} bg-green-500 text-white border-2 border-green-400 shadow-lg shadow-green-500/30 glow-green`;
     }
     
     // If showing incorrect feedback and this is the selected wrong answer
     if (feedbackState === 'incorrect' && 
         currentQuestion && option !== currentQuestion.correctAnswer) {
-      return `${baseClasses} bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/30`;
+      return `${baseClasses} bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/30 glow-red`;
     }
     
     // If timeout or no-answer
     if (feedbackState === 'timeout' || feedbackState === 'no-answer') {
-      return `${baseClasses} bg-blue-500/30 text-blue-200 border-2 border-blue-400/50`;
+      return `${baseClasses} bg-blue-500/30 text-blue-200 border-2 border-blue-400/50 glow-blue`;
     }
     
     // Default interactable state - light blue circular button
     return `${baseClasses} bg-blue-500/20 hover:bg-blue-400/30 text-white border-2 border-blue-400/50 hover:scale-[1.05] active:scale-[0.98]`;
   };
 
-  // Determine question text size based on length
+  // Determine question text size based on length - bigger overall
   const getQuestionTextClass = () => {
-    if (!currentQuestion) return "text-2xl font-bold";
+    if (!currentQuestion) return "text-3xl font-bold";
     
     const textLength = currentQuestion.text.length;
-    if (textLength > 100) return "text-xl font-bold";
-    if (textLength > 50) return "text-2xl font-bold";
-    return "text-3xl font-bold";
+    if (textLength > 100) return "text-2xl font-bold";
+    if (textLength > 50) return "text-3xl font-bold";
+    return "text-4xl font-bold";
   };
 
   // Render boundary level indicator (subtle visual cue based on level)
@@ -364,18 +364,11 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-[500px] p-4">
       {/* Points Display */}
-      <div className="w-full max-w-md mb-4 px-4">
+      <div className="w-full max-w-md min-w-[320px] mb-4">
         <div className="bg-gray-800/80 rounded-lg p-3 shadow-md">
           <div className="flex justify-between items-center">
             <span className="text-gray-400 font-medium">POINTS</span>
             <span className="text-3xl font-bold text-white">{points}</span>
-          </div>
-          <div className="mt-2 bg-gray-700/50 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-teal-400 h-full rounded-full" 
-              style={{ width: `${Math.min(points * 5, 100)}%` }} 
-              aria-hidden="true"
-            />
           </div>
         </div>
       </div>
@@ -389,7 +382,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           >
             {/* Question Section - Fixed position to prevent layout shift */}
             <div className="relative flex-shrink-0 text-center" style={{ height: '200px' }}>
-              {renderBoundaryLevelIndicator()}
               <h2 
                 className={`${getQuestionTextClass()} mb-4 text-white`}
                 aria-live="polite"
