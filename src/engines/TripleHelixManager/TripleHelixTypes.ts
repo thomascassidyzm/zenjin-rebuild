@@ -6,7 +6,7 @@
  * Learning path data structure
  * Represents a single learning path in the Triple Helix model
  */
-export type LearningPath = {
+export interface LearningPath {
   /** Unique identifier for the learning path */
   id: string;
   
@@ -30,13 +30,13 @@ export type LearningPath = {
   
   /** Additional metadata for the learning path */
   metadata?: Record<string, any>;
-};
+}
 
 /**
  * Triple helix state data structure
  * Represents the complete state of the Triple Helix for a user
  */
-export type TripleHelixState = {
+export interface TripleHelixState {
   /** User identifier */
   userId: string;
   
@@ -51,7 +51,7 @@ export type TripleHelixState = {
   
   /** Number of rotations performed */
   rotationCount: number;
-};
+}
 
 /**
  * Interface for the TripleHelixManager component
@@ -128,3 +128,6 @@ export interface TripleHelixManagerInterface {
     newDifficulty: number
   ): LearningPath;
 }
+
+// Explicit exports for better compatibility
+export { LearningPath, TripleHelixState, TripleHelixManagerInterface };

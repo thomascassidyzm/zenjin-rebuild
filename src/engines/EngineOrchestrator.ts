@@ -7,6 +7,17 @@ import { FactRepository } from './FactRepository/FactRepository';
 import { QuestionGenerator } from './QuestionGenerator/QuestionGenerator';
 import { StitchManager, Stitch, SessionResults, PerformanceData, RepositionResult } from './StitchManager/StitchManager';
 import { StitchLibrary } from './StitchLibrary';
+// Temporarily define the types here to avoid import issues
+interface LearningPath {
+  id: string;
+  name: string;
+  description?: string;
+  currentStitchId?: string;
+  nextStitchId?: string;
+  difficulty: number;
+  status: string;
+  metadata?: Record<string, any>;
+}
 import { Question as QuestionGeneratorQuestion } from '../interfaces/QuestionGeneratorInterface';
 import { Question as PlayerCardQuestion } from '../interfaces/PlayerCardInterface';
 
@@ -33,13 +44,101 @@ class MockDistinctionManager {
   }
 }
 
-class MockTripleHelixManager {
+// Simplified TripleHelixManager for tube assignment and rotation
+class SimpleTripleHelixManager {
+  private userStates: Map<string, { activePath: LearningPath; preparingPaths: LearningPath[]; rotationCount: number }> = new Map();
+  
+  // Three tubes: each learning path is assigned to a specific tube
+  private tubeAssignments: Record<string, number> = {
+    'addition': 1,
+    'multiplication': 2, 
+    'subtraction': 3,
+    'division': 1 // Cycle back to tube 1
+  };
+  
+  constructor() {
+    // Initialize default user with three tubes
+    this.initializeUser('default-user');
+  }
+  
+  private initializeUser(userId: string) {
+    const activePath: LearningPath = {
+      id: 'addition',
+      name: 'Addition',
+      difficulty: 2,
+      status: 'active',
+      metadata: { tube: 1 }
+    };
+    
+    const preparingPaths: LearningPath[] = [
+      {
+        id: 'multiplication',
+        name: 'Multiplication', 
+        difficulty: 2,
+        status: 'preparing',
+        metadata: { tube: 2 }
+      },
+      {
+        id: 'subtraction',
+        name: 'Subtraction',
+        difficulty: 2, 
+        status: 'preparing',
+        metadata: { tube: 3 }
+      }
+    ];
+    
+    this.userStates.set(userId, {
+      activePath,
+      preparingPaths,
+      rotationCount: 0
+    });
+  }
+  
   getUserActiveLearningPath(userId: string): string {
-    return 'knowledge-acquisition'; // Default to knowledge acquisition path
+    const state = this.userStates.get(userId);
+    return state?.activePath.id || 'addition';
+  }
+  
+  getActiveLearningPath(userId: string): LearningPath {
+    const state = this.userStates.get(userId);
+    return state?.activePath || { id: 'addition', name: 'Addition', difficulty: 2, status: 'active' };
   }
   
   learningPathExists(learningPathId: string): boolean {
     return ['addition', 'subtraction', 'multiplication', 'division'].includes(learningPathId);
+  }
+  
+  rotateLearningPaths(userId: string) {
+    const state = this.userStates.get(userId);
+    if (!state) return null;
+    
+    // Move active path to end of preparing paths
+    const newPreparingPaths = [...state.preparingPaths, state.activePath];
+    
+    // Make first preparing path active
+    const newActivePath = newPreparingPaths.shift()!;
+    newActivePath.status = 'active';
+    
+    // Update preparing paths status
+    newPreparingPaths.forEach(path => path.status = 'preparing');
+    
+    const newState = {
+      activePath: newActivePath,
+      preparingPaths: newPreparingPaths,
+      rotationCount: state.rotationCount + 1
+    };
+    
+    this.userStates.set(userId, newState);
+    
+    return {
+      previousActivePath: state.activePath,
+      newActivePath: newActivePath,
+      rotationCount: newState.rotationCount
+    };
+  }
+  
+  getTubeForPath(learningPathId: string): number {
+    return this.tubeAssignments[learningPathId] || 1;
   }
 }
 
@@ -50,7 +149,7 @@ export class EngineOrchestrator {
   private factRepository: FactRepository;
   private questionGenerator: QuestionGenerator;
   private distinctionManager: MockDistinctionManager;
-  private tripleHelixManager: MockTripleHelixManager;
+  private tripleHelixManager: SimpleTripleHelixManager;
   private stitchManager: StitchManager;
   private stitchLibrary: StitchLibrary;
   
@@ -58,7 +157,7 @@ export class EngineOrchestrator {
     // Initialize engines
     this.factRepository = new FactRepository();
     this.distinctionManager = new MockDistinctionManager();
-    this.tripleHelixManager = new MockTripleHelixManager();
+    this.tripleHelixManager = new SimpleTripleHelixManager();
     this.stitchManager = new StitchManager();
     this.stitchLibrary = new StitchLibrary(this.factRepository);
     
@@ -254,11 +353,13 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Get the current stitch for a user and learning path
+   * Get the current stitch for a user (uses active learning path from Triple Helix)
    */
-  getCurrentStitch(userId: string = 'default-user', learningPathId: string = 'addition'): Stitch | null {
+  getCurrentStitch(userId: string = 'default-user', learningPathId?: string): Stitch | null {
     try {
-      return this.stitchManager.getNextStitch(userId, learningPathId);
+      // Use active learning path from Triple Helix if no specific path provided
+      const activePathId = learningPathId || this.tripleHelixManager.getUserActiveLearningPath(userId);
+      return this.stitchManager.getNextStitch(userId, activePathId);
     } catch (error) {
       console.error('Failed to get current stitch:', error);
       return null;
@@ -266,18 +367,29 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Generate questions for a specific stitch
+   * Generate questions for a specific stitch (always exactly 20 questions in URN random order)
    */
   generateQuestionsForStitch(stitch: Stitch, count: number = 20): PlayerCardQuestion[] {
     try {
       const questions: PlayerCardQuestion[] = [];
+      const targetCount = 20; // Always exactly 20 questions per stitch
       
-      // Generate questions for each fact in the stitch
-      for (const factId of stitch.factIds.slice(0, count)) {
+      // If the stitch doesn't have enough facts, we'll cycle through them to reach 20
+      const availableFactIds = stitch.factIds;
+      if (availableFactIds.length === 0) {
+        console.warn(`Stitch ${stitch.id} has no facts`);
+        return [];
+      }
+      
+      // Generate exactly 20 questions, cycling through facts if necessary
+      for (let i = 0; i < targetCount; i++) {
+        const factId = availableFactIds[i % availableFactIds.length];
+        
         try {
           const fact = this.factRepository.getFactById(factId);
           const questionTemplate = this.factRepository.getQuestionTemplates(fact.operation, stitch.difficulty);
-          const template = questionTemplate[0] || `What is ${fact.operands[0]} ${this.getOperationSymbol(fact.operation)} ${fact.operands[1]}?`;
+          const template = questionTemplate[Math.floor(Math.random() * questionTemplate.length)] || 
+                          `What is ${fact.operands[0]} ${this.getOperationSymbol(fact.operation)} ${fact.operands[1]}?`;
           
           // Format the question text
           let questionText = template;
@@ -288,7 +400,7 @@ export class EngineOrchestrator {
           const distractor = this.generateDistractor(fact.result, fact.operation);
           
           questions.push({
-            id: `${stitch.id}-${factId}-${Date.now()}-${Math.random()}`,
+            id: `${stitch.id}-${factId}-${i}-${Date.now()}-${Math.random()}`,
             text: questionText,
             correctAnswer,
             distractor: distractor.toString(),
@@ -297,11 +409,13 @@ export class EngineOrchestrator {
           });
         } catch (error) {
           console.warn(`Failed to generate question for fact ${factId}:`, error);
+          // Add a fallback question to maintain count
+          questions.push(this.createFallbackQuestion(stitch.learningPathId));
         }
       }
       
-      // Shuffle questions for variety
-      return this.shuffleArray(questions);
+      // URN random shuffle - each stitch presentation is in random order
+      return this.urnShuffle(questions);
     } catch (error) {
       console.error('Failed to generate questions for stitch:', error);
       return [];
@@ -378,6 +492,44 @@ export class EngineOrchestrator {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+  }
+  
+  /**
+   * URN random shuffle - each element appears exactly once in random order
+   * This is the Fisher-Yates shuffle algorithm (same as shuffleArray but with explicit naming)
+   */
+  private urnShuffle<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+  
+  
+  /**
+   * Get the active learning path for a user
+   */
+  getActiveLearningPath(userId: string = 'default-user'): LearningPath | null {
+    try {
+      return this.tripleHelixManager.getActiveLearningPath(userId);
+    } catch (error) {
+      console.error('Failed to get active learning path:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Rotate learning paths for a user
+   */
+  rotateTripleHelix(userId: string = 'default-user') {
+    try {
+      return this.tripleHelixManager.rotateLearningPaths(userId);
+    } catch (error) {
+      console.error('Failed to rotate learning paths:', error);
+      return null;
+    }
   }
 }
 

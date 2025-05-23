@@ -71,10 +71,8 @@ const generateQuestionsForStitch = (learningPathId: string, userId: string = 'de
       return [engineOrchestrator.generateQuestion(userId, learningPathId)];
     }
     
-    console.log(`Starting stitch: ${currentStitch.name} (${currentStitch.description})`);
-    
-    // Generate questions specifically for this stitch
-    const questions = engineOrchestrator.generateQuestionsForStitch(currentStitch, 10);
+    // Generate questions specifically for this stitch (always 20 questions)
+    const questions = engineOrchestrator.generateQuestionsForStitch(currentStitch, 20);
     
     if (questions.length === 0) {
       console.warn(`No questions generated for stitch ${currentStitch.id}`);
@@ -219,29 +217,15 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
           <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-2xl">✓</span>
           </div>
-          <h2 className="text-white text-2xl font-bold mb-2">Stitch Complete!</h2>
-          {currentStitch && (
-            <p className="text-gray-400 text-sm mb-3">
-              "{currentStitch.name}" finished
-            </p>
-          )}
-          <p className="text-gray-300 text-lg mb-4">
+          <h2 className="text-white text-2xl font-bold mb-2">Session Complete!</h2>
+          <p className="text-gray-300 text-lg mb-6">
             You scored {sessionScore.correct} out of {sessionScore.total} ({percentage}%)
           </p>
-          {nextStitch && (
-            <div className="bg-gray-700 rounded-lg p-4 mb-6">
-              <p className="text-gray-400 text-sm mb-1">Next up:</p>
-              <p className="text-white font-semibold">{nextStitch.name}</p>
-              {nextStitch.description && (
-                <p className="text-gray-300 text-sm mt-1">{nextStitch.description}</p>
-              )}
-            </div>
-          )}
           <button
             onClick={resetSession}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
           >
-            {nextStitch ? `Start "${nextStitch.name}"` : 'Start New Session'}
+            Continue Learning
           </button>
         </div>
       </div>
@@ -253,14 +237,6 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       {/* Session Progress */}
       <div className="bg-gray-900 p-4">
         <div className="max-w-4xl mx-auto">
-          {currentStitch && (
-            <div className="text-center mb-3">
-              <h3 className="text-white font-semibold">{currentStitch.name}</h3>
-              {currentStitch.description && (
-                <p className="text-gray-400 text-sm">{currentStitch.description}</p>
-              )}
-            </div>
-          )}
           <div className="flex items-center justify-between text-white">
             <div className="text-sm">
               Question {currentQuestionIndex + 1} of {questions.length}

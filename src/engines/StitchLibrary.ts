@@ -241,7 +241,7 @@ export class StitchLibrary {
     return facts
       .filter(fact => fact.result >= minSum && fact.result <= maxSum)
       .map(fact => fact.id)
-      .slice(0, 20); // Limit to ~20 facts per stitch
+      .slice(0, 30); // Get 30 facts to ensure variety when cycling to 20 questions
   }
   
   private getDoublingFacts(min: number, max: number): string[] {
@@ -264,7 +264,7 @@ export class StitchLibrary {
         return (a >= 7 && a <= 9 && b >= 2 && b <= 5 && fact.result > 10);
       })
       .map(fact => fact.id)
-      .slice(0, 15);
+      .slice(0, 25);
   }
   
   private getTimesTableFacts(table: number): string[] {
@@ -282,7 +282,7 @@ export class StitchLibrary {
     return facts
       .filter(fact => fact.operands[0] >= min && fact.operands[0] <= max)
       .map(fact => fact.id)
-      .slice(0, 20);
+      .slice(0, 30);
   }
   
   private getDivisionByNumberFacts(divisor: number): string[] {

@@ -7,7 +7,7 @@
  */
 
 // Import the required interfaces and types
-import { LearningPath, TripleHelixState, TripleHelixManagerInterface } from './types';
+import { LearningPath, TripleHelixState, TripleHelixManagerInterface } from './TripleHelixTypes';
 
 /**
  * Custom error types for the TripleHelixManager
