@@ -258,101 +258,133 @@ export class SpacedRepetitionSystem implements SpacedRepetitionInterface {
   }
 
   /**
-   * Calculates a skip number based on performance data
-   * Implements an adaptive algorithm that considers:
-   * - Correctness ratio (correct / total)
-   * - Response time efficiency
-   * - Historical performance (via skip history tracking)
-   * 
+   * Fixed skip number sequence for spaced repetition
+   * This sequence creates optimal spacing intervals for memory retention
+   */
+  private static readonly SKIP_SEQUENCE = [4, 8, 15, 30, 100, 1000];
+
+  /**
+   * Calculates a skip number based on performance data using the fixed sequence
+   * Simple rules: <20/20 = reset to 4, =20/20 = advance in sequence
    * @param performance Performance data for the stitch
    * @param repositioningHistory Optional history of previous repositionings
-   * @param queueLength Optional length of the current queue for boundary checks
-   * @returns The calculated skip number
+   * @returns The next skip number in the sequence
    * @throws INVALID_PERFORMANCE_DATA if the performance data is invalid
    */
   public calculateSkipNumber(
     performance: PerformanceData,
-    repositioningHistory?: RepositionResult[],
-    queueLength?: number
+    repositioningHistory?: RepositionResult[]
   ): number {
     // Validate the performance data
     this.validatePerformanceData(performance);
 
-    const { correctCount, totalCount, averageResponseTime } = performance;
+    const { correctCount, totalCount } = performance;
     
-    // Calculate the correctness ratio (0.0 to 1.0)
-    const correctnessRatio = correctCount / totalCount;
-    
-    // Calculate response time factor: faster times give higher values
-    // Assuming 3000ms (3s) is average, normalize around that
-    // Values will typically range from ~0.5 to ~1.5
-    const responseTimeFactor = Math.max(0.5, Math.min(1.5, 3000 / averageResponseTime));
-    
-    // Base skip calculation combines correctness and response time
-    // Perfect score (20/20) gets a significant boost
-    let baseSkip: number;
-    
-    if (correctnessRatio === 1) {
-      // Perfect score (e.g., 20/20)
-      baseSkip = 5 * responseTimeFactor;
-    } else if (correctnessRatio >= 0.9) {
-      // Very good (e.g., 18/20 or 19/20)
-      baseSkip = 3 * responseTimeFactor;
-    } else if (correctnessRatio >= 0.8) {
-      // Good (e.g., 16/20)
-      baseSkip = 2 * responseTimeFactor;
-    } else if (correctnessRatio >= 0.7) {
-      // Fair (e.g., 14/20)
-      baseSkip = 1.5 * responseTimeFactor;
-    } else if (correctnessRatio >= 0.6) {
-      // Needs practice (e.g., 12/20)
-      baseSkip = 1 * responseTimeFactor;
-    } else {
-      // Significant struggle (below 12/20)
-      // Keep it closer to the front of the queue
-      baseSkip = 0.5 * responseTimeFactor;
+    // Simple rule: Only perfect performance (20/20) advances in sequence
+    if (correctCount !== totalCount) {
+      // < 20/20: Reset to beginning of sequence
+      return SpacedRepetitionSystem.SKIP_SEQUENCE[0]; // 4
     }
     
-    // Apply historical performance adjustment if we have history
-    let historicalFactor = 1.0;
+    // = 20/20: Advance to next position in sequence
+    if (!repositioningHistory || repositioningHistory.length === 0) {
+      // First time: start with the first skip number
+      return SpacedRepetitionSystem.SKIP_SEQUENCE[0]; // 4
+    }
     
-    if (repositioningHistory && repositioningHistory.length > 0) {
-      // Look at the most recent skip number
-      const lastSkip = repositioningHistory[0].skipNumber;
-      
-      if (correctnessRatio === 1) {
-        // Perfect performance: gradually increase the skip number
-        historicalFactor = 1.2; // 20% increase
-      } else if (correctnessRatio >= 0.9) {
-        // Very good: slight increase
-        historicalFactor = 1.1; // 10% increase
-      } else if (correctnessRatio >= 0.8) {
-        // Good: maintain roughly the same skip number
-        historicalFactor = 1.0;
-      } else if (correctnessRatio >= 0.7) {
-        // Fair: slight decrease
-        historicalFactor = 0.9; // 10% decrease
-      } else {
-        // Needs more practice: significant decrease
-        historicalFactor = 0.7; // 30% decrease
+    // Find the current position in the sequence based on last skip number
+    const lastSkip = repositioningHistory[0].skipNumber;
+    const currentIndex = SpacedRepetitionSystem.SKIP_SEQUENCE.indexOf(lastSkip);
+    
+    if (currentIndex === -1) {
+      // Last skip wasn't in our sequence, start from beginning
+      return SpacedRepetitionSystem.SKIP_SEQUENCE[0]; // 4
+    }
+    
+    // Perfect performance: advance to next in sequence
+    const nextIndex = Math.min(currentIndex + 1, SpacedRepetitionSystem.SKIP_SEQUENCE.length - 1);
+    return SpacedRepetitionSystem.SKIP_SEQUENCE[nextIndex];
+  }
+
+  /**
+   * Compresses the position space to handle gaps efficiently
+   * @param userId User identifier
+   * @param learningPathId Learning path identifier
+   */
+  private compressPositions(userId: string, learningPathId: string): void {
+    const queue = this.userDataStore[userId][learningPathId].queue;
+    
+    // Sort by current position
+    queue.sort((a, b) => a.position - b.position);
+    
+    // Reassign positions sequentially, maintaining relative order
+    // but compressing gaps while preserving the skip sequence structure
+    let newPosition = 1;
+    
+    for (const stitch of queue) {
+      if (stitch.position > 0) {
+        stitch.position = newPosition;
+        newPosition++;
       }
-      
-      // Adjust the base skip using the historical factor
-      baseSkip = Math.max(1, lastSkip * historicalFactor);
+    }
+  }
+
+  /**
+   * Finds the next available position for inserting a new stitch
+   * Prioritizes gaps created by the spaced repetition algorithm
+   * @param userId User identifier
+   * @param learningPathId Learning path identifier
+   * @returns The next available position
+   */
+  public getNextAvailablePosition(userId: string, learningPathId: string): number {
+    const queue = this.userDataStore[userId][learningPathId].queue;
+    
+    if (queue.length === 0) {
+      return 1;
     }
     
-    // Round to the nearest integer
-    let finalSkip = Math.round(baseSkip);
+    // Get all occupied positions, sorted
+    const occupiedPositions = queue
+      .map(s => s.position)
+      .filter(pos => pos > 0)
+      .sort((a, b) => a - b);
     
-    // Ensure skip number is at least 1
-    finalSkip = Math.max(1, finalSkip);
-    
-    // Ensure skip number doesn't exceed the queue length
-    if (queueLength) {
-      finalSkip = Math.min(finalSkip, queueLength);
+    // Find the first gap in the sequence
+    for (let i = 1; i <= occupiedPositions[occupiedPositions.length - 1]; i++) {
+      if (!occupiedPositions.includes(i)) {
+        return i; // Found a gap, use it
+      }
     }
     
-    return finalSkip;
+    // No gaps found, append to the end
+    return occupiedPositions[occupiedPositions.length - 1] + 1;
+  }
+
+  /**
+   * Adds a new stitch to the learning path at the next available position
+   * @param userId User identifier
+   * @param learningPathId Learning path identifier
+   * @param newStitch The stitch to add
+   */
+  public addNewStitch(
+    userId: string,
+    learningPathId: string,
+    newStitch: { id: string; content: any }
+  ): void {
+    this.ensureUserData(userId, learningPathId);
+    
+    const nextPosition = this.getNextAvailablePosition(userId, learningPathId);
+    
+    const queueStitch: QueueStitch = {
+      id: newStitch.id,
+      position: nextPosition,
+      content: newStitch.content
+    };
+    
+    this.userDataStore[userId][learningPathId].queue.push(queueStitch);
+    
+    // Sort queue to maintain order
+    this.userDataStore[userId][learningPathId].queue.sort((a, b) => a.position - b.position);
   }
 
   /**
@@ -412,38 +444,54 @@ export class SpacedRepetitionSystem implements SpacedRepetitionInterface {
     // Get repositioning history for this stitch
     const history = this.getRepositioningHistory(userId, stitchId);
     
-    // Calculate the skip number based on performance and history
-    const skipNumber = this.calculateSkipNumber(performance, history, queue.length);
-
-    // Implement the Stitch Repositioning Algorithm:
+    // Calculate the skip number using the fixed sequence
+    const skipNumber = this.calculateSkipNumber(performance, history);
     
-    // 1. Temporarily remove the stitch from the queue
-    queue.splice(stitchIndex, 1);
+    // Check if stitch should move based on performance
+    const shouldMove = performance.correctCount === performance.totalCount; // 20/20
     
-    // 2. Shift all stitches in positions 1 through [skip number] down one position
-    for (let i = 0; i < queue.length; i++) {
-      if (queue[i].position >= 1 && queue[i].position <= skipNumber) {
-        queue[i].position += 1;
+    let newPosition: number;
+    
+    if (!shouldMove) {
+      // < 20/20: Stitch remains at current position (stays active), skip number resets to 4
+      newPosition = previousPosition;
+      
+      // No repositioning needed, just update history with reset skip number
+    } else {
+      // = 20/20: Implement the Stitch Repositioning Algorithm
+      
+      // 1. Temporarily assign the completed stitch position -1 (removing from active queue)
+      stitch.position = -1;
+      
+      // 2. Shift all stitches in positions 1 through [skip number] DOWN one position
+      // This means position 2→1, 3→2, 4→3, 5→4, etc., leaving position [skip number] vacant
+      for (let i = 0; i < queue.length; i++) {
+        if (queue[i].position >= 1 && queue[i].position <= skipNumber && queue[i].id !== stitchId) {
+          queue[i].position -= 1;
+        }
       }
+      
+      // 3. This creates a vacant slot at the position equal to the stitch's skip number
+      // 4. Place the completed stitch in this vacant slot
+      stitch.position = skipNumber;
+      newPosition = skipNumber;
+      
+      // Remove any stitches that got shifted to position 0 (they're temporarily out of active rotation)
+      const activeQueue = queue.filter(s => s.position > 0);
+      
+      // Sort by position to maintain order
+      activeQueue.sort((a, b) => a.position - b.position);
+      
+      // Update the queue with the active stitches
+      this.userDataStore[userId][learningPathId].queue = activeQueue;
     }
-    
-    // 3. Place the completed stitch in the position equal to its skip number
-    stitch.position = skipNumber;
-    
-    // 4. Reinsert the stitch into the queue
-    // Find the correct insertion point to maintain sorted order
-    let insertIndex = 0;
-    while (insertIndex < queue.length && queue[insertIndex].position < skipNumber) {
-      insertIndex++;
-    }
-    queue.splice(insertIndex, 0, stitch);
     
     // Create the repositioning result
     const timestamp = performance.completionDate || new Date().toISOString();
     const result: RepositionResult = {
       stitchId,
       previousPosition,
-      newPosition: skipNumber,
+      newPosition,
       skipNumber,
       timestamp
     };

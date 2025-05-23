@@ -440,8 +440,17 @@ class StitchManager {
       }
     }
     
-    // Find the next stitch in the learning path (position 1 is always next)
-    const stitchId = pathStructure[1];
+    // Find the next available stitch in the learning path (starting from position 1)
+    const maxPosition = this.learningPathMaxPositions.get(learningPathId) || 0;
+    let stitchId: string | null = null;
+    
+    for (let position = 1; position <= maxPosition; position++) {
+      const candidateStitchId = pathStructure[position];
+      if (candidateStitchId && this.stitches.has(candidateStitchId)) {
+        stitchId = candidateStitchId;
+        break;
+      }
+    }
     
     if (!stitchId) {
       throw new StitchManagerError(

@@ -22,30 +22,28 @@ The SpacedRepetitionSystem exposes the following main methods:
 
 ## How the Stitch Repositioning Algorithm Works
 
-The Stitch Repositioning Algorithm is the core of the SpacedRepetitionSystem:
+The Stitch Repositioning Algorithm is the core of the SpacedRepetitionSystem (following APML specification):
 
-1. When a stitch is completed, the system calculates a "skip number" based on performance
-2. The stitch is temporarily removed from the queue
-3. All stitches in positions 1 through [skip number] shift down one position
-4. The completed stitch is placed at position equal to its skip number
-5. This creates a spaced repetition effect where well-mastered content moves progressively further back
+1. When a stitch is completed with 20/20 correct answers, it's temporarily assigned position -1
+2. All stitches in positions 1 through [skip number] shift DOWN one position (position 2 becomes position 1, etc.)
+3. This creates a vacant slot at the position equal to the stitch's skip number
+4. The completed stitch is placed in this vacant slot
+5. This creates spaced repetition where correctly answered content moves progressively further back in the queue as it's mastered
 
-## Skip Number Calculation
+## Skip Number Sequence
 
-Skip numbers determine how far back in the queue a stitch is placed. The calculation considers:
+The system uses a fixed skip number sequence for optimal spaced repetition:
+**[4, 8, 15, 30, 100, 1000]**
 
-- Correctness ratio (correct answers / total questions)
-- Response time (faster responses lead to larger skips)
-- Historical performance (repeated mastery increases skips)
+### Progression Logic:
+- **< 20/20**: Stitch remains at current position (stays active), skip number resets to 4
+- **= 20/20**: Stitch moves by skip number, advances to next number in sequence
 
-### Examples:
-
-- Perfect score (20/20): Skip number ≥ 5
-- Very good (18-19/20): Skip number ≥ 3
-- Good (16-17/20): Skip number ≈ 2
-- Fair (14-15/20): Skip number ≈ 1.5
-- Needs practice (12-13/20): Skip number ≈ 1
-- Struggling (< 12/20): Skip number < 1 (stays near front of queue)
+### Position Management:
+- **Positions are first-class citizens** - stitches are assigned to positions
+- **Active stitch** is always at position 1
+- **Gaps are preserved** for inserting new stitches (e.g., positions 49-99 when a stitch moves to position 100)
+- **Compression** can be applied periodically to optimize space usage
 
 ## Usage Example
 
