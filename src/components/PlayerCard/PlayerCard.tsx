@@ -51,8 +51,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   // State for tracking the feedback to show
   const [feedbackState, setFeedbackState] = useState<FeedbackState>('idle');
   
-  // State for tracking if the card is flipped (for animations)
-  const [isCardVisible, setIsCardVisible] = useState<boolean>(!!initialQuestion);
+  // State for tracking if the card is flipped (for animations) - simplified for fixed positioning
+  const [isCardVisible, setIsCardVisible] = useState<boolean>(true);
   
   // State for tracking response time
   const startTimeRef = useRef<number>(0);
@@ -92,35 +92,26 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       // Reset the feedback state
       setFeedbackState('idle');
       
-      // Hide the card first (for animation)
-      setIsCardVisible(false);
+      // Randomize the order of answers
+      const answers = [question.correctAnswer, question.distractor];
+      const shuffled = [...answers].sort(() => Math.random() - 0.5);
+      setAnswerOptions(shuffled);
       
-      // Brief timeout to allow animation to work
-      setTimeout(() => {
-        // Randomize the order of answers
-        const answers = [question.correctAnswer, question.distractor];
-        const shuffled = [...answers].sort(() => Math.random() - 0.5);
-        setAnswerOptions(shuffled);
-        
-        // Set the current question
-        setCurrentQuestion(question);
-        
-        // Show the card with animation
-        setIsCardVisible(true);
-        
-        // Reset interactable state
-        setIsInteractable(true);
-        
-        // Start the timer for response time calculation
-        startTimeRef.current = Date.now();
-        
-        // Set a timeout if provided
-        if (options.timeout) {
-          timeoutRef.current = setTimeout(() => {
-            handleTimeout(question.id);
-          }, options.timeout);
-        }
-      }, 300); // Short delay for animation
+      // Set the current question
+      setCurrentQuestion(question);
+      
+      // Reset interactable state
+      setIsInteractable(true);
+      
+      // Start the timer for response time calculation
+      startTimeRef.current = Date.now();
+      
+      // Set a timeout if provided
+      if (options.timeout) {
+        timeoutRef.current = setTimeout(() => {
+          handleTimeout(question.id);
+        }, options.timeout);
+      }
       
       return true;
     } catch (error) {
@@ -229,7 +220,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       setCurrentQuestion(null);
       setAnswerOptions([]);
       setFeedbackState('idle');
-      setIsCardVisible(false);
       setIsInteractable(true);
       
       return true;
@@ -296,17 +286,18 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   // Determine card background class based on feedback state
   const getCardClasses = () => {
-    const baseClasses = "relative w-full max-w-md rounded-xl p-6 transition-all duration-300 shadow-lg transform";
+    // Fixed size optimized for mobile devices - never goes thinner
+    const baseClasses = "relative w-full max-w-md min-w-[320px] h-[500px] rounded-xl p-6 transition-all duration-300 shadow-lg flex flex-col justify-between";
     
     switch (feedbackState) {
       case 'correct':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-green-500/30 border border-green-500/30 glow-green`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-green-500/30 border border-green-500/30`;
       case 'incorrect':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-red-500/30 border border-red-500/30 animate-shake glow-red`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-red-500/30 border border-red-500/30 animate-shake`;
       case 'timeout':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30 glow-blue`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30`;
       case 'no-answer':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30 glow-blue`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30`;
       default:
         return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700`;
     }
@@ -320,18 +311,18 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     // If showing feedback and this is the correct answer
     if ((feedbackState === 'correct' || feedbackState === 'incorrect') && 
         currentQuestion && option === currentQuestion.correctAnswer) {
-      return `${baseClasses} bg-green-500 text-white border-2 border-green-400 shadow-lg shadow-green-500/30 glow-green`;
+      return `${baseClasses} bg-green-500 text-white border-2 border-green-400 shadow-lg shadow-green-500/30`;
     }
     
     // If showing incorrect feedback and this is the selected wrong answer
     if (feedbackState === 'incorrect' && 
         currentQuestion && option !== currentQuestion.correctAnswer) {
-      return `${baseClasses} bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/30 glow-red`;
+      return `${baseClasses} bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/30`;
     }
     
     // If timeout or no-answer
     if (feedbackState === 'timeout' || feedbackState === 'no-answer') {
-      return `${baseClasses} bg-blue-500/30 text-blue-200 border-2 border-blue-400/50 glow-blue`;
+      return `${baseClasses} bg-blue-500/30 text-blue-200 border-2 border-blue-400/50`;
     }
     
     // Default interactable state - light blue circular button
@@ -389,19 +380,15 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {isCardVisible && currentQuestion && (
-          <motion.div
-            key={currentQuestion.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+      {/* Fixed-size card container to prevent mounting/unmounting */}
+      <div className="relative w-full max-w-md min-w-[320px] h-[500px]">
+        {currentQuestion && (
+          <div
             className={getCardClasses()}
             data-testid="player-card"
           >
-            {/* Question */}
-            <div className="mb-10 text-center">
+            {/* Question Section - Fixed position to prevent layout shift */}
+            <div className="relative flex-shrink-0 text-center" style={{ height: '200px' }}>
               {renderBoundaryLevelIndicator()}
               <h2 
                 className={`${getQuestionTextClass()} mb-4 text-white`}
@@ -410,23 +397,19 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                 {currentQuestion.text}
               </h2>
 
-              {/* Explanation overlay (for correct/incorrect/timeout states) */}
-              {(feedbackState === 'correct' || feedbackState === 'incorrect' || feedbackState === 'timeout') && (
-                <div className="mt-2 py-2 px-4 bg-black/80 rounded-lg inline-block">
-                  <p className="text-lg font-medium">
-                    {feedbackState === 'correct' && '✓ Correct!'}
-                    {feedbackState === 'incorrect' && '✗ Try again'}
+              {/* Explanation overlay - only for incorrect/timeout states */}
+              {(feedbackState === 'incorrect' || feedbackState === 'timeout') && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 py-2 px-4 bg-black/80 rounded-lg z-10">
+                  <p className="text-lg font-medium text-center whitespace-nowrap">
+                    {feedbackState === 'incorrect' && `✗ ${currentQuestion.correctAnswer}`}
                     {feedbackState === 'timeout' && '⏱ Time\'s up!'}
                   </p>
-                  {feedbackState === 'incorrect' && currentQuestion.correctAnswer && (
-                    <p className="text-white mt-1">The answer is {currentQuestion.correctAnswer}</p>
-                  )}
                 </div>
               )}
             </div>
             
-            {/* Answer Options */}
-            <div className="flex justify-around items-center gap-6 mb-8">
+            {/* Answer Options - Fixed position */}
+            <div className="flex justify-around items-center gap-6 flex-grow flex-shrink-0">
               {answerOptions.map((option, index) => (
                 <motion.button
                   key={`${currentQuestion.id}-option-${index}`}
@@ -442,8 +425,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               ))}
             </div>
 
-            {/* Finish button */}
-            <div className="mt-4 flex justify-center">
+            {/* Finish button - Fixed position */}
+            <div className="flex justify-center flex-shrink-0">
               <button 
                 className="bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-8 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 transition-all duration-300"
                 onClick={reset}
@@ -451,9 +434,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                 Finish
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 };
