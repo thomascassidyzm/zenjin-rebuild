@@ -60,13 +60,31 @@ const mockDashboardData: DashboardData = {
   streakDays: 7
 };
 
-// Generate questions dynamically based on current learning path
-const generateQuestionsForPath = (learningPathId: string, count: number = 5): Question[] => {
+// Generate questions for current stitch in learning path
+const generateQuestionsForStitch = (learningPathId: string, userId: string = 'default-user'): Question[] => {
   try {
-    return engineOrchestrator.generateMultipleQuestions(count, 'default-user', learningPathId);
+    // Get the current stitch for this user and learning path
+    const currentStitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
+    
+    if (!currentStitch) {
+      console.warn(`No current stitch available for ${learningPathId}`);
+      return [engineOrchestrator.generateQuestion(userId, learningPathId)];
+    }
+    
+    console.log(`Starting stitch: ${currentStitch.name} (${currentStitch.description})`);
+    
+    // Generate questions specifically for this stitch
+    const questions = engineOrchestrator.generateQuestionsForStitch(currentStitch, 10);
+    
+    if (questions.length === 0) {
+      console.warn(`No questions generated for stitch ${currentStitch.id}`);
+      return [engineOrchestrator.generateQuestion(userId, learningPathId)];
+    }
+    
+    return questions;
   } catch (error) {
-    console.error('Failed to generate questions:', error);
-    // Fallback to a single question
+    console.error('Failed to generate stitch questions:', error);
+    // Fallback to random question generation
     return [engineOrchestrator.generateQuestion('default-user', learningPathId)];
   }
 };
@@ -118,14 +136,21 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentStitch, setCurrentStitch] = useState<any>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
+  const userId = 'default-user';
 
   // Generate questions when component mounts or learning path changes
   useEffect(() => {
-    const generatedQuestions = generateQuestionsForPath(learningPathId, 5);
+    const stitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
+    setCurrentStitch(stitch);
+    
+    const generatedQuestions = generateQuestionsForStitch(learningPathId, userId);
     setQuestions(generatedQuestions);
     setCurrentQuestionIndex(0);
     setSessionScore({ correct: 0, total: 0 });
     setSessionComplete(false);
+    setSessionStartTime(Date.now());
   }, [learningPathId]);
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -142,19 +167,51 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
+        // Session complete - handle stitch completion
+        handleStitchCompletion(newScore);
         setSessionComplete(true);
       }
     }, 1500);
   };
 
+  const handleStitchCompletion = (finalScore: { correct: number; total: number }) => {
+    if (!currentStitch) return;
+    
+    try {
+      const completionTime = Date.now() - sessionStartTime;
+      const sessionResults = {
+        correctCount: finalScore.correct,
+        totalCount: finalScore.total,
+        completionTime
+      };
+      
+      // Complete the stitch and reposition it
+      const repositionResult = engineOrchestrator.completeStitch(userId, currentStitch.id, sessionResults);
+      
+      if (repositionResult) {
+        console.log(`Stitch "${currentStitch.name}" completed! Moved from position ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+      }
+    } catch (error) {
+      console.error('Failed to complete stitch:', error);
+    }
+  };
+
   const resetSession = () => {
+    // Start a new stitch session
+    const stitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
+    setCurrentStitch(stitch);
+    
+    const generatedQuestions = generateQuestionsForStitch(learningPathId, userId);
+    setQuestions(generatedQuestions);
     setCurrentQuestionIndex(0);
     setSessionScore({ correct: 0, total: 0 });
     setSessionComplete(false);
+    setSessionStartTime(Date.now());
   };
 
   if (sessionComplete) {
     const percentage = Math.round((sessionScore.correct / sessionScore.total) * 100);
+    const nextStitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
     
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
@@ -162,15 +219,29 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
           <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-2xl">✓</span>
           </div>
-          <h2 className="text-white text-2xl font-bold mb-2">Session Complete!</h2>
-          <p className="text-gray-300 text-lg mb-6">
+          <h2 className="text-white text-2xl font-bold mb-2">Stitch Complete!</h2>
+          {currentStitch && (
+            <p className="text-gray-400 text-sm mb-3">
+              "{currentStitch.name}" finished
+            </p>
+          )}
+          <p className="text-gray-300 text-lg mb-4">
             You scored {sessionScore.correct} out of {sessionScore.total} ({percentage}%)
           </p>
+          {nextStitch && (
+            <div className="bg-gray-700 rounded-lg p-4 mb-6">
+              <p className="text-gray-400 text-sm mb-1">Next up:</p>
+              <p className="text-white font-semibold">{nextStitch.name}</p>
+              {nextStitch.description && (
+                <p className="text-gray-300 text-sm mt-1">{nextStitch.description}</p>
+              )}
+            </div>
+          )}
           <button
             onClick={resetSession}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
           >
-            Start New Session
+            {nextStitch ? `Start "${nextStitch.name}"` : 'Start New Session'}
           </button>
         </div>
       </div>
@@ -182,6 +253,14 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       {/* Session Progress */}
       <div className="bg-gray-900 p-4">
         <div className="max-w-4xl mx-auto">
+          {currentStitch && (
+            <div className="text-center mb-3">
+              <h3 className="text-white font-semibold">{currentStitch.name}</h3>
+              {currentStitch.description && (
+                <p className="text-gray-400 text-sm">{currentStitch.description}</p>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-between text-white">
             <div className="text-sm">
               Question {currentQuestionIndex + 1} of {questions.length}

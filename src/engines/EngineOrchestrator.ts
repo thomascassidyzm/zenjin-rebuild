@@ -5,6 +5,8 @@
 
 import { FactRepository } from './FactRepository/FactRepository';
 import { QuestionGenerator } from './QuestionGenerator/QuestionGenerator';
+import { StitchManager, Stitch, SessionResults, PerformanceData, RepositionResult } from './StitchManager/StitchManager';
+import { StitchLibrary } from './StitchLibrary';
 import { Question as QuestionGeneratorQuestion } from '../interfaces/QuestionGeneratorInterface';
 import { Question as PlayerCardQuestion } from '../interfaces/PlayerCardInterface';
 
@@ -49,12 +51,16 @@ export class EngineOrchestrator {
   private questionGenerator: QuestionGenerator;
   private distinctionManager: MockDistinctionManager;
   private tripleHelixManager: MockTripleHelixManager;
+  private stitchManager: StitchManager;
+  private stitchLibrary: StitchLibrary;
   
   constructor() {
     // Initialize engines
     this.factRepository = new FactRepository();
     this.distinctionManager = new MockDistinctionManager();
     this.tripleHelixManager = new MockTripleHelixManager();
+    this.stitchManager = new StitchManager();
+    this.stitchLibrary = new StitchLibrary(this.factRepository);
     
     // Initialize question generator with dependencies
     this.questionGenerator = new QuestionGenerator(
@@ -62,6 +68,9 @@ export class EngineOrchestrator {
       this.distinctionManager,
       this.tripleHelixManager
     );
+    
+    // Initialize stitches
+    this.initializeStitches();
   }
   
   /**
@@ -213,6 +222,162 @@ export class EngineOrchestrator {
     };
     
     return fallbackQuestions[learningPathId] || fallbackQuestions['addition'];
+  }
+  
+  /**
+   * Initialize all stitches in the system
+   */
+  private initializeStitches(): void {
+    try {
+      // Initialize learning paths
+      const learningPaths = ['addition', 'multiplication', 'subtraction', 'division'];
+      learningPaths.forEach(pathId => {
+        this.stitchManager.initializeLearningPath(pathId);
+      });
+      
+      // Get all stitches from the library
+      const allStitches = this.stitchLibrary.getAllStitches();
+      
+      // Add stitches to the stitch manager
+      allStitches.forEach(stitch => {
+        try {
+          this.stitchManager.addStitch(stitch);
+        } catch (error) {
+          console.warn(`Failed to add stitch ${stitch.id}:`, error);
+        }
+      });
+      
+      console.log(`Initialized ${allStitches.length} stitches across ${learningPaths.length} learning paths`);
+    } catch (error) {
+      console.error('Failed to initialize stitches:', error);
+    }
+  }
+  
+  /**
+   * Get the current stitch for a user and learning path
+   */
+  getCurrentStitch(userId: string = 'default-user', learningPathId: string = 'addition'): Stitch | null {
+    try {
+      return this.stitchManager.getNextStitch(userId, learningPathId);
+    } catch (error) {
+      console.error('Failed to get current stitch:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Generate questions for a specific stitch
+   */
+  generateQuestionsForStitch(stitch: Stitch, count: number = 20): PlayerCardQuestion[] {
+    try {
+      const questions: PlayerCardQuestion[] = [];
+      
+      // Generate questions for each fact in the stitch
+      for (const factId of stitch.factIds.slice(0, count)) {
+        try {
+          const fact = this.factRepository.getFactById(factId);
+          const questionTemplate = this.factRepository.getQuestionTemplates(fact.operation, stitch.difficulty);
+          const template = questionTemplate[0] || `What is ${fact.operands[0]} ${this.getOperationSymbol(fact.operation)} ${fact.operands[1]}?`;
+          
+          // Format the question text
+          let questionText = template;
+          questionText = questionText.replace(/{{operand1}}/g, fact.operands[0].toString());
+          questionText = questionText.replace(/{{operand2}}/g, fact.operands[1].toString());
+          
+          const correctAnswer = fact.result.toString();
+          const distractor = this.generateDistractor(fact.result, fact.operation);
+          
+          questions.push({
+            id: `${stitch.id}-${factId}-${Date.now()}-${Math.random()}`,
+            text: questionText,
+            correctAnswer,
+            distractor: distractor.toString(),
+            boundaryLevel: stitch.difficulty,
+            factId: factId
+          });
+        } catch (error) {
+          console.warn(`Failed to generate question for fact ${factId}:`, error);
+        }
+      }
+      
+      // Shuffle questions for variety
+      return this.shuffleArray(questions);
+    } catch (error) {
+      console.error('Failed to generate questions for stitch:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Complete a stitch and update progress
+   */
+  completeStitch(userId: string, stitchId: string, sessionResults: SessionResults): RepositionResult | null {
+    try {
+      // Update stitch progress
+      this.stitchManager.updateStitchProgress(userId, stitchId, sessionResults);
+      
+      // Calculate performance data
+      const performanceData: PerformanceData = {
+        correctCount: sessionResults.correctCount,
+        totalCount: sessionResults.totalCount,
+        averageResponseTime: sessionResults.completionTime / sessionResults.totalCount
+      };
+      
+      // Reposition the stitch based on performance
+      const repositionResult = this.stitchManager.repositionStitch(userId, stitchId, performanceData);
+      
+      console.log(`Stitch ${stitchId} completed. Repositioned from ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+      
+      return repositionResult;
+    } catch (error) {
+      console.error('Failed to complete stitch:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Get stitch progress for a user
+   */
+  getStitchProgress(userId: string, stitchId: string) {
+    try {
+      return this.stitchManager.getStitchProgress(userId, stitchId);
+    } catch (error) {
+      console.warn(`No progress data for stitch ${stitchId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Get all stitches for a learning path
+   */
+  getStitchesForPath(learningPathId: string): Stitch[] {
+    try {
+      return this.stitchManager.getStitchesByLearningPath(learningPathId);
+    } catch (error) {
+      console.error('Failed to get stitches for path:', error);
+      return [];
+    }
+  }
+  
+  // Helper methods
+  
+  private getOperationSymbol(operation: string): string {
+    const symbols: Record<string, string> = {
+      'addition': '+',
+      'subtraction': '-',
+      'multiplication': '×',
+      'division': '÷'
+    };
+    return symbols[operation] || operation;
+  }
+  
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   }
 }
 
