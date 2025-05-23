@@ -113,7 +113,12 @@ class SimpleTripleHelixManager {
     if (!state) return null;
     
     // Move active path to end of preparing paths
-    const newPreparingPaths = [...state.preparingPaths, state.activePath];
+    const newPreparingPaths = [...state.preparingPaths];
+    const previousActivePath = { ...state.activePath };
+    
+    // Move current active to preparing
+    previousActivePath.status = 'preparing';
+    newPreparingPaths.push(previousActivePath);
     
     // Make first preparing path active
     const newActivePath = newPreparingPaths.shift()!;
@@ -130,8 +135,10 @@ class SimpleTripleHelixManager {
     
     this.userStates.set(userId, newState);
     
+    console.log(`Tube rotation ${state.rotationCount + 1}: ${previousActivePath.id} → ${newActivePath.id}`);
+    
     return {
-      previousActivePath: state.activePath,
+      previousActivePath: previousActivePath,
       newActivePath: newActivePath,
       rotationCount: newState.rotationCount
     };

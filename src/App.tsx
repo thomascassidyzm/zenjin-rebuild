@@ -106,8 +106,7 @@ const NavigationHeader: React.FC<{
           <nav className="flex space-x-1">
             {[
               { id: 'dashboard', label: 'Dashboard' },
-              { id: 'learn', label: 'Learn' },
-              { id: 'session', label: 'Practice' }
+              { id: 'session', label: 'Play' }
             ].map((item) => (
               <button
                 key={item.id}
@@ -331,38 +330,6 @@ const App: React.FC = () => {
             initialData={mockDashboardData}
             onStartSessionClicked={handleStartSession}
           />
-        );
-      
-      case 'learn':
-        return (
-          <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-            <div className="max-w-2xl w-full text-center">
-              <h2 className="text-white text-3xl font-bold mb-4">Learning Paths</h2>
-              <p className="text-gray-400 text-lg mb-8">
-                Choose a learning path to begin your mathematical journey
-              </p>
-              <div className="grid gap-4">
-                {mockDashboardData.learningPaths.map((path) => (
-                  <div
-                    key={path.pathId}
-                    className="bg-gray-800 rounded-lg p-6 cursor-pointer hover:bg-gray-700 transition-colors"
-                    onClick={() => handleStartSession(path.pathId)}
-                  >
-                    <h3 className="text-white text-xl font-bold mb-2">{path.pathName}</h3>
-                    <p className="text-gray-300 mb-4">
-                      Level {path.currentLevel} of {path.maxLevel}
-                    </p>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-indigo-600 h-2 rounded-full"
-                        style={{ width: `${path.progressPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         );
       
       case 'session':
