@@ -203,7 +203,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
         setQuestions(newQuestions);
         setCurrentQuestionIndex(0);
         setSessionStartTime(Date.now());
-        console.log(`Started new stitch from tube: ${rotationResult?.newActivePath.id}`);
+        console.log(`🎯 Started stitch '${nextStitch.id}' from tube: ${rotationResult?.newActivePath.id}`);
       }
     } catch (error) {
       console.error('Failed to complete stitch:', error);

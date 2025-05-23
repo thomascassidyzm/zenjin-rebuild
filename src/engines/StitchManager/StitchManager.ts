@@ -7,6 +7,8 @@
  * path tubes exist independently and stitches are assigned to them.
  */
 
+import { SpacedRepetitionSystem } from '../SpacedRepetitionSystem/SpacedRepetitionSystem';
+
 // Error codes for StitchManager
 enum StitchManagerErrorCode {
   STITCH_NOT_FOUND = 'STITCH_NOT_FOUND',
@@ -160,6 +162,9 @@ class StitchManager {
   
   // In-memory data for user's next stitch cache
   private userNextStitchCache: Map<string, Map<string, string>> = new Map();
+  
+  // Spaced repetition system for proper repositioning
+  private spacedRepetitionSystem: SpacedRepetitionSystem = new SpacedRepetitionSystem();
   
   /**
    * Constructor
@@ -327,7 +332,7 @@ class StitchManager {
   }
   
   /**
-   * Repositions a stitch within its learning path based on the Stitch Repositioning Algorithm
+   * Repositions a stitch within its learning path using the SpacedRepetitionSystem
    * @param userId - User identifier
    * @param stitchId - Stitch identifier
    * @param performance - Performance data for repositioning
@@ -357,38 +362,44 @@ class StitchManager {
     // Validate performance data
     this.validatePerformanceData(performance);
     
-    // Get learning path structure
-    const pathStructure = this.learningPathStructures.get(stitch.learningPathId);
-    if (!pathStructure) {
-      throw new StitchManagerError(
-        StitchManagerErrorCode.LEARNING_PATH_NOT_FOUND,
-        `Learning path with ID '${stitch.learningPathId}' not found`
-      );
-    }
-    
-    // Calculate skip number based on performance
-    const skipNumber = this.calculateSkipNumber(performance);
-    
-    // Store previous position
-    const previousPosition = stitch.position;
-    
-    // Calculate new position
-    const newPosition = previousPosition + skipNumber;
-    
-    // Get the maximum position in the learning path
-    const maxPosition = this.learningPathMaxPositions.get(stitch.learningPathId) || 0;
-    
-    // Update the maximum position if necessary
-    if (newPosition > maxPosition) {
-      this.learningPathMaxPositions.set(stitch.learningPathId, newPosition);
-    }
+    // Convert performance data to SpacedRepetitionSystem format
+    const spacedRepetitionPerformance = {
+      correctCount: performance.correctCount,
+      totalCount: performance.totalCount,
+      averageResponseTime: performance.averageResponseTime,
+      completionDate: new Date().toISOString()
+    };
     
     try {
-      // Perform position shifting
-      this.shiftPositions(stitch.learningPathId, previousPosition, newPosition);
+      // Use SpacedRepetitionSystem for proper repositioning
+      const result = this.spacedRepetitionSystem.repositionStitch(
+        userId,
+        stitchId,
+        spacedRepetitionPerformance
+      );
       
-      // Update stitch position
-      stitch.position = newPosition;
+      // Log with detailed information
+      console.log(`🔄 Stitch ${stitchId}: ${performance.correctCount}/${performance.totalCount} -> Skip ${result.skipNumber}, Position ${result.previousPosition}→${result.newPosition}`);
+      
+      // Update our internal stitch position to match
+      stitch.position = result.newPosition;
+      
+      // Update learning path structure
+      const pathStructure = this.learningPathStructures.get(stitch.learningPathId);
+      if (pathStructure) {
+        // Remove from old position
+        if (pathStructure[result.previousPosition] === stitchId) {
+          pathStructure[result.previousPosition] = null;
+        }
+        // Add to new position
+        pathStructure[result.newPosition] = stitchId;
+        
+        // Update max position if necessary
+        const currentMax = this.learningPathMaxPositions.get(stitch.learningPathId) || 0;
+        if (result.newPosition > currentMax) {
+          this.learningPathMaxPositions.set(stitch.learningPathId, result.newPosition);
+        }
+      }
       
       // Clear any cached next stitch for this user and learning path
       const userNextStitch = this.userNextStitchCache.get(userId);
@@ -397,9 +408,9 @@ class StitchManager {
       }
       
       return {
-        previousPosition,
-        newPosition,
-        skipNumber
+        previousPosition: result.previousPosition,
+        newPosition: result.newPosition,
+        skipNumber: result.skipNumber
       };
     } catch (error) {
       throw new StitchManagerError(
@@ -510,6 +521,18 @@ class StitchManager {
     const currentMax = this.learningPathMaxPositions.get(stitch.learningPathId) || 0;
     if (stitch.position > currentMax) {
       this.learningPathMaxPositions.set(stitch.learningPathId, stitch.position);
+    }
+    
+    // Also add to SpacedRepetitionSystem - we'll use a default user for initialization
+    const defaultUserId = 'default-user';
+    try {
+      this.spacedRepetitionSystem.addNewStitch(
+        defaultUserId,
+        stitch.learningPathId,
+        { id: stitch.id, content: stitch }
+      );
+    } catch (error) {
+      // Ignore errors for now - the stitch might already exist in the system
     }
     
     // Clear any cached next stitches for this learning path
