@@ -88,7 +88,7 @@ async function demonstrateTripleHelixManager() {
     const currentState = tripleHelixManager.getTripleHelixState(userId);
     
     console.log(`Current active path: ${currentState.activePath.name}`);
-    console.log(`Current preparing paths: ${currentState.preparingPaths.map(p => p.name).join(', ')}`);
+    console.log(`Current preparing paths: ${currentState.preparingPaths.map((p: any) => p.name).join(', ')}`);
     console.log(`Rotation count: ${currentState.rotationCount}`);
     console.log(`Last rotation time: ${currentState.lastRotationTime}`);
     console.log(`Current state:`, JSON.stringify(currentState, null, 2));

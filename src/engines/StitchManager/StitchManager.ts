@@ -724,7 +724,11 @@ class StitchManager {
 export {
   StitchManager,
   StitchManagerError,
-  StitchManagerErrorCode,
+  StitchManagerErrorCode
+};
+
+// Use export type for TypeScript interfaces when isolatedModules is enabled
+export type {
   Stitch,
   StitchProgress,
   SessionResults,

@@ -14,7 +14,11 @@ export default ThemeManagerProvider;
 
 export {
   Provider,
-  useThemeManager,
+  useThemeManager
+};
+
+// Use export type for TypeScript interfaces when isolatedModules is enabled
+export type {
   ThemeColors,
   ThemeAnimation,
   ThemeConfig,

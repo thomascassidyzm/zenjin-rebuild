@@ -16,7 +16,8 @@ import SessionSummary, {
 
 export default SessionSummary;
 
-export {
+// Use export type for TypeScript interfaces when isolatedModules is enabled
+export type {
   SessionData,
   MetricsData,
   Achievement,

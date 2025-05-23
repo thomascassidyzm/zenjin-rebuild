@@ -126,17 +126,17 @@ const DashboardInterfaceExample = () => {
     const dashboard = createDashboard(mockDashboardData);
     
     // Register event listeners
-    const unregisterPathListener = dashboard.onPathSelected((pathId) => {
+    const unregisterPathListener = dashboard.onPathSelected((pathId: string) => {
       console.log(`Path selected: ${pathId}`);
       // Handle path selection logic
     });
     
-    const unregisterAchievementListener = dashboard.onAchievementSelected((achievementId) => {
+    const unregisterAchievementListener = dashboard.onAchievementSelected((achievementId: string) => {
       console.log(`Achievement selected: ${achievementId}`);
       // Handle achievement selection logic
     });
     
-    const unregisterSessionListener = dashboard.onStartSessionClicked((pathId) => {
+    const unregisterSessionListener = dashboard.onStartSessionClicked((pathId: string) => {
       console.log(`Starting session for path: ${pathId}`);
       // Start a new learning session
     });
@@ -285,7 +285,7 @@ const ZenjinMathsApp = () => {
               className="mt-4 px-4 py-2 bg-indigo-600 rounded"
               onClick={() => {
                 // Simulate completing a session with improved metrics
-                setUserData(prev => ({
+                setUserData((prev: any) => ({
                   ...prev,
                   lifetimeMetrics: {
                     ...prev.lifetimeMetrics,

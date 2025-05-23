@@ -5,7 +5,8 @@ import PlayerCard, { Question, Response, FeedbackOptions, PresentationOptions, P
 
 export default PlayerCard;
 
-export {
+// Use export type for TypeScript interfaces when isolatedModules is enabled
+export type {
   Question,
   Response,
   FeedbackOptions,

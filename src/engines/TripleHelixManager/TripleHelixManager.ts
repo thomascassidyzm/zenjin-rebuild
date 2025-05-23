@@ -419,7 +419,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     } else {
       // Check preparing paths
       const preparingPathIndex = tripleHelixState.preparingPaths.findIndex(
-        path => path.id === pathId
+        (path: LearningPath) => path.id === pathId
       );
       
       if (preparingPathIndex >= 0) {
@@ -449,7 +449,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
       updatedState.activePath = updatedPath;
     } else {
       updatedState.preparingPaths = updatedState.preparingPaths.map(
-        path => (path.id === pathId ? updatedPath : path)
+        (path: LearningPath) => (path.id === pathId ? updatedPath : path)
       );
     }
     
@@ -486,7 +486,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     
     // Check preparing paths
     const preparingIndex = tripleHelixState.preparingPaths.findIndex(
-      path => path.id === pathId
+      (path: any) => path.id === pathId
     );
     
     if (preparingIndex >= 0) {

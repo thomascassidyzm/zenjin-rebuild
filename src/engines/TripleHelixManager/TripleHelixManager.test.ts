@@ -287,7 +287,7 @@ describe('TripleHelixManager', () => {
       expect(state.activePath.status).toBe('active');
       expect(state.preparingPaths).toBeDefined();
       expect(state.preparingPaths.length).toBe(2);
-      expect(state.preparingPaths.every(path => path.status === 'preparing')).toBe(true);
+      expect(state.preparingPaths.every((path: any) => path.status === 'preparing')).toBe(true);
     });
 
     it('should follow the correct rotation sequence', () => {
@@ -354,9 +354,9 @@ describe('TripleHelixManager', () => {
       
       // Find paths by ID
       const path1 = state.activePath.id === path1Id ? state.activePath : 
-                    state.preparingPaths.find(p => p.id === path1Id);
+                    state.preparingPaths.find((p: any) => p.id === path1Id);
       const path2 = state.activePath.id === path2Id ? state.activePath : 
-                    state.preparingPaths.find(p => p.id === path2Id);
+                    state.preparingPaths.find((p: any) => p.id === path2Id);
       
       expect(path1?.difficulty).toBe(5);
       expect(path2?.difficulty).toBe(1);
