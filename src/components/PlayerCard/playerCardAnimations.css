@@ -51,6 +51,37 @@
   backdrop-filter: blur(10px);
 }
 
+/* Force minimum width to prevent parent responsive compression */
+.player-card-container {
+  min-width: 360px !important;
+  width: max-content !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Override any parent grid or flex constraints */
+.player-card-container > * {
+  min-width: 320px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ensure mobile devices respect minimum width */
+@media (max-width: 640px) {
+  .player-card-container {
+    min-width: 360px !important;
+    width: 360px !important;
+    max-width: none !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .player-card-container > * {
+    min-width: 320px !important;
+    width: 320px !important;
+    max-width: none !important;
+    flex-shrink: 0 !important;
+  }
+}
+
 /* Accessibility focus styles */
 .focus-visible:focus {
   outline: 3px solid rgba(59, 130, 246, 0.6);

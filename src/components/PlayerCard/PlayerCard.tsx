@@ -361,9 +361,23 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full min-h-[500px] p-4" style={{ minWidth: '360px' }}>
+    <div 
+      className="flex flex-col items-center justify-center w-full min-h-[500px] p-4 player-card-container" 
+      style={{ 
+        minWidth: '360px !important',
+        width: 'max-content',
+        flexShrink: 0 
+      }}
+    >
       {/* Points Display */}
-      <div className="w-full max-w-md min-w-[320px] mb-4">
+      <div 
+        className="w-full max-w-md min-w-[320px] mb-4" 
+        style={{ 
+          minWidth: '320px !important',
+          width: '320px',
+          flexShrink: 0 
+        }}
+      >
         <div className="bg-gray-800/80 rounded-lg p-3 shadow-md">
           <div className="flex justify-between items-center">
             <span className="text-gray-400 font-medium">POINTS</span>
@@ -373,7 +387,14 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
 
       {/* Fixed-size card container to prevent mounting/unmounting */}
-      <div className="relative w-full max-w-md min-w-[320px] h-[500px]" style={{ minWidth: '320px' }}>
+      <div 
+        className="relative w-full max-w-md min-w-[320px] h-[500px]" 
+        style={{ 
+          minWidth: '320px !important',
+          width: '320px',
+          flexShrink: 0 
+        }}
+      >
         {currentQuestion && (
           <div
             className={getCardClasses()}
