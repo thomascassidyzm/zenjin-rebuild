@@ -367,4 +367,576 @@ export class ContentManager implements ContentManagerInterface {
         facts = factIds.map(id => this.factRepository.getFactById(id));
       } else {
         facts = this.factRepository.queryFacts({});
+      }
       
+      // Initialize counters
+      let updatedCount = 0;
+      
+      // Process facts
+      for (const fact of facts) {
+        let relationships: string[] = [...fact.relatedFactIds];
+        let relationshipsAdded = false;
+        
+        // Generate relationships based on type
+        for (const type of types) {
+          const relatedFacts = this.generateRelationships(fact, type);
+          
+          // Add new relationships
+          for (const relatedFactId of relatedFacts) {
+            if (!relationships.includes(relatedFactId)) {
+              relationships.push(relatedFactId);
+              relationshipsAdded = true;
+            }
+          }
+        }
+        
+        // Update fact if relationships changed
+        if (relationshipsAdded) {
+          this.updateFact(fact.id, { relatedFactIds: relationships });
+          updatedCount++;
+        }
+      }
+      
+      return updatedCount;
+    } catch (error) {
+      throw new Error(`RELATIONSHIP_ERROR - Failed to generate fact relationships: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Automatically generates difficulty ratings for facts
+   * @param factIds IDs of facts to process (all if not specified)
+   * @param algorithm Difficulty calculation algorithm to use
+   * @returns Number of facts updated with new difficulty ratings
+   * @throws Error if generation fails
+   */
+  public async generateDifficultyRatings(factIds?: string[], algorithm?: string): Promise<number> {
+    try {
+      // Select algorithm
+      const difficultyAlgorithm = algorithm || DifficultyAlgorithm.DEFAULT;
+      
+      // Get facts to process
+      let facts: MathematicalFact[];
+      if (factIds && factIds.length > 0) {
+        facts = factIds.map(id => this.factRepository.getFactById(id));
+      } else {
+        facts = this.factRepository.queryFacts({});
+      }
+      
+      // Initialize counters
+      let updatedCount = 0;
+      
+      // Process facts
+      for (const fact of facts) {
+        // Calculate new difficulty
+        const newDifficulty = this.calculateFactDifficulty(
+          fact.operation, 
+          fact.operands, 
+          fact.result, 
+          difficultyAlgorithm
+        );
+        
+        // Update fact if difficulty changed
+        if (newDifficulty !== fact.difficulty) {
+          this.updateFact(fact.id, { difficulty: newDifficulty });
+          updatedCount++;
+        }
+      }
+      
+      return updatedCount;
+    } catch (error) {
+      throw new Error(`DIFFICULTY_ERROR - Failed to generate difficulty ratings: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Lists available curriculum sets
+   * @param tags Filter by tags
+   * @returns Available curriculum sets
+   */
+  public listCurriculumSets(tags?: string[]): CurriculumMetadata[] {
+    let curricula = Array.from(this.curriculumStore.values());
+    
+    // Filter by tags if specified
+    if (tags && tags.length > 0) {
+      curricula = curricula.filter(curriculum => 
+        tags.some(tag => curriculum.tags.includes(tag))
+      );
+    }
+    
+    return curricula;
+  }
+  
+  /**
+   * Gets a specific curriculum set
+   * @param curriculumId Curriculum identifier
+   * @returns The curriculum data
+   * @throws Error if the curriculum is not found
+   */
+  public async getCurriculumSet(curriculumId: string): Promise<Curriculum> {
+    // Check if curriculum exists
+    if (!this.curriculumStore.has(curriculumId)) {
+      throw new Error(`CURRICULUM_NOT_FOUND - No curriculum found with ID: ${curriculumId}`);
+    }
+    
+    const metadata = this.curriculumStore.get(curriculumId);
+    
+    // Get all facts
+    const facts = this.factRepository.queryFacts({
+      tags: metadata.tags
+    });
+    
+    return {
+      name: metadata.name,
+      description: metadata.description,
+      version: metadata.version,
+      createdAt: metadata.createdAt,
+      updatedAt: metadata.updatedAt,
+      facts: facts
+    };
+  }
+  
+  // Helper methods
+  
+  /**
+   * Validates fact input
+   * @param factInput Fact data to validate
+   * @throws Error if the data is invalid
+   */
+  private validateFactInput(factInput: MathematicalFactInput): void {
+    // Validate operation
+    this.validateOperation(factInput.operation);
+    
+    // Validate operands
+    if (!Array.isArray(factInput.operands)) {
+      throw new Error(`INVALID_FACT - Operands must be an array`);
+    }
+    
+    if (factInput.operands.length === 0) {
+      throw new Error(`INVALID_FACT - Operands array cannot be empty`);
+    }
+    
+    // Validate difficulty if provided
+    if (factInput.difficulty !== undefined && (
+      typeof factInput.difficulty !== 'number' || 
+      factInput.difficulty < 0 || 
+      factInput.difficulty > 1
+    )) {
+      throw new Error(`INVALID_FACT - Difficulty must be a number between 0 and 1`);
+    }
+    
+    // Validate tags if provided
+    if (factInput.tags && !Array.isArray(factInput.tags)) {
+      throw new Error(`INVALID_FACT - Tags must be an array`);
+    }
+    
+    // Validate related fact IDs if provided
+    if (factInput.relatedFactIds && !Array.isArray(factInput.relatedFactIds)) {
+      throw new Error(`INVALID_FACT - Related fact IDs must be an array`);
+    }
+  }
+  
+  /**
+   * Validates operation
+   * @param operation Operation to validate
+   * @throws Error if the operation is invalid
+   */
+  private validateOperation(operation: string): void {
+    const validOperations = [
+      'addition', 'subtraction', 'multiplication', 'division', 
+      'square', 'cube', 'square-root', 'exponentiation'
+    ];
+    
+    if (!validOperations.includes(operation)) {
+      throw new Error(`INVALID_FACT - Invalid operation: ${operation}`);
+    }
+  }
+  
+  /**
+   * Validates curriculum structure
+   * @param curriculum Curriculum to validate
+   * @throws Error if the structure is invalid
+   */
+  private validateCurriculumStructure(curriculum: any): void {
+    // Validate name
+    if (!curriculum.name || typeof curriculum.name !== 'string') {
+      throw new Error(`INVALID_CURRICULUM - Name is required and must be a string`);
+    }
+    
+    // Validate facts
+    if (!curriculum.facts || !Array.isArray(curriculum.facts)) {
+      throw new Error(`INVALID_CURRICULUM - Facts must be an array`);
+    }
+    
+    // Validate each fact
+    for (let i = 0; i < curriculum.facts.length; i++) {
+      const fact = curriculum.facts[i];
+      
+      if (!fact.operation) {
+        throw new Error(`INVALID_CURRICULUM - Fact at index ${i} is missing operation`);
+      }
+      
+      if (!fact.operands || !Array.isArray(fact.operands)) {
+        throw new Error(`INVALID_CURRICULUM - Fact at index ${i} is missing operands or operands is not an array`);
+      }
+      
+      if (fact.result === undefined) {
+        throw new Error(`INVALID_CURRICULUM - Fact at index ${i} is missing result`);
+      }
+    }
+  }
+  
+  /**
+   * Initializes the curriculum store with default data
+   */
+  private initializeCurriculumStore(): void {
+    // Core Arithmetic curriculum
+    const coreArithmetic: CurriculumMetadata = {
+      id: 'core-arithmetic',
+      name: 'Core Arithmetic',
+      description: 'Basic arithmetic facts for addition, subtraction, multiplication, and division',
+      version: '1.0',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      tags: ['core', 'arithmetic']
+    };
+    
+    this.curriculumStore.set(coreArithmetic.id, coreArithmetic);
+  }
+  
+  /**
+   * Generates a fact ID based on operation and operands
+   * @param operation Operation
+   * @param operands Operands
+   * @returns Generated fact ID
+   */
+  private generateFactId(operation: string, operands: (number | string)[]): string {
+    const operandString = operands.join('-');
+    return `${operation}-${operandString}`;
+  }
+  
+  /**
+   * Generates a curriculum ID based on name
+   * @param name Curriculum name
+   * @returns Generated curriculum ID
+   */
+  private generateCurriculumId(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  }
+  
+  /**
+   * Calculates fact difficulty based on operation and operands
+   * @param operation Operation
+   * @param operands Operands
+   * @param result Result
+   * @param algorithm Optional algorithm to use
+   * @returns Calculated difficulty (0-1)
+   */
+  private calculateFactDifficulty(
+    operation: string, 
+    operands: (number | string)[], 
+    result: number | string,
+    algorithm: string = DifficultyAlgorithm.DEFAULT
+  ): number {
+    // Default algorithm - scale with operand values and operation complexity
+    let baseDifficulty = 0.5;
+    
+    // Adjust by operation
+    switch (operation) {
+      case 'addition':
+        baseDifficulty = 0.3;
+        break;
+      case 'subtraction':
+        baseDifficulty = 0.4;
+        break;
+      case 'multiplication':
+        baseDifficulty = 0.6;
+        break;
+      case 'division':
+        baseDifficulty = 0.7;
+        break;
+      case 'square':
+        baseDifficulty = 0.5;
+        break;
+      case 'cube':
+        baseDifficulty = 0.7;
+        break;
+      case 'square-root':
+        baseDifficulty = 0.8;
+        break;
+      case 'exponentiation':
+        baseDifficulty = 0.9;
+        break;
+    }
+    
+    // Adjust by operand magnitude
+    const numericOperands = operands.map(o => Number(o)).filter(o => !isNaN(o));
+    if (numericOperands.length > 0) {
+      const maxOperand = Math.max(...numericOperands);
+      
+      // Scale based on magnitude
+      if (maxOperand <= 5) {
+        baseDifficulty -= 0.2;
+      } else if (maxOperand <= 10) {
+        baseDifficulty -= 0.1;
+      } else if (maxOperand <= 20) {
+        // No adjustment
+      } else if (maxOperand <= 50) {
+        baseDifficulty += 0.1;
+      } else if (maxOperand <= 100) {
+        baseDifficulty += 0.2;
+      } else {
+        baseDifficulty += 0.3;
+      }
+    }
+    
+    // Ensure result is in valid range
+    return Math.max(0, Math.min(1, baseDifficulty));
+  }
+  
+  /**
+   * Gets the difficulty level tag for a given difficulty value
+   * @param difficulty Difficulty value (0-1)
+   * @returns Difficulty level tag
+   */
+  private getDifficultyLevelTag(difficulty: number): string {
+    if (difficulty < 0.2) {
+      return 'level-1';
+    } else if (difficulty < 0.4) {
+      return 'level-2';
+    } else if (difficulty < 0.6) {
+      return 'level-3';
+    } else if (difficulty < 0.8) {
+      return 'level-4';
+    } else {
+      return 'level-5';
+    }
+  }
+  
+  /**
+   * Finds facts that reference a given fact
+   * @param factId Fact ID to check
+   * @returns Array of facts that reference the given fact
+   */
+  private findReferencingFacts(factId: string): MathematicalFact[] {
+    const allFacts = this.factRepository.queryFacts({});
+    return allFacts.filter(fact => 
+      fact.relatedFactIds && fact.relatedFactIds.includes(factId)
+    );
+  }
+  
+  /**
+   * Generates related facts based on relationship type
+   * @param fact Fact to generate relationships for
+   * @param relationshipType Type of relationship
+   * @returns Array of related fact IDs
+   */
+  private generateRelationships(fact: MathematicalFact, relationshipType: string): string[] {
+    const relatedFactIds: string[] = [];
+    
+    switch (relationshipType) {
+      case RelationshipType.COMMUTATIVE:
+        // Only applicable to addition and multiplication
+        if (fact.operation === 'addition' || fact.operation === 'multiplication') {
+          // Only if there are 2 operands
+          if (fact.operands.length === 2) {
+            const commutativeFact = {
+              operation: fact.operation,
+              operands: [fact.operands[1], fact.operands[0]]
+            };
+            const commutativeFactId = this.generateFactId(
+              commutativeFact.operation, 
+              commutativeFact.operands
+            );
+            
+            // Check if the fact exists
+            try {
+              this.factRepository.getFactById(commutativeFactId);
+              relatedFactIds.push(commutativeFactId);
+            } catch (error) {
+              // Fact doesn't exist, which is fine
+            }
+          }
+        }
+        break;
+        
+      case RelationshipType.INVERSE:
+        // Addition <-> Subtraction
+        if (fact.operation === 'addition' && fact.operands.length === 2) {
+          const inverseFact1 = {
+            operation: 'subtraction',
+            operands: [fact.result, fact.operands[0]]
+          };
+          const inverseFact2 = {
+            operation: 'subtraction',
+            operands: [fact.result, fact.operands[1]]
+          };
+          
+          const inverseFactId1 = this.generateFactId(
+            inverseFact1.operation, 
+            inverseFact1.operands
+          );
+          const inverseFactId2 = this.generateFactId(
+            inverseFact2.operation, 
+            inverseFact2.operands
+          );
+          
+          // Check if the facts exist
+          try {
+            this.factRepository.getFactById(inverseFactId1);
+            relatedFactIds.push(inverseFactId1);
+          } catch (error) {}
+          
+          try {
+            this.factRepository.getFactById(inverseFactId2);
+            relatedFactIds.push(inverseFactId2);
+          } catch (error) {}
+        }
+        
+        // Subtraction -> Addition
+        if (fact.operation === 'subtraction' && fact.operands.length === 2) {
+          const inverseFact = {
+            operation: 'addition',
+            operands: [fact.result, fact.operands[1]]
+          };
+          
+          const inverseFactId = this.generateFactId(
+            inverseFact.operation, 
+            inverseFact.operands
+          );
+          
+          // Check if the fact exists
+          try {
+            this.factRepository.getFactById(inverseFactId);
+            relatedFactIds.push(inverseFactId);
+          } catch (error) {}
+        }
+        
+        // Multiplication <-> Division
+        if (fact.operation === 'multiplication' && fact.operands.length === 2) {
+          const inverseFact1 = {
+            operation: 'division',
+            operands: [fact.result, fact.operands[0]]
+          };
+          const inverseFact2 = {
+            operation: 'division',
+            operands: [fact.result, fact.operands[1]]
+          };
+          
+          const inverseFactId1 = this.generateFactId(
+            inverseFact1.operation, 
+            inverseFact1.operands
+          );
+          const inverseFactId2 = this.generateFactId(
+            inverseFact2.operation, 
+            inverseFact2.operands
+          );
+          
+          // Check if the facts exist
+          try {
+            this.factRepository.getFactById(inverseFactId1);
+            relatedFactIds.push(inverseFactId1);
+          } catch (error) {}
+          
+          try {
+            this.factRepository.getFactById(inverseFactId2);
+            relatedFactIds.push(inverseFactId2);
+          } catch (error) {}
+        }
+        
+        // Division -> Multiplication
+        if (fact.operation === 'division' && fact.operands.length === 2) {
+          const inverseFact = {
+            operation: 'multiplication',
+            operands: [fact.result, fact.operands[1]]
+          };
+          
+          const inverseFactId = this.generateFactId(
+            inverseFact.operation, 
+            inverseFact.operands
+          );
+          
+          // Check if the fact exists
+          try {
+            this.factRepository.getFactById(inverseFactId);
+            relatedFactIds.push(inverseFactId);
+          } catch (error) {}
+        }
+        break;
+        
+      case RelationshipType.ADJACENT:
+        // For addition and subtraction, adjacent facts differ by 1
+        if (fact.operation === 'addition' && fact.operands.length === 2) {
+          const adjacentFacts = [
+            {
+              operation: 'addition',
+              operands: [Number(fact.operands[0]) + 1, fact.operands[1]]
+            },
+            {
+              operation: 'addition',
+              operands: [Number(fact.operands[0]) - 1, fact.operands[1]]
+            },
+            {
+              operation: 'addition',
+              operands: [fact.operands[0], Number(fact.operands[1]) + 1]
+            },
+            {
+              operation: 'addition',
+              operands: [fact.operands[0], Number(fact.operands[1]) - 1]
+            }
+          ];
+          
+          for (const adjFact of adjacentFacts) {
+            const adjFactId = this.generateFactId(
+              adjFact.operation, 
+              adjFact.operands
+            );
+            
+            // Check if the fact exists
+            try {
+              this.factRepository.getFactById(adjFactId);
+              relatedFactIds.push(adjFactId);
+            } catch (error) {}
+          }
+        }
+        
+        // For multiplication, adjacent facts differ by multiplication table
+        if (fact.operation === 'multiplication' && fact.operands.length === 2) {
+          const adjacentFacts = [
+            {
+              operation: 'multiplication',
+              operands: [Number(fact.operands[0]) + 1, fact.operands[1]]
+            },
+            {
+              operation: 'multiplication',
+              operands: [Number(fact.operands[0]) - 1, fact.operands[1]]
+            },
+            {
+              operation: 'multiplication',
+              operands: [fact.operands[0], Number(fact.operands[1]) + 1]
+            },
+            {
+              operation: 'multiplication',
+              operands: [fact.operands[0], Number(fact.operands[1]) - 1]
+            }
+          ];
+          
+          for (const adjFact of adjacentFacts) {
+            const adjFactId = this.generateFactId(
+              adjFact.operation, 
+              adjFact.operands
+            );
+            
+            // Check if the fact exists
+            try {
+              this.factRepository.getFactById(adjFactId);
+              relatedFactIds.push(adjFactId);
+            } catch (error) {}
+          }
+        }
+        break;
+    }
+    
+    return relatedFactIds;
+  }
+}

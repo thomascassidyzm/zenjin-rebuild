@@ -2,14 +2,16 @@
 
 ## Project Overview
 
-This project is a rebuild of the Zenjin Maths App using the APML Framework v1.2.3. The rebuild preserves the effective theoretical foundation and user experience while improving component separation, interface clarity, and testability to support ongoing adaptation and enhancement.
+This project is a rebuild of the Zenjin Maths App using the APML Framework v1.3.0. The rebuild preserves the effective theoretical foundation and user experience while improving component separation, interface clarity, and testability to support ongoing adaptation and enhancement.
 
 ## Key Project Files
 
 - **Project Registry**: [`/registry.apml`](./registry.apml) - The single source of truth for all components, interfaces, and implementation status
 - **Project Status**: [`/status.html`](./status.html) - Visual representation of current project progress
-- **Framework Definition**: [`/framework/current/apml_framework_v1.2.3.md`](./framework/current/apml_framework_v1.2.3.md) - The latest version of the APML Framework (v1.2.3)
+- **Framework Definition**: [`/apml_framework_v1.3.0.md`](./apml_framework_v1.3.0.md) - The latest version of the APML Framework (v1.3.0)
+- **Framework Explainer**: [`/APML_EXPLAINER.md`](./APML_EXPLAINER.md) - Overview of the APML methodology and parallel AI development approach
 - **Knowledge Transfer**: [`/knowledge_transfer.md`](./knowledge_transfer.md) - Overview of the project structure and implementation approach
+- **Deployment Guide**: [`/DEPLOYMENT.md`](./DEPLOYMENT.md) - Instructions for deploying the app to Vercel
 
 ## Implementation Status
 
@@ -60,10 +62,9 @@ All 24 components have been successfully implemented:
 ├── registry.apml               # SINGLE SOURCE OF TRUTH for what needs to be built
 ├── status.html                 # Current project status visualization
 ├── README.md                   # This file - project overview
-│
-├── framework/                  # Framework definition
-│   └── current/                # Current framework version
-│       └── apml_framework_v1.2.3.md
+├── apml_framework_v1.3.0.md    # Current framework version
+├── APML_EXPLAINER.md           # APML methodology explanation
+├── DEPLOYMENT.md               # Deployment instructions
 │
 ├── docs/                       # Documentation and build artifacts
 │   ├── build/                  # Build artifacts
@@ -99,6 +100,7 @@ Each component follows a consistent file structure:
 - `ComponentName.tsx` - Main component implementation
 - `ComponentName.test.tsx` - Component tests
 - `ComponentNameExample.tsx` - Usage examples
+- `ComponentNameDemo.tsx` - Interactive demo
 - `componentName.css` - Component styles (if needed)
 - `ComponentName.README.md` - Component documentation
 - `index.ts` - Exports for the component
@@ -124,11 +126,11 @@ The application is divided into six core modules:
 
 ## Next Steps
 
-1. Run comprehensive integration tests (tests already created)
-2. Set up end-to-end testing for critical user flows
-3. Optimize performance and bundle size
-4. Prepare for beta deployment
-5. Develop user documentation and tutorials
+1. Deploy to Vercel for testing (see DEPLOYMENT.md)
+2. Run comprehensive integration tests (tests already created)
+3. Set up end-to-end testing for critical user flows
+4. Optimize performance and bundle size
+5. Prepare for beta deployment
 
 ## Contact
 
