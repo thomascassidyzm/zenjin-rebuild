@@ -27,7 +27,9 @@ import {
   WebSocketClientInterface,
   SyncQueueStorageInterface,
   RestApiConfig,
-  WebSocketConfig
+  WebSocketConfig,
+  SyncBatchData,
+  CompressedSyncBatchData
 } from './SynchronizationTypes';
 
 import {
@@ -643,7 +645,7 @@ class SynchronizationManager implements SynchronizationManagerInterface {
   private syncInterval: number | null = null;
   private isInitialized: boolean = false;
   private currentSyncOperation: AbortController | null = null;
-  private lastSyncTime: number | null = null;
+  private lastSyncTime?: number;
   private conflicts: Map<string, SyncConflict> = new Map();
   private debug: boolean;
   
@@ -771,10 +773,12 @@ class SynchronizationManager implements SynchronizationManagerInterface {
         await this.sync();
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorDetails = error instanceof Error ? error : String(error);
       const syncError = createSyncError(
         SyncErrorCode.INITIALIZATION_FAILED,
-        `Failed to initialize SynchronizationManager: ${error.message}`,
-        error
+        `Failed to initialize SynchronizationManager: ${errorMessage}`,
+        errorDetails
       );
       
       this.emitEvent('error', syncError);
@@ -1366,19 +1370,19 @@ class SynchronizationManager implements SynchronizationManagerInterface {
         );
       }
       
-      const batchData = {
+      const batchData: SyncBatchData = {
         items: batch,
         clientTime: Date.now(),
         compress: options.compressionEnabled
       };
       
-      let dataToSend = batchData;
+      let dataToSend: SyncBatchData | CompressedSyncBatchData = batchData;
       
       // Compress if enabled
       if (options.compressionEnabled) {
         const compressedData = await compressData(batchData);
         dataToSend = { 
-          compressed: true, 
+          compress: true, 
           data: compressedData 
         };
       }

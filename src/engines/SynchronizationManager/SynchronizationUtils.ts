@@ -37,8 +37,17 @@ export async function compressData(data: any): Promise<string> {
       const encoder = new TextEncoder();
       const encodedData = encoder.encode(jsonString);
       
-      const compressedStream = encodedData.pipeTo(new CompressionStream('gzip'));
-      const reader = (await compressedStream).getReader();
+      // Create readable stream from the encoded data
+      const readableStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encodedData);
+          controller.close();
+        }
+      });
+      
+      // Pipe through compression stream
+      const compressedStream = readableStream.pipeThrough(new CompressionStream('gzip'));
+      const reader = compressedStream.getReader();
       
       let compressedData = new Uint8Array();
       
@@ -85,8 +94,17 @@ export async function decompressData(compressedData: string): Promise<any> {
     
     // Use DecompressionStream if available (modern browsers)
     if (typeof DecompressionStream === 'function') {
-      const decompressedStream = bytes.pipeTo(new DecompressionStream('gzip'));
-      const reader = (await decompressedStream).getReader();
+      // Create readable stream from the bytes
+      const readableStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(bytes);
+          controller.close();
+        }
+      });
+      
+      // Pipe through decompression stream
+      const decompressedStream = readableStream.pipeThrough(new DecompressionStream('gzip'));
+      const reader = decompressedStream.getReader();
       
       let decompressedData = new Uint8Array();
       
@@ -113,7 +131,8 @@ export async function decompressData(compressedData: string): Promise<any> {
     }
   } catch (error) {
     console.error('Error decompressing data:', error);
-    throw new Error(`Failed to decompress data: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to decompress data: ${errorMessage}`);
   }
 }
 

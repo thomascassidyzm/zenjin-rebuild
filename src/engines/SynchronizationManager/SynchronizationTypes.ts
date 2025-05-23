@@ -10,13 +10,20 @@
  */
 export enum SyncErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
+  NETWORK_UNAVAILABLE = 'NETWORK_UNAVAILABLE',
   SERVER_ERROR = 'SERVER_ERROR',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
+  CONFLICT_NOT_FOUND = 'CONFLICT_NOT_FOUND',
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
   QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
   INVALID_DATA = 'INVALID_DATA',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  INITIALIZATION_FAILED = 'INITIALIZATION_FAILED',
+  SYNC_IN_PROGRESS = 'SYNC_IN_PROGRESS',
+  SYNC_ABORTED = 'SYNC_ABORTED',
+  DOWNLOAD_FAILED = 'DOWNLOAD_FAILED',
+  UPLOAD_FAILED = 'UPLOAD_FAILED'
 }
 
 /**
@@ -158,6 +165,23 @@ export interface SyncBatch {
     successItems: number;
     failedItems: number;
   };
+}
+
+/**
+ * Synchronization batch data to send to server
+ */
+export interface SyncBatchData {
+  items: SyncQueueItem[];
+  clientTime: number;
+  compress?: boolean;
+}
+
+/**
+ * Compressed batch data to send to server
+ */
+export interface CompressedSyncBatchData {
+  compress: boolean;
+  data: string;
 }
 
 /**
