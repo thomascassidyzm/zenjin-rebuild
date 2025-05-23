@@ -695,25 +695,35 @@ class StitchManager {
     // Remove stitch from previous position
     pathStructure[previousPosition] = null;
     
-    // Shift stitches down to make room for the repositioned stitch
-    for (let i = 1; i < newPosition; i++) {
-      if (pathStructure[i] !== null && pathStructure[i] !== undefined) {
-        const shiftedStitchId = pathStructure[i];
-        if (shiftedStitchId) {
-          const shiftedStitch = this.stitches.get(shiftedStitchId);
-          if (shiftedStitch) {
-            pathStructure[i + 1] = shiftedStitchId;
-            pathStructure[i] = null;
-            shiftedStitch.position = i + 1;
-          }
+    // Shift remaining stitches FORWARD to fill the gap
+    // This ensures position 1 always has the next stitch
+    let currentPos = previousPosition;
+    const maxPos = this.learningPathMaxPositions.get(learningPathId) || 100;
+    
+    while (currentPos < maxPos) {
+      const nextPos = currentPos + 1;
+      if (pathStructure[nextPos]) {
+        const nextStitchId = pathStructure[nextPos];
+        const nextStitch = this.stitches.get(nextStitchId);
+        
+        // Move stitch forward by one position
+        pathStructure[currentPos] = nextStitchId;
+        pathStructure[nextPos] = null;
+        
+        if (nextStitch) {
+          nextStitch.position = currentPos;
         }
+        
+        currentPos++;
+      } else {
+        break; // No more stitches to shift
       }
     }
     
-    // Place the stitch at the new position
+    // Place the repositioned stitch at the new position
     pathStructure[newPosition] = stitchId;
     
-    // Update stitch position
+    // Update repositioned stitch position
     const stitch = this.stitches.get(stitchId);
     if (stitch) {
       stitch.position = newPosition;
