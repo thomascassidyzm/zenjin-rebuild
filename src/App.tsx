@@ -212,12 +212,14 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
   };
 
   const resetSession = () => {
-    // Start a new stitch session
-    const stitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
+    // Start fresh session from current active tube (don't override with learningPathId)
+    const stitch = engineOrchestrator.getCurrentStitch(userId); // No learningPathId - use active tube
     setCurrentStitch(stitch);
     
-    const generatedQuestions = generateQuestionsForStitch(learningPathId, userId);
-    setQuestions(generatedQuestions);
+    if (stitch) {
+      const generatedQuestions = engineOrchestrator.generateQuestionsForStitch(stitch, 20);
+      setQuestions(generatedQuestions);
+    }
     setCurrentQuestionIndex(0);
     setSessionScore({ correct: 0, total: 0 });
     setSessionComplete(false);
@@ -285,10 +287,10 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
             <div className="mt-4 text-center">
               <button
                 onClick={() => {
-                  // Simulate perfect completion
+                  // Simulate perfect completion - seamless Live-Aid transition
                   const perfectScore = { correct: 20, total: 20 };
                   handleStitchCompletion(perfectScore);
-                  setSessionComplete(true);
+                  // No setSessionComplete - Live-Aid model continues seamlessly
                 }}
                 className="bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold py-2 px-4 rounded transition-colors"
               >
