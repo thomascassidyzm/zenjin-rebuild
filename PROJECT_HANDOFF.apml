@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProjectHandoff version="1.0" date="2025-05-23">
+  <Purpose>
+    Comprehensive knowledge transfer document for continuing development of the Zenjin Maths App rebuild project. This handoff enables any new LLM or developer to understand the current state, recent achievements, and next critical steps without requiring extensive context discovery.
+  </Purpose>
+  
+  <ProjectOverview>
+    <Name>Zenjin Maths App Rebuild</Name>
+    <Framework>APML Framework v1.3.2</Framework>
+    <Status>Core functionality working, 80% complete, spaced repetition system operational</Status>
+    <LastMajorMilestone>2025-05-23: Spaced repetition algorithm fully implemented and working</LastMajorMilestone>
+    <Architecture>React TypeScript app with modular engine architecture</Architecture>
+    <DeploymentTarget>Vercel (deployment ready)</DeploymentTarget>
+  </ProjectOverview>
+  
+  <CriticalContext>
+    <RecentBreakthrough>
+      <Achievement>Spaced Repetition System Completed</Achievement>
+      <Date>2025-05-23</Date>
+      <Impact>Core learning algorithm now working with fixed sequence [4,8,15,30,100,1000] and positions-as-first-class-citizens architecture</Impact>
+      <ValidationStatus>Tested and logging correctly in browser console</ValidationStatus>
+    </RecentBreakthrough>
+    
+    <CurrentWorkingFeatures>
+      <Feature name="Triple Helix rotation" status="functional">Seamless tube switching (addition → multiplication → subtraction)</Feature>
+      <Feature name="Spaced repetition" status="functional">Stitches advance through scientific sequence based on performance</Feature>
+      <Feature name="Live Aid model" status="functional">Continuous learning flow without session breaks</Feature>
+      <Feature name="Engine coordination" status="functional">EngineOrchestrator managing all interactions</Feature>
+      <Feature name="Testing UI" status="functional">Perfect/Imperfect buttons for manual testing</Feature>
+    </CurrentWorkingFeatures>
+  </CriticalContext>
+  
+  <ProjectState>
+    <StatusTrackingSystem>
+      <Levels>
+        <Level name="not-started" symbol="🔴" description="Not implemented at all" />
+        <Level name="scaffolded" symbol="🟡" description="Basic structure exists but not functional" />
+        <Level name="functional" symbol="🟠" description="Basic functionality works but not polished" />
+        <Level name="integrated" symbol="🟢" description="Works with other components properly" />
+        <Level name="tested" symbol="🔵" description="Has comprehensive tests" />
+        <Level name="optimized" symbol="⭐" description="Performance optimized and production-ready" />
+      </Levels>
+    </StatusTrackingSystem>
+    
+    <ModuleCompletionStatus>
+      <Module name="UserInterface" status="integrated" completion="95%" priority="low">Core UI working well</Module>
+      <Module name="LearningEngine" status="functional" completion="85%" priority="medium">Distinction-based learning working</Module>
+      <Module name="ProgressionSystem" status="functional" completion="85%" priority="low">Recently completed and working</Module>
+      <Module name="MetricsSystem" status="functional" completion="90%" priority="medium">Metrics calculation working</Module>
+      <Module name="SubscriptionSystem" status="scaffolded" completion="65%" priority="medium">Payment mock only</Module>
+      <Module name="OfflineSupport" status="scaffolded" completion="60%" priority="high">Critical gaps</Module>
+      <Module name="UserManagement" status="functional" completion="90%" priority="low">Anonymous users working</Module>
+      <Module name="Orchestration" status="functional" completion="85%" priority="low">Recently integrated</Module>
+    </ModuleCompletionStatus>
+  </ProjectState>
+  
+  <CriticalFiles>
+    <SingleSourceOfTruth>
+      <File path="/registry.apml" purpose="Complete component status and file tracking" criticality="essential" />
+      <File path="/README.md" purpose="Project overview with current status and next steps" criticality="essential" />
+      <File path="/apml_framework_v1.3.2.md" purpose="Framework methodology and 6-phase status system" criticality="reference" />
+    </SingleSourceOfTruth>
+    
+    <CoreImplementationFiles>
+      <File path="/src/engines/EngineOrchestrator.ts" purpose="Central coordination of all engine interactions" criticality="high" />
+      <File path="/src/engines/SpacedRepetitionSystem/SpacedRepetitionSystem.ts" purpose="Recently fixed spaced repetition algorithm" criticality="high" />
+      <File path="/src/engines/StitchManager/StitchManager.ts" purpose="Stitch management with positions-as-first-class-citizens" criticality="high" />
+      <File path="/src/App.tsx" purpose="Main application with testing buttons and integration" criticality="high" />
+    </CoreImplementationFiles>
+    
+    <SpecificationFiles>
+      <File path="/docs/build/apml/modules/" purpose="APML module specifications for all components" criticality="reference" />
+      <File path="/docs/build/apml/interfaces/" purpose="Interface specifications" criticality="reference" />
+      <File path="/docs/build/apml/sessions/" purpose="Development session instructions" criticality="reference" />
+    </SpecificationFiles>
+  </CriticalFiles>
+  
+  <NextPrioritySteps>
+    <HighPriority>
+      <Step id="1" module="OfflineSupport" task="Implement ConnectivityManagerInterface">
+        <Description>Critical missing interface - system needs offline detection</Description>
+        <Context>Required for multi-device synchronization and offline functionality</Context>
+        <ApproachSuggestion>Create basic online/offline state management with event listeners</ApproachSuggestion>
+        <ValidationCriteria>Should detect connection state changes and notify other components</ValidationCriteria>
+      </Step>
+      
+      <Step id="2" module="OfflineSupport" task="Add conflict resolution to SynchronizationManager">
+        <Description>Current sync implementation missing conflict resolution</Description>
+        <Context>Essential for multi-device usage scenarios</Context>
+        <ApproachSuggestion>Implement last-write-wins or timestamp-based conflict resolution</ApproachSuggestion>
+        <ValidationCriteria>Should handle conflicting changes from multiple devices gracefully</ValidationCriteria>
+      </Step>
+    </HighPriority>
+    
+    <MediumPriority>
+      <Step id="3" module="SubscriptionSystem" task="Replace mock PaymentProcessor with real implementation">
+        <Description>Currently uses mock payment processing</Description>
+        <Context>Required for production deployment</Context>
+        <ApproachSuggestion>Integrate with Stripe or similar payment service</ApproachSuggestion>
+        <ValidationCriteria>Should handle real payments and subscription management</ValidationCriteria>
+      </Step>
+      
+      <Step id="4" module="LearningEngine" task="Complete ContentManager import/export tools">
+        <Description>Administrative tools for curriculum management incomplete</Description>
+        <Context>Required for content management by educators</Context>
+        <ApproachSuggestion>Add JSON import/export functionality with validation</ApproachSuggestion>
+        <ValidationCriteria>Should import/export curriculum data reliably</ValidationCriteria>
+      </Step>
+      
+      <Step id="5" module="UserInterface" task="Mobile accessibility audit and WCAG compliance">
+        <Description>UI needs accessibility improvements</Description>
+        <Context>Required for inclusive user experience</Context>
+        <ApproachSuggestion>Add ARIA labels, keyboard navigation, screen reader support</ApproachSuggestion>
+        <ValidationCriteria>Should pass WCAG 2.1 AA compliance testing</ValidationCriteria>
+      </Step>
+    </MediumPriority>
+    
+    <LowPriority>
+      <Step id="6" module="MetricsSystem" task="Implement global ranking algorithm">
+        <Description>Global ranking calculation missing from LifetimeMetricsManager</Description>
+        <Context>Nice-to-have feature for user engagement</Context>
+        <ApproachSuggestion>Implement percentile-based ranking system</ApproachSuggestion>
+        <ValidationCriteria>Should calculate accurate global rankings efficiently</ValidationCriteria>
+      </Step>
+    </LowPriority>
+  </NextPrioritySteps>
+  
+  <RecentChanges>
+    <Change date="2025-05-23" type="major" impact="high">
+      <Summary>Fixed core algorithm conflicts between APML spec and engine implementation</Summary>
+      <Details>
+        - Integrated SpacedRepetitionSystem with StitchManager
+        - Implemented fixed sequence [4,8,15,30,100,1000] for optimal spacing
+        - Added positions-as-first-class-citizens architecture
+        - Fixed "No stitches available" errors
+        - Added Perfect/Imperfect completion testing buttons
+        - Enhanced logging for visibility into repositioning behavior
+      </Details>
+      <ValidationResults>Browser console logs show correct repositioning with skip numbers advancing through sequence</ValidationResults>
+    </Change>
+    
+    <Change date="2025-05-23" type="major" impact="medium">
+      <Summary>Comprehensive documentation cleanup and framework enhancement</Summary>
+      <Details>
+        - Archived obsolete documentation to /docs/archived/2025-05-23/
+        - Created clean documentation structure
+        - Enhanced APML Framework v1.3.2 with 6-phase status tracking system
+        - Updated registry.apml with comprehensive status tracking
+        - Updated README.md with current status and next steps
+      </Details>
+      <ValidationResults>Documentation is now clean, organized, and maintainable</ValidationResults>
+    </Change>
+  </RecentChanges>
+  
+  <KnownIssues>
+    <Issue severity="low" module="UserInterface">
+      <Description>Testing buttons (Perfect/Imperfect) are temporary for development</Description>
+      <Impact>No impact on core functionality</Impact>
+      <Resolution>Remove before production deployment</Resolution>
+    </Issue>
+    
+    <Issue severity="medium" module="OfflineSupport">
+      <Description>Missing ConnectivityManagerInterface implementation</Description>
+      <Impact>Offline functionality incomplete</Impact>
+      <Resolution>High priority - implement basic online/offline detection</Resolution>
+    </Issue>
+    
+    <Issue severity="medium" module="SubscriptionSystem">
+      <Description>Payment processing is mock implementation only</Description>
+      <Impact>Cannot process real payments</Impact>
+      <Resolution>Medium priority - integrate real payment service</Resolution>
+    </Issue>
+  </KnownIssues>
+  
+  <DevelopmentEnvironment>
+    <Setup>
+      <Requirement>Node.js and npm</Requirement>
+      <Requirement>React TypeScript development environment</Requirement>
+      <Requirement>Vercel CLI for deployment testing</Requirement>
+    </Setup>
+    
+    <QuickStart>
+      <Command>npm install</Command>
+      <Command>npm run dev</Command>
+      <TestingApproach>Use Perfect/Imperfect buttons to test spaced repetition</TestingApproach>
+      <LoggingInspection>Check browser console for detailed repositioning logs</LoggingInspection>
+    </QuickStart>
+    
+    <KeyTestingScenarios>
+      <Scenario name="Spaced Repetition Validation">
+        <Steps>
+          1. Click Perfect (20/20) button multiple times on same stitch
+          2. Observe skip number advancing: 4 → 8 → 15 → 30 → 100 → 1000
+          3. Click Imperfect (15/20) button - should reset to skip 4 and stay at position 1
+          4. Verify tube rotation working between addition/multiplication/subtraction
+        </Steps>
+        <ExpectedResult>Console logs show correct skip progression and position changes</ExpectedResult>
+      </Scenario>
+    </KeyTestingScenarios>
+  </DevelopmentEnvironment>
+  
+  <ArchitecturalDecisions>
+    <Decision topic="Spaced Repetition Algorithm">
+      <Context>Had conflicts between APML specification and engine implementation</Context>
+      <Resolution>Integrated SpacedRepetitionSystem directly into StitchManager</Resolution>
+      <Rationale>Single source of truth for repositioning logic, eliminates algorithm conflicts</Rationale>
+      <Impact>Spaced repetition now works correctly with fixed sequence</Impact>
+    </Decision>
+    
+    <Decision topic="Positions as First-Class Citizens">
+      <Context>Needed scalable system for stitch management and new content insertion</Context>
+      <Resolution>Positions exist independently, stitches assigned to positions</Resolution>
+      <Rationale>Allows gaps for new content insertion while preserving spaced repetition order</Rationale>
+      <Impact>System can handle dynamic content addition without disrupting learning progression</Impact>
+    </Decision>
+    
+    <Decision topic="6-Phase Status Tracking">
+      <Context>Needed clear progress visibility and quality assurance</Context>
+      <Resolution>Implemented not-started → scaffolded → functional → integrated → tested → optimized</Resolution>
+      <Rationale>Provides clear milestones and prevents premature advancement</Rationale>
+      <Impact>Better project management and quality control</Impact>
+    </Decision>
+  </ArchitecturalDecisions>
+  
+  <HandoffInstructions>
+    <ImmediateActions>
+      <Action priority="1">Read this handoff document completely</Action>
+      <Action priority="2">Review /registry.apml for current component status</Action>
+      <Action priority="3">Review /README.md for project overview and recent achievements</Action>
+      <Action priority="4">Test spaced repetition functionality using Perfect/Imperfect buttons</Action>
+      <Action priority="5">Identify which high-priority step to tackle first</Action>
+    </ImmediateActions>
+    
+    <ContextBoundaries>
+      <Boundary name="Current Session Scope">Focus on one high-priority step from NextPrioritySteps</Boundary>
+      <Boundary name="File Scope">Work within identified critical files, avoid wholesale restructuring</Boundary>
+      <Boundary name="Status Progression">Advance components through 6-phase status system systematically</Boundary>
+      <Boundary name="Testing Validation">Use existing testing mechanisms and console logging for validation</Boundary>
+    </ContextBoundaries>
+    
+    <CommunicationGuidelines>
+      <Guideline>Update registry.apml with any status changes</Guideline>
+      <Guideline>Document architectural decisions in project files</Guideline>
+      <Guideline>Use 6-phase status system consistently</Guideline>
+      <Guideline>Maintain APML Framework compliance</Guideline>
+    </CommunicationGuidelines>
+  </HandoffInstructions>
+</ProjectHandoff>

@@ -6,90 +6,136 @@ This project is a rebuild of the Zenjin Maths App using the APML Framework v1.3.
 
 ## Key Project Files
 
-- **Project Registry**: [`/registry.apml`](./registry.apml) - The single source of truth for all components, interfaces, and implementation status
-- **Project Status**: [`/status.html`](./status.html) - Visual representation of current project progress
-- **Framework Definition**: [`/apml_framework_v1.3.0.md`](./apml_framework_v1.3.0.md) - The latest version of the APML Framework (v1.3.0)
-- **Framework Explainer**: [`/APML_EXPLAINER.md`](./APML_EXPLAINER.md) - Overview of the APML methodology and parallel AI development approach
-- **Knowledge Transfer**: [`/knowledge_transfer.md`](./knowledge_transfer.md) - Overview of the project structure and implementation approach
-- **Deployment Guide**: [`/DEPLOYMENT.md`](./DEPLOYMENT.md) - Instructions for deploying the app to Vercel
+### Primary Documentation
+- **Project Registry**: [`/registry.apml`](./registry.apml) - Single source of truth for all components and implementation status
+- **Project Handoff**: [`/PROJECT_HANDOFF.apml`](./PROJECT_HANDOFF.apml) - Comprehensive handoff document for new developers/LLMs
+- **Quick Reference**: [`/QUICK_HANDOFF.md`](./QUICK_HANDOFF.md) - Fast orientation for immediate context
+
+### Framework & Methodology  
+- **Framework Definition**: [`/apml_framework_v1.3.2.md`](./apml_framework_v1.3.2.md) - APML Framework v1.3.2 with 6-phase status tracking
+- **Framework Explainer**: [`/APML_EXPLAINER.md`](./APML_EXPLAINER.md) - Overview of APML methodology and interface-first development
+- **Knowledge Transfer**: [`/knowledge_transfer.md`](./knowledge_transfer.md) - Project structure and implementation approach
+
+### Operational
+- **Project Status**: [`/status.html`](./status.html) - Visual project progress dashboard
+- **Deployment Guide**: [`/DEPLOYMENT.md`](./DEPLOYMENT.md) - Instructions for deploying to Vercel
 
 ## Implementation Status
 
-All 24 components have been successfully implemented:
+All 26 components across 7 modules have been implemented with varying levels of completion:
 
-### UI Components (5/5)
-- ✅ PlayerCard
-- ✅ FeedbackSystem
-- ✅ ThemeManager
-- ✅ SessionSummary
-- ✅ Dashboard
+## Status Levels
+- 🔴 **not-started**: Not implemented at all
+- 🟡 **scaffolded**: Basic structure exists but not functional  
+- 🟠 **functional**: Basic functionality works but not polished
+- 🟢 **integrated**: Works with other components properly
+- 🔵 **tested**: Has comprehensive tests
+- ⭐ **optimized**: Performance optimized and production-ready
 
-### Learning Engine (5/5)
-- ✅ FactRepository
-- ✅ ContentManager
-- ✅ DistinctionManager
-- ✅ DistractorGenerator
-- ✅ QuestionGenerator
+## Module Overview
 
-### Progression System (3/3)
-- ✅ TripleHelixManager
-- ✅ SpacedRepetitionSystem
-- ✅ ProgressTracker
+| Module | Status | Components | Completion | Priority Issues |
+|---|---|---|---|---|
+| **UserInterface** | 🟢 integrated | 5/5 | 95% | Mobile accessibility |
+| **LearningEngine** | 🟠 functional | 5/5 | 85% | Curriculum admin tools |
+| **ProgressionSystem** | 🟠 functional | 4/4 | 85% | ✅ **Spaced repetition working!** |
+| **MetricsSystem** | 🟠 functional | 4/4 | 90% | Global ranking |
+| **SubscriptionSystem** | 🟡 scaffolded | 4/4 | 65% | Payment integration |
+| **OfflineSupport** | 🟡 scaffolded | 4/4 | 60% | Sync conflict resolution |
+| **UserManagement** | 🟠 functional | 1/1 | 90% | - |
+| **Orchestration** | 🟠 functional | 1/1 | 85% | ✅ **Engine coordination working!** |
 
-### Metrics System (4/4)
-- ✅ MetricsCalculator
-- ✅ SessionMetricsManager
-- ✅ LifetimeMetricsManager
-- ✅ MetricsStorage
+## Detailed Component Status
 
-### Subscription System (3/3)
-- ✅ SubscriptionManager
-- ✅ ContentAccessController
-- ✅ PaymentProcessor
+### UserInterface (🟢 95% complete)
+- 🟢 PlayerCard - Core interaction component
+- 🟠 FeedbackSystem - Visual feedback working
+- 🟠 ThemeManager - Theme switching working  
+- 🟠 SessionSummary - Session metrics display
+- 🟠 Dashboard - Analytics dashboard
 
-### Offline Support (3/3)
-- ✅ OfflineStorage
-- ✅ SynchronizationManager
-- ✅ ContentCache
+### LearningEngine (🟠 85% complete) 
+- 🟠 FactRepository - Mathematical facts storage
+- 🟡 ContentManager - Missing import/export tools
+- 🟠 DistinctionManager - 5 boundary levels working
+- 🟠 DistractorGenerator - Appropriate distractors
+- 🟠 QuestionGenerator - Question generation working
 
-### User Management (1/1)
-- ✅ AnonymousUserManager
+### ProgressionSystem (🟠 85% complete) ⭐ **Recently Enhanced**
+- 🟠 TripleHelixManager - Live Aid model rotation
+- 🟠 **SpacedRepetitionSystem** - ✅ **Fixed sequence [4,8,15,30,100,1000]**
+- 🟠 **StitchManager** - ✅ **Positions-as-first-class-citizens**
+- 🟠 ProgressTracker - Learning progress tracking
+
+### MetricsSystem (🟠 90% complete)
+- 🟠 MetricsCalculator - FTC/EC/Bonus calculations
+- 🟠 SessionMetricsManager - Session tracking
+- 🟠 LifetimeMetricsManager - Lifetime aggregation  
+- 🟠 MetricsStorage - Data persistence
+
+### SubscriptionSystem (🟡 65% complete)
+- 🟡 SubscriptionManager - Basic tier management
+- 🟠 ContentAccessController - Access control working
+- 🟡 PaymentProcessor - Mock implementation only
+
+### OfflineSupport (🟡 60% complete)
+- 🟡 OfflineStorage - Basic IndexedDB implementation
+- 🟡 SynchronizationManager - No conflict resolution
+- 🟡 ContentCache - Basic caching only
+
+### UserManagement (🟠 90% complete)
+- 🟠 AnonymousUserManager - TTL and conversion working
+
+### Orchestration (🟠 85% complete) ⭐ **Recently Added**
+- 🟠 **EngineOrchestrator** - ✅ **Central coordination working!**
 
 ## Directory Structure
 
 ```
 /zenjin-rebuild/
-├── registry.apml               # SINGLE SOURCE OF TRUTH for what needs to be built
-├── status.html                 # Current project status visualization
-├── README.md                   # This file - project overview
-├── apml_framework_v1.3.0.md    # Current framework version
-├── APML_EXPLAINER.md           # APML methodology explanation
-├── DEPLOYMENT.md               # Deployment instructions
+├── registry.apml               # SINGLE SOURCE OF TRUTH for all components and status
+├── status.html                 # Visual project status dashboard  
+├── README.md                   # This file - project overview with 6-phase status tracking
+├── apml_framework_v1.3.2.md   # Current framework version
+├── APML_EXPLAINER.md          # APML methodology explanation
+├── DEPLOYMENT.md              # Deployment instructions
+├── knowledge_transfer.md      # Project structure and implementation knowledge
 │
-├── docs/                       # Documentation and build artifacts
-│   ├── build/                  # Build artifacts
-│   │   ├── apml/               # APML definition files
-│   │   └── implementation_packages/ # LLM implementation instructions
+├── docs/                      # Clean documentation structure
+│   ├── README.md              # Documentation directory overview
+│   ├── build/                 # Current APML specifications
+│   │   ├── apml/modules/      # Module definitions (LearningEngine, ProgressionSystem, etc.)
+│   │   ├── apml/interfaces/   # Interface specifications for all components
+│   │   ├── apml/sessions/     # Development session specs for LLM implementation
+│   │   └── implementation_packages/ # Detailed component implementation guides
 │   │
-│   ├── integration/            # Integration documentation and testing
-│   ├── testing/                # Testing documentation
-│   └── archived/               # Archived files and documents
+│   └── archived/              # Historical documentation (date-organized)
+│       ├── 2025-05-23/        # Latest cleanup - obsolete docs moved here
+│       ├── components_pending_integration/ # Historical component staging
+│       └── project-docs/      # Historical project management docs
 │
-├── src/                        # Source code
-│   ├── components/             # UI components
-│   │   ├── PlayerCard/
-│   │   ├── FeedbackSystem/
-│   │   ├── ThemeManager/
-│   │   ├── SessionSummary/
-│   │   └── Dashboard/
+├── src/                       # Source code with modular structure
+│   ├── components/            # UI components (React/TypeScript)
+│   │   ├── PlayerCard/        # Core learning interaction component
+│   │   ├── FeedbackSystem/    # Visual feedback and animations
+│   │   ├── ThemeManager/      # Dark/light theme management
+│   │   ├── SessionSummary/    # Session results and metrics display
+│   │   └── Dashboard/         # Analytics and progress dashboard
 │   │
-│   └── engines/                # Business logic components
-│       ├── DistinctionManager/
-│       ├── DistractorGenerator/
-│       ├── QuestionGenerator/
-│       └── ...                 # Other engine components
+│   ├── engines/               # Business logic engines (TypeScript)
+│   │   ├── EngineOrchestrator.ts    # Central coordination and session management
+│   │   ├── DistinctionManager/      # 5-boundary distinction system
+│   │   ├── DistractorGenerator/     # Appropriate distractor generation
+│   │   ├── QuestionGenerator/       # Question generation for learning paths
+│   │   ├── TripleHelixManager/      # Live Aid model tube rotation
+│   │   ├── SpacedRepetitionSystem/  # Fixed sequence [4,8,15,30,100,1000]
+│   │   ├── StitchManager/           # Positions-as-first-class-citizens
+│   │   ├── MetricsCalculator/       # FTC/EC/Bonus metrics calculation
+│   │   └── ...                      # Other engine components
+│   │
+│   └── interfaces/            # Shared TypeScript interfaces
 │
-└── tests/                      # Global test configurations and fixtures
+└── tests/                     # Test configurations and fixtures
 ```
 
 ## Component Organization
@@ -124,13 +170,58 @@ The application is divided into six core modules:
 5. **SubscriptionSystem** - Subscription management and content access
 6. **OfflineSupport** - Offline functionality and synchronization
 
+## Recent Achievements 🎉
+
+### 2025-05-23: Spaced Repetition System Completed
+- ✅ **Fixed core algorithm conflicts** between APML spec and engine implementation
+- ✅ **Implemented fixed sequence [4, 8, 15, 30, 100, 1000]** for optimal spacing  
+- ✅ **Positions-as-first-class-citizens** architecture working perfectly
+- ✅ **Perfect/Imperfect completion rules**: <20/20 stays active, =20/20 advances
+- ✅ **Integration testing**: Engine logs show correct repositioning behavior
+- ✅ **Visual testing UI**: Added Perfect/Imperfect buttons for manual testing
+
+### Current Working Features
+- 🟢 **Triple Helix rotation** - Seamless tube switching (addition → multiplication → subtraction)
+- 🟢 **Spaced repetition** - Stitches advance through scientific sequence based on performance
+- 🟢 **No more "No stitches available" errors** - Fixed stitch availability algorithm
+- 🟢 **Live Aid model** - Continuous learning flow without session breaks
+- 🟢 **Comprehensive logging** - Clear visibility into stitch IDs and repositioning
+
+## Critical Gaps to Address
+
+### High Priority
+1. **ConnectivityManagerInterface** (OfflineSupport) - Not implemented
+2. **Synchronization conflict resolution** - Essential for multi-device usage
+3. **Mobile accessibility** - WCAG compliance needed
+
+### Medium Priority  
+4. **Payment processing integration** - Currently mock implementation
+5. **Curriculum import/export tools** - Admin functionality incomplete
+6. **Performance optimization** - Bundle size and caching improvements
+
+### Low Priority
+7. **Global ranking system** - Algorithm needs implementation
+8. **Advanced metrics** - Evolution calculations refinement
+
 ## Next Steps
 
-1. Deploy to Vercel for testing (see DEPLOYMENT.md)
-2. Run comprehensive integration tests (tests already created)
-3. Set up end-to-end testing for critical user flows
-4. Optimize performance and bundle size
-5. Prepare for beta deployment
+### Phase 1: Core Functionality (1-2 weeks)
+1. **Implement ConnectivityManagerInterface** for offline detection
+2. **Add conflict resolution** to SynchronizationManager
+3. **Deploy to Vercel** for testing (see DEPLOYMENT.md)
+4. **Run integration tests** on all modules
+
+### Phase 2: Production Readiness (2-3 weeks)  
+5. **Mobile accessibility audit** and WCAG compliance
+6. **Performance optimization** - lazy loading, code splitting
+7. **Payment integration** with Stripe/similar
+8. **End-to-end testing** for critical user flows
+
+### Phase 3: Enhancement (1-2 weeks)
+9. **Global ranking implementation**
+10. **Curriculum admin tools** completion
+11. **Advanced analytics** and reporting
+12. **Beta deployment** preparation
 
 ## Contact
 

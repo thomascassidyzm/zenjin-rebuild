@@ -1,35 +1,44 @@
-# Documentation
+# Documentation Directory
 
-This directory contains supporting documentation for the Zenjin Maths App rebuild project.
+This directory contains the current documentation and APML specifications for the Zenjin Maths App rebuild project.
 
-## Current Documentation Structure
+## Current Structure
 
-- **build/**: Build artifacts for the APML Framework
-  - `apml/`: APML definition files (interfaces, modules, development sessions)
-  - `implementation_packages/`: Implementation packages for components
-  - `design_decisions/`: Documentation of key design decisions
+### `/build/` - APML Framework Artifacts
+Contains the current APML specifications and development sessions:
 
-- **integration/**: Integration documentation and testing
-  - `integration-summary.md`: Summary of component integration work
+- **`apml/modules/`** - Core module definitions (LearningEngine, ProgressionSystem, etc.)
+- **`apml/interfaces/`** - Interface specifications for all components  
+- **`apml/sessions/`** - Development session specifications for LLM implementation
+- **`implementation_packages/`** - Detailed implementation packages for each component
 
-- **testing/**: Testing documentation
-  - `testing_strategy.md`: Comprehensive testing strategy
-  - `Testing.README.md`: Testing overview
+### `/archived/` - Historical Documentation
+Contains archived documentation that is no longer current but kept for reference:
 
-- **archived/**: Archived files and directories that are no longer actively used
-  - Historical versions of documentation
-  - Outdated structure documentation
-  - Archived components pending integration
+- **`2025-05-23/`** - Documentation cleanup (obsolete docs moved here)
+- **`components_pending_integration/`** - Old component staging area
+- **`project-docs/`** - Historical project documentation
+
+## Key Files
+
+The primary documentation now lives at the project root:
+
+- **`/README.md`** - Main project overview with current status
+- **`/registry.apml`** - Single source of truth for all components and implementation status
+- **`/status.html`** - Visual project status dashboard
+- **`/knowledge_transfer.md`** - Project structure and implementation knowledge
 
 ## Documentation Philosophy
 
-Following the APML Framework v1.2.3, the project maintains a single source of truth for key project information:
+Following APML Framework v1.3.1:
+1. **Single source of truth** for project status (registry.apml)
+2. **Living documentation** that stays current with implementation
+3. **Clear separation** between current specs (build/) and historical records (archived/)
+4. **Implementation-focused** documentation that helps developers
 
-1. **Project Overview**: The root `README.md` file
-2. **Component Registry**: The root `registry.apml` file
-3. **Project Status**: The root `status.html` file
-4. **Knowledge Transfer**: The root `knowledge_transfer.md` file
+## Next Documentation Tasks
 
-## Framework Compliance
-
-All documentation follows the APML Framework v1.2.3 guidelines for naming, structure, and organization. The framework definition can be found at `/framework/current/apml_framework_v1.2.3.md`.
+1. Update any outdated implementation packages in `build/implementation_packages/`
+2. Create integration testing documentation
+3. Add deployment and production readiness checklists
+4. Document the critical gaps and remediation plans

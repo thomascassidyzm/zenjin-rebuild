@@ -6,6 +6,7 @@ import PlayerCard from './components/PlayerCard/PlayerCard';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
+import { ConnectivityManager } from './engines/ConnectivityManager';
 import './App.css';
 
 // Mock data for initial testing
@@ -91,7 +92,9 @@ const generateQuestionsForStitch = (learningPathId: string, userId: string = 'de
 const NavigationHeader: React.FC<{
   currentPage: string;
   onNavigate: (page: string) => void;
-}> = ({ currentPage, onNavigate }) => {
+  isOnline: boolean;
+  connectionType: string;
+}> = ({ currentPage, onNavigate, isOnline, connectionType }) => {
   return (
     <header className="bg-gray-900 shadow-lg border-b border-gray-700">
       <div className="max-w-6xl mx-auto px-4 py-4">
@@ -103,7 +106,20 @@ const NavigationHeader: React.FC<{
             <h1 className="text-white text-xl font-bold">Zenjin Maths</h1>
           </div>
           
-          <nav className="flex space-x-1">
+          <div className="flex items-center space-x-4">
+            {/* Connectivity Indicator */}
+            <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+              isOnline ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${
+                isOnline ? 'bg-green-400' : 'bg-red-400'
+              }`}></div>
+              <span>
+                {isOnline ? `📶 ${connectionType}` : '📵 Offline'}
+              </span>
+            </div>
+            
+            <nav className="flex space-x-1">
             {[
               { id: 'dashboard', label: 'Dashboard' },
               { id: 'session', label: 'Play' }
@@ -120,7 +136,8 @@ const NavigationHeader: React.FC<{
                 {item.label}
               </button>
             ))}
-          </nav>
+            </nav>
+          </div>
         </div>
       </div>
     </header>
@@ -319,6 +336,44 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedLearningPath, setSelectedLearningPath] = useState('addition');
+  const [isOnline, setIsOnline] = useState(true);
+  const [connectionType, setConnectionType] = useState('unknown');
+
+  // Initialize connectivity monitoring
+  useEffect(() => {
+    const connectivityManager = new ConnectivityManager();
+    
+    // Set initial status
+    const status = connectivityManager.getConnectionStatus();
+    setIsOnline(status.isOnline);
+    setConnectionType(status.connectionType);
+    
+    // Listen for connectivity changes
+    const changeListener = connectivityManager.addEventListener('change', (event) => {
+      console.log('🌐 Connectivity changed:', event);
+      setIsOnline(event.status.isOnline);
+      setConnectionType(event.status.connectionType);
+    });
+    
+    const onlineListener = connectivityManager.addEventListener('online', (event) => {
+      console.log('✅ Back online!', event);
+    });
+    
+    const offlineListener = connectivityManager.addEventListener('offline', (event) => {
+      console.log('❌ Gone offline!', event);
+    });
+    
+    // Start monitoring connectivity
+    connectivityManager.startMonitoring(5000);
+    
+    return () => {
+      connectivityManager.removeEventListener(changeListener);
+      connectivityManager.removeEventListener(onlineListener);
+      connectivityManager.removeEventListener(offlineListener);
+      connectivityManager.stopMonitoring();
+      connectivityManager.destroy();
+    };
+  }, []);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
@@ -349,7 +404,12 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-950">
-      <NavigationHeader currentPage={currentPage} onNavigate={handleNavigate} />
+      <NavigationHeader 
+        currentPage={currentPage} 
+        onNavigate={handleNavigate}
+        isOnline={isOnline}
+        connectionType={connectionType}
+      />
       {renderCurrentPage()}
     </div>
   );
