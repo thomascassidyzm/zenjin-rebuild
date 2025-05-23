@@ -165,9 +165,9 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
-        // Session complete - handle stitch completion
+        // Stitch complete - auto-rotate to next tube and continue
         handleStitchCompletion(newScore);
-        setSessionComplete(true);
+        // No setSessionComplete - session continues automatically!
       }
     }, 1500);
   };
@@ -187,7 +187,24 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       const repositionResult = engineOrchestrator.completeStitch(userId, currentStitch.id, sessionResults);
       
       if (repositionResult) {
-        console.log(`Stitch "${currentStitch.name}" completed! Moved from position ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+        console.log(`Stitch completed! Moved from position ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+      }
+      
+      // LIVE-AID ROTATION: Automatically rotate to next tube and start next stitch
+      const rotationResult = engineOrchestrator.rotateTripleHelix(userId);
+      if (rotationResult) {
+        console.log(`Tube rotated: ${rotationResult.previousActivePath.id} → ${rotationResult.newActivePath.id}`);
+      }
+      
+      // Automatically start next stitch from the new active tube
+      const nextStitch = engineOrchestrator.getCurrentStitch(userId);
+      if (nextStitch) {
+        setCurrentStitch(nextStitch);
+        const newQuestions = engineOrchestrator.generateQuestionsForStitch(nextStitch, 20);
+        setQuestions(newQuestions);
+        setCurrentQuestionIndex(0);
+        setSessionStartTime(Date.now());
+        console.log(`Started new stitch from tube: ${rotationResult?.newActivePath.id}`);
       }
     } catch (error) {
       console.error('Failed to complete stitch:', error);
@@ -257,11 +274,28 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       {/* Player Card */}
       <div className="flex-1 flex items-center justify-center p-4">
         {currentQuestion ? (
-          <PlayerCard
-            key={currentQuestion.id}
-            initialQuestion={currentQuestion}
-            onAnswerSelected={handleAnswerSelected}
-          />
+          <div className="w-full max-w-md">
+            <PlayerCard
+              key={currentQuestion.id}
+              initialQuestion={currentQuestion}
+              onAnswerSelected={handleAnswerSelected}
+            />
+            
+            {/* Temporary Testing Button */}
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => {
+                  // Simulate perfect completion
+                  const perfectScore = { correct: 20, total: 20 };
+                  handleStitchCompletion(perfectScore);
+                  setSessionComplete(true);
+                }}
+                className="bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold py-2 px-4 rounded transition-colors"
+              >
+                🧪 SIMULATE COMPLETE STITCH (Testing)
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="text-white text-center">
             <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>

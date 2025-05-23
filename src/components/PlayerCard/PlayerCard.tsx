@@ -437,13 +437,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               ))}
             </div>
 
-            {/* Finish button - Fixed position */}
+            {/* End Session button - Fixed position */}
             <div className="flex justify-center flex-shrink-0">
               <button 
                 className="bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-8 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 transition-all duration-300"
                 onClick={reset}
               >
-                Finish
+                End Session
               </button>
             </div>
           </div>
