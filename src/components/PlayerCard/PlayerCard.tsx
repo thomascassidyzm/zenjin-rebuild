@@ -106,12 +106,11 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       // Start the timer for response time calculation
       startTimeRef.current = Date.now();
       
-      // Set a timeout if provided
-      if (options.timeout) {
-        timeoutRef.current = setTimeout(() => {
-          handleTimeout(question.id);
-        }, options.timeout);
-      }
+      // Set a timeout - default to 10 seconds if not provided
+      const timeoutDuration = options.timeout || 10000;
+      timeoutRef.current = setTimeout(() => {
+        handleTimeout(question.id);
+      }, timeoutDuration);
       
       return true;
     } catch (error) {
@@ -186,7 +185,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       // Make card non-interactable during feedback
       setIsInteractable(false);
       
-      // After showing feedback, reset the card
+      // After showing feedback, reset the card and re-present question
       setTimeout(() => {
         setFeedbackState('idle');
         setIsInteractable(true);
@@ -195,7 +194,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         if (currentQuestion) {
           presentQuestion(currentQuestion);
         }
-      }, 2000); // Show timeout feedback a bit longer
+      }, 3000); // Show timeout feedback for 3 seconds
       
       return { processed: true, feedbackShown: true };
     } catch (error) {
@@ -320,9 +319,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       return `${baseClasses} bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/30 glow-red`;
     }
     
-    // If timeout or no-answer
+    // If timeout or no-answer - both circles glow neutral blue
     if (feedbackState === 'timeout' || feedbackState === 'no-answer') {
-      return `${baseClasses} bg-blue-500/30 text-blue-200 border-2 border-blue-400/50 glow-blue`;
+      return `${baseClasses} bg-blue-400/40 text-blue-100 border-2 border-blue-300/60 glow-blue`;
     }
     
     // Default interactable state - light blue circular button
@@ -362,7 +361,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full min-h-[500px] p-4">
+    <div className="flex flex-col items-center justify-center w-full min-h-[500px] p-4" style={{ minWidth: '360px' }}>
       {/* Points Display */}
       <div className="w-full max-w-md min-w-[320px] mb-4">
         <div className="bg-gray-800/80 rounded-lg p-3 shadow-md">
@@ -374,7 +373,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
 
       {/* Fixed-size card container to prevent mounting/unmounting */}
-      <div className="relative w-full max-w-md min-w-[320px] h-[500px]">
+      <div className="relative w-full max-w-md min-w-[320px] h-[500px]" style={{ minWidth: '320px' }}>
         {currentQuestion && (
           <div
             className={getCardClasses()}
@@ -391,8 +390,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
               {/* Explanation overlay - only for incorrect/timeout states */}
               {(feedbackState === 'incorrect' || feedbackState === 'timeout') && (
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 py-2 px-4 bg-black/80 rounded-lg z-10">
-                  <p className="text-lg font-medium text-center whitespace-nowrap">
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 py-4 px-6 bg-black/90 rounded-2xl z-10 shadow-2xl glow-feedback border border-gray-600/30">
+                  <p className={`${getQuestionTextClass()} text-center whitespace-nowrap text-white font-bold`}>
                     {feedbackState === 'incorrect' && `✗ ${currentQuestion.correctAnswer}`}
                     {feedbackState === 'timeout' && '⏱ Time\'s up!'}
                   </p>
@@ -400,8 +399,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               )}
             </div>
             
-            {/* Answer Options - Fixed position */}
-            <div className="flex justify-around items-center gap-6 flex-grow flex-shrink-0">
+            {/* Answer Options - Fixed position with minimum spacing */}
+            <div className="flex justify-around items-center gap-4 flex-grow flex-shrink-0" style={{ minWidth: '280px' }}>
               {answerOptions.map((option, index) => (
                 <motion.button
                   key={`${currentQuestion.id}-option-${index}`}

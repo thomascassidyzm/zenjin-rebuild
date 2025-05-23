@@ -41,6 +41,16 @@
   animation: glow-blue 2.5s ease-in-out infinite;
 }
 
+/* Special glow for feedback overlay - prominent and attention-grabbing */
+.glow-feedback {
+  box-shadow: 
+    0 0 20px 5px rgba(255, 255, 255, 0.3),
+    0 0 40px 10px rgba(255, 255, 255, 0.2),
+    0 8px 25px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
 /* Accessibility focus styles */
 .focus-visible:focus {
   outline: 3px solid rgba(59, 130, 246, 0.6);

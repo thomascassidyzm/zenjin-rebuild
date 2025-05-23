@@ -1,8 +1,8 @@
-# APML Framework v1.3.0
+# APML Framework v1.3.1
 
 ## Version Information
 
-**Version:** 1.3.0  
+**Version:** 1.3.1  
 **Release Date:** May 22, 2025  
 **Status:** Stable Release  
 **Authors:** Original concept by Zenjin, developed with Claude 3.7 Sonnet & Gemini
