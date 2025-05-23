@@ -67,6 +67,9 @@ const PlayerCardExample: React.FC = () => {
   // Feedback state to display in the UI
   const [lastResponse, setLastResponse] = React.useState<Response | null>(null);
   
+  // Points for demonstration
+  const [points, setPoints] = React.useState(0);
+  
   // Initialize the PlayerCard implementation
   useEffect(() => {
     if (componentRef.current) {
@@ -78,6 +81,11 @@ const PlayerCardExample: React.FC = () => {
   const handleAnswerSelected = (response: Response) => {
     console.log('Answer selected:', response);
     setLastResponse(response);
+    
+    // Update points based on response
+    if (response.isCorrect) {
+      setPoints(prev => prev + 1);
+    }
     
     // Automatically progress to the next question after a delay
     setTimeout(() => {
@@ -141,6 +149,7 @@ const PlayerCardExample: React.FC = () => {
             ref={componentRef}
             onAnswerSelected={handleAnswerSelected}
             initialQuestion={mockQuestions[currentQuestionIndex]}
+            points={points}
           />
         </div>
         

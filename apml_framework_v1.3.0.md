@@ -8,6 +8,7 @@
 **Authors:** Original concept by Zenjin, developed with Claude 3.7 Sonnet & Gemini
 
 ### Change Log
+- **v1.3.1 (2025-05-23):** Added APML-to-TypeScript Interface Bridge Tool to automatically generate TypeScript interfaces from APML interface definitions. Implemented two-way synchronization between APML specifications and TypeScript implementations. Created detailed documentation and setup instructions for the bridge tool. Enhanced project's type safety through consistent interface implementations.
 - **v1.3.0 (2025-05-22):** Enhanced "Testing Strategy" to explicitly incorporate APML principles for the development, management, and lifecycle of testing systems and infrastructure (e.g., test harnesses). Added guidelines for APML-compliant development of testing systems, ensuring they adhere to framework phases, artifact generation, non-coder accessibility, and naming conventions. Added example `TestSystemInception.apml` and visual diagram. Updated validation levels to include testing system validation.
 - **v1.2.6 (2025-05-22):** Added comprehensive naming conventions section with clear guidelines for case styles (PascalCase, camelCase, kebab-case, snake_case) and standardized conventions for all file types, variables, and database fields.
 - **v1.2.5 (2025-05-22):** Added GitHub integration guidelines, HTML-based component testing for non-coders, and component relationship visualization. Introduced Better × Simpler × Cheaper principle for non-coders.

@@ -2,34 +2,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
-// Data Structures as per interface definition
-export interface FeedbackTarget {
-  id: string;                // Unique identifier for the target element
-  type?: string;             // Type of the target element (e.g., 'button', 'card', 'circle')
-}
+// Import types from generated interfaces
+import {
+  FeedbackTarget,
+  FeedbackOptions,
+  FeedbackResult,
+  FeedbackSystemInterface,
+  FeedbackSystemErrorCode
+} from '../../interfaces/FeedbackSystemInterface';
 
-export interface FeedbackOptions {
-  duration?: number;         // Duration of the feedback animation in milliseconds
-  intensity?: number;        // Intensity of the feedback animation (0.0-1.0)
-  sound?: boolean;           // Whether to play sound with the feedback
-  haptic?: boolean;          // Whether to use haptic feedback (on supported devices)
-  animation?: string;        // Animation style to use
-}
-
-export interface FeedbackResult {
-  success: boolean;          // Whether the feedback was successfully shown
-  target: string;            // ID of the target element
-  feedbackType: string;      // Type of feedback that was shown
-  duration: number;          // Actual duration of the feedback in milliseconds
-}
-
-// Error types
-export const FEEDBACK_ERRORS = {
-  INVALID_TARGET: 'INVALID_TARGET',
-  FEEDBACK_FAILED: 'FEEDBACK_FAILED',
-  INVALID_FEEDBACK_TYPE: 'INVALID_FEEDBACK_TYPE',
-  NO_ACTIVE_FEEDBACK: 'NO_ACTIVE_FEEDBACK',
-};
+// Error types (using the enum from the generated interface)
+export const FEEDBACK_ERRORS = FeedbackSystemErrorCode;
 
 // Default options
 const DEFAULT_OPTIONS: FeedbackOptions = {
@@ -48,8 +31,8 @@ const SOUND_EFFECTS = {
   timeout: '/sounds/timeout.mp3',
 };
 
-// FeedbackSystem Hook
-export function useFeedbackSystem() {
+// FeedbackSystem Hook that implements the FeedbackSystemInterface
+export function useFeedbackSystem(): FeedbackSystemInterface {
   // Ref to track active animations for cancellation
   const activeAnimations = useRef<Map<string, gsap.core.Timeline>>(new Map());
   

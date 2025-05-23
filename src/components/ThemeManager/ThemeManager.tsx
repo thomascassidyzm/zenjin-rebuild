@@ -1,51 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 
-// Define TypeScript interfaces based on the requirements
-export interface ThemeColors {
-  primary: string;       // Primary color (hex code)
-  secondary: string;     // Secondary color (hex code)
-  background: string;    // Background color (hex code)
-  text: string;          // Text color (hex code)
-  accent?: string;       // Accent color (hex code)
-  success?: string;      // Success color (hex code)
-  error?: string;        // Error color (hex code)
-  neutral?: string;      // Neutral color (hex code)
-}
+// Import types from generated interfaces
+import {
+  ThemeColors,
+  ThemeAnimation,
+  ThemeConfig,
+  ThemeManagerInterface,
+  ThemeManagerErrorCode
+} from '../../interfaces/ThemeManagerInterface';
 
-export interface ThemeAnimation {
-  enabled: boolean;      // Whether animations are enabled
-  speed?: number;        // Animation speed multiplier (1.0 is normal)
-  bubblesDensity?: number; // Density of background bubbles animation
-  bubblesSpeed?: number; // Speed of background bubbles animation
-}
-
-export interface ThemeConfig {
-  colors: ThemeColors;   // Theme color configuration
-  animation: ThemeAnimation; // Theme animation configuration
-  fontFamily?: string;   // Primary font family
-  borderRadius?: number; // Border radius for UI elements in pixels
-  spacing?: number;      // Base spacing unit in pixels
-}
-
-export interface ThemeManagerInterface {
-  // Applies a theme configuration to the application
-  applyTheme(config: ThemeConfig): boolean;
-  
-  // Gets the current theme configuration
-  getThemeConfig(): ThemeConfig;
-  
-  // Gets a specific theme property value
-  getThemeProperty(propertyPath: string): any;
-  
-  // Starts the background bubbles animation
-  startBackgroundAnimation(options?: { density?: number; speed?: number }): boolean;
-  
-  // Stops the background bubbles animation
-  stopBackgroundAnimation(): boolean;
-  
-  // Gets CSS variables for the current theme
-  getCSSVariables(): Record<string, string>;
-}
+// Error codes from the interface
+export const THEME_MANAGER_ERRORS = ThemeManagerErrorCode;
 
 // Default theme configuration - dark theme by default to limit battery usage
 const DEFAULT_THEME: ThemeConfig = {

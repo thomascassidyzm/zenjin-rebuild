@@ -4,31 +4,17 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import './playerCardAnimations.css';
 
-// Types based on the interface definition
-interface Question {
-  id: string;
-  text: string;
-  correctAnswer: string;
-  distractor: string;
-  boundaryLevel: number;
-  factId: string;
-}
+// Import types from generated interfaces
+import { 
+  Question, 
+  Response, 
+  FeedbackOptions, 
+  PlayerCardInterface 
+} from '../../interfaces/PlayerCardInterface';
 
-interface Response {
-  questionId: string;
-  selectedAnswer: string;
-  isCorrect: boolean;
-  responseTime: number;
-  isFirstAttempt: boolean;
-}
-
-interface FeedbackOptions {
-  duration?: number;
-  intensity?: number;
-  sound?: boolean;
-}
-
+// Additional types not in the APML interface
 interface PresentationOptions {
   timeout?: number;
   animation?: string;
@@ -41,6 +27,7 @@ type FeedbackState = 'idle' | 'correct' | 'incorrect' | 'timeout' | 'no-answer';
 interface PlayerCardProps {
   onAnswerSelected?: (response: Response) => void;
   initialQuestion?: Question;
+  points?: number; // Current points to display
 }
 
 /**
@@ -52,7 +39,8 @@ interface PlayerCardProps {
  */
 const PlayerCard: React.FC<PlayerCardProps> = ({ 
   onAnswerSelected,
-  initialQuestion
+  initialQuestion,
+  points = 0
 }) => {
   // State for current question
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(initialQuestion || null);
@@ -312,13 +300,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     
     switch (feedbackState) {
       case 'correct':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-green-500/30 border border-green-500/30`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-green-500/30 border border-green-500/30 glow-green`;
       case 'incorrect':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-red-500/30 border border-red-500/30 animate-shake`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-red-500/30 border border-red-500/30 animate-shake glow-red`;
       case 'timeout':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30 glow-blue`;
       case 'no-answer':
-        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30`;
+        return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 shadow-blue-500/30 border border-blue-500/30 glow-blue`;
       default:
         return `${baseClasses} bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700`;
     }
@@ -326,27 +314,28 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   // Get option button styles based on state and answer
   const getOptionButtonClasses = (option: string) => {
-    const baseClasses = "relative w-full p-4 rounded-full text-xl font-bold mb-4 transition-all duration-300 transform";
+    // Using circles rather than full width buttons for a more modern look
+    const baseClasses = "relative flex items-center justify-center h-28 w-28 rounded-full text-2xl font-bold transition-all duration-300 transform touch-target";
     
     // If showing feedback and this is the correct answer
     if ((feedbackState === 'correct' || feedbackState === 'incorrect') && 
         currentQuestion && option === currentQuestion.correctAnswer) {
-      return `${baseClasses} bg-green-500/20 text-green-300 border-2 border-green-500 shadow-lg shadow-green-500/30`;
+      return `${baseClasses} bg-green-500 text-white border-2 border-green-400 shadow-lg shadow-green-500/30 glow-green`;
     }
     
     // If showing incorrect feedback and this is the selected wrong answer
     if (feedbackState === 'incorrect' && 
         currentQuestion && option !== currentQuestion.correctAnswer) {
-      return `${baseClasses} bg-red-500/20 text-red-300 border-2 border-red-500 shadow-lg shadow-red-500/30`;
+      return `${baseClasses} bg-red-500 text-white border-2 border-red-400 shadow-lg shadow-red-500/30 glow-red`;
     }
     
     // If timeout or no-answer
     if (feedbackState === 'timeout' || feedbackState === 'no-answer') {
-      return `${baseClasses} bg-blue-500/10 text-blue-300 border-2 border-blue-500/50`;
+      return `${baseClasses} bg-blue-500/30 text-blue-200 border-2 border-blue-400/50 glow-blue`;
     }
     
-    // Default interactable state
-    return `${baseClasses} bg-gray-700/50 hover:bg-gray-600/50 text-white border-2 border-gray-600 hover:scale-[1.02] active:scale-[0.98]`;
+    // Default interactable state - light blue circular button
+    return `${baseClasses} bg-blue-500/20 hover:bg-blue-400/30 text-white border-2 border-blue-400/50 hover:scale-[1.05] active:scale-[0.98]`;
   };
 
   // Determine question text size based on length
@@ -370,7 +359,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           <div 
             key={level}
             className={`w-2 h-2 rounded-full ${
-              level <= currentQuestion.boundaryLevel 
+              level <= (currentQuestion.boundaryLevel || 0) 
                 ? 'bg-purple-500' 
                 : 'bg-gray-600'
             }`}
@@ -382,7 +371,24 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-center w-full min-h-[400px] p-4">
+    <div className="flex flex-col items-center justify-center w-full min-h-[500px] p-4">
+      {/* Points Display */}
+      <div className="w-full max-w-md mb-4 px-4">
+        <div className="bg-gray-800/80 rounded-lg p-3 shadow-md">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400 font-medium">POINTS</span>
+            <span className="text-3xl font-bold text-white">{points}</span>
+          </div>
+          <div className="mt-2 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-teal-400 h-full rounded-full" 
+              style={{ width: `${Math.min(points * 5, 100)}%` }} 
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+      </div>
+
       <AnimatePresence mode="wait">
         {isCardVisible && currentQuestion && (
           <motion.div
@@ -395,7 +401,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             data-testid="player-card"
           >
             {/* Question */}
-            <div className="mb-8 text-center">
+            <div className="mb-10 text-center">
               {renderBoundaryLevelIndicator()}
               <h2 
                 className={`${getQuestionTextClass()} mb-4 text-white`}
@@ -403,14 +409,28 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               >
                 {currentQuestion.text}
               </h2>
+
+              {/* Explanation overlay (for correct/incorrect/timeout states) */}
+              {(feedbackState === 'correct' || feedbackState === 'incorrect' || feedbackState === 'timeout') && (
+                <div className="mt-2 py-2 px-4 bg-black/80 rounded-lg inline-block">
+                  <p className="text-lg font-medium">
+                    {feedbackState === 'correct' && '✓ Correct!'}
+                    {feedbackState === 'incorrect' && '✗ Try again'}
+                    {feedbackState === 'timeout' && '⏱ Time\'s up!'}
+                  </p>
+                  {feedbackState === 'incorrect' && currentQuestion.correctAnswer && (
+                    <p className="text-white mt-1">The answer is {currentQuestion.correctAnswer}</p>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Answer Options */}
-            <div className="space-y-4">
+            <div className="flex justify-around items-center gap-6 mb-8">
               {answerOptions.map((option, index) => (
                 <motion.button
                   key={`${currentQuestion.id}-option-${index}`}
-                  whileHover={isInteractable ? { scale: 1.02 } : {}}
+                  whileHover={isInteractable ? { scale: 1.05 } : {}}
                   whileTap={isInteractable ? { scale: 0.98 } : {}}
                   className={getOptionButtonClasses(option)}
                   onClick={() => handleAnswerClick(option)}
@@ -420,6 +440,16 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                   {option}
                 </motion.button>
               ))}
+            </div>
+
+            {/* Finish button */}
+            <div className="mt-4 flex justify-center">
+              <button 
+                className="bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-8 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 transition-all duration-300"
+                onClick={reset}
+              >
+                Finish
+              </button>
             </div>
           </motion.div>
         )}
@@ -439,7 +469,7 @@ export type {
 };
 
 // Export a class that implements the full PlayerCardInterface for compatibility
-export class PlayerCardImpl {
+export class PlayerCardImpl implements PlayerCardInterface {
   private component: React.RefObject<any>;
   private onAnswerSelectedCallback: ((response: Response) => void) | null = null;
   
@@ -479,17 +509,3 @@ export class PlayerCardImpl {
     this.onAnswerSelectedCallback = callback;
   }
 }
-
-// Add the CSS for the shake animation (not handled by Tailwind by default)
-// To be added to your global CSS file
-/*
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-.animate-shake {
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-}
-*/

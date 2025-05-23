@@ -4,23 +4,27 @@
 import ThemeManagerProvider, {
   ThemeManagerProvider as Provider,
   useThemeManager,
-  ThemeColors,
-  ThemeAnimation,
-  ThemeConfig,
-  ThemeManagerInterface
+  THEME_MANAGER_ERRORS
 } from './ThemeManager';
+
+// Import interfaces from generated interfaces
+import { ThemeManagerInterface } from '../../interfaces/ThemeManagerInterface';
 
 export default ThemeManagerProvider;
 
 export {
   Provider,
-  useThemeManager
+  useThemeManager,
+  THEME_MANAGER_ERRORS
 };
 
-// Use export type for TypeScript interfaces when isolatedModules is enabled
+// Re-export the interface
+export type { ThemeManagerInterface };
+
+// Re-export types from the generated interface
 export type {
   ThemeColors,
   ThemeAnimation,
   ThemeConfig,
-  ThemeManagerInterface
-};
+  ThemeManagerErrorCode
+} from '../../interfaces/ThemeManagerInterface';

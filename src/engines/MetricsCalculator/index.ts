@@ -6,8 +6,11 @@
  */
 
 export { MetricsCalculator } from './MetricsCalculator';
+
+// Re-export the interface and types from the generated interfaces
 export type {
   MetricsCalculatorInterface,
   SessionData,
-  MetricsResult
-} from './MetricsCalculator';
+  MetricsResult,
+  MetricsCalculatorErrorCode
+} from '../../interfaces/MetricsCalculatorInterface';

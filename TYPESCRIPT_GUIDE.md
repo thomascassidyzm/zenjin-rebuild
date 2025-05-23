@@ -137,6 +137,21 @@ Once enough components have been fixed:
 3. Add explicit return types to functions
 4. Use TypeScript's utility types like Partial<T>, Pick<T>, Omit<T>, etc.
 5. Avoid using `any` - use `unknown` with type guards instead
+6. Use the APML-to-TypeScript converter for interface definitions
+
+### APML to TypeScript Interface Converter
+
+We've implemented an APML-to-TypeScript converter that automatically generates TypeScript interfaces from APML interface definitions. This ensures consistency between the APML Framework specifications and TypeScript implementations.
+
+To use the converter:
+
+```bash
+npm run generate:interfaces
+```
+
+This will generate TypeScript interfaces in the `src/interfaces` directory based on APML interface definitions in `docs/build/apml/interfaces`.
+
+For detailed information about the converter, see [APML to TypeScript Documentation](./docs/APML_TO_TYPESCRIPT.md).
 
 ## Helpful Resources
 

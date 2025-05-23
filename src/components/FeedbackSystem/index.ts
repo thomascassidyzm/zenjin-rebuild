@@ -5,11 +5,13 @@ import FeedbackSystem, {
   FeedbackSystemProvider, 
   useFeedback, 
   useFeedbackSystem, 
-  FeedbackTarget, 
-  FeedbackOptions, 
-  FeedbackResult, 
   FEEDBACK_ERRORS 
 } from './FeedbackSystem';
+
+// Import interfaces from generated interfaces
+import { 
+  FeedbackSystemInterface 
+} from '../../interfaces/FeedbackSystemInterface';
 
 export default FeedbackSystem;
 
@@ -20,5 +22,13 @@ export {
   FEEDBACK_ERRORS
 };
 
-// Use export type for TypeScript interfaces when isolatedModules is enabled
-export type { FeedbackTarget, FeedbackOptions, FeedbackResult };
+// Re-export the interface
+export type { FeedbackSystemInterface };
+
+// Re-export types from the generated interface
+export type { 
+  FeedbackTarget, 
+  FeedbackOptions, 
+  FeedbackResult,
+  FeedbackSystemErrorCode
+} from '../../interfaces/FeedbackSystemInterface';
