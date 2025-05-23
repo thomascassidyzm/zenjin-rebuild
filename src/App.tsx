@@ -1,10 +1,11 @@
 // src/App.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard/Dashboard';
 import PlayerCard from './components/PlayerCard/PlayerCard';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
-import { Question } from './components/PlayerCard/PlayerCard';
+import { Question } from './interfaces/PlayerCardInterface';
+import { engineOrchestrator } from './engines/EngineOrchestrator';
 import './App.css';
 
 // Mock data for initial testing
@@ -59,33 +60,16 @@ const mockDashboardData: DashboardData = {
   streakDays: 7
 };
 
-// Mock questions for testing
-const mockQuestions: Question[] = [
-  {
-    id: "add-7-8-001",
-    text: "What is 7 + 8?",
-    correctAnswer: "15",
-    distractor: "16",
-    boundaryLevel: 2,
-    factId: "add-7-8"
-  },
-  {
-    id: "mult-6-7-001", 
-    text: "What is 6 × 7?",
-    correctAnswer: "42",
-    distractor: "48",
-    boundaryLevel: 3,
-    factId: "mult-6-7"
-  },
-  {
-    id: "mult-8-9-001",
-    text: "What is 8 × 9?", 
-    correctAnswer: "72",
-    distractor: "81",
-    boundaryLevel: 4,
-    factId: "mult-8-9"
+// Generate questions dynamically based on current learning path
+const generateQuestionsForPath = (learningPathId: string, count: number = 5): Question[] => {
+  try {
+    return engineOrchestrator.generateMultipleQuestions(count, 'default-user', learningPathId);
+  } catch (error) {
+    console.error('Failed to generate questions:', error);
+    // Fallback to a single question
+    return [engineOrchestrator.generateQuestion('default-user', learningPathId)];
   }
-];
+};
 
 // Navigation Header Component
 const NavigationHeader: React.FC<{
@@ -129,12 +113,22 @@ const NavigationHeader: React.FC<{
 };
 
 // Learning Session Component
-const LearningSession: React.FC = () => {
+const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId = 'addition' }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
-  const currentQuestion = mockQuestions[currentQuestionIndex];
+  // Generate questions when component mounts or learning path changes
+  useEffect(() => {
+    const generatedQuestions = generateQuestionsForPath(learningPathId, 5);
+    setQuestions(generatedQuestions);
+    setCurrentQuestionIndex(0);
+    setSessionScore({ correct: 0, total: 0 });
+    setSessionComplete(false);
+  }, [learningPathId]);
+
+  const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswerSelected = (response: any) => {
     const newScore = {
@@ -145,7 +139,7 @@ const LearningSession: React.FC = () => {
 
     // Move to next question after delay
     setTimeout(() => {
-      if (currentQuestionIndex < mockQuestions.length - 1) {
+      if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
         setSessionComplete(true);
@@ -190,7 +184,7 @@ const LearningSession: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between text-white">
             <div className="text-sm">
-              Question {currentQuestionIndex + 1} of {mockQuestions.length}
+              Question {currentQuestionIndex + 1} of {questions.length}
             </div>
             <div className="text-sm">
               Score: {sessionScore.correct}/{sessionScore.total}
@@ -199,7 +193,7 @@ const LearningSession: React.FC = () => {
           <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
             <div 
               className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestionIndex + 1) / mockQuestions.length) * 100}%` }}
+              style={{ width: `${questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0}%` }}
             />
           </div>
         </div>
@@ -207,11 +201,18 @@ const LearningSession: React.FC = () => {
 
       {/* Player Card */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <PlayerCard
-          key={currentQuestion.id}
-          initialQuestion={currentQuestion}
-          onAnswerSelected={handleAnswerSelected}
-        />
+        {currentQuestion ? (
+          <PlayerCard
+            key={currentQuestion.id}
+            initialQuestion={currentQuestion}
+            onAnswerSelected={handleAnswerSelected}
+          />
+        ) : (
+          <div className="text-white text-center">
+            <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p>Loading questions...</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -220,12 +221,14 @@ const LearningSession: React.FC = () => {
 // Main App Component
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [selectedLearningPath, setSelectedLearningPath] = useState('addition');
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
   };
 
   const handleStartSession = (pathId: string) => {
+    setSelectedLearningPath(pathId);
     setCurrentPage('session');
   };
 
@@ -272,7 +275,7 @@ const App: React.FC = () => {
         );
       
       case 'session':
-        return <LearningSession />;
+        return <LearningSession learningPathId={selectedLearningPath} />;
       
       default:
         return <Navigate to="/dashboard" replace />;

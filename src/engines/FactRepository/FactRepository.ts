@@ -3,7 +3,7 @@
  * This file defines the core FactRepository class and its implementation
  */
 
-import { FactRepositoryInterface, MathematicalFact, FactQuery } from './fact-repository-types';
+import { FactRepositoryInterface, MathematicalFact, FactQuery } from './FactRepositoryTypes';
 
 /**
  * Implementation of the FactRepository that stores and retrieves mathematical facts
@@ -757,5 +757,81 @@ export class FactRepository implements FactRepositoryInterface {
     if (query.limit !== undefined && query.limit <= 0) {
       throw new Error(`INVALID_QUERY - Limit must be positive`);
     }
+  }
+  
+  /**
+   * Gets facts for a specific learning path
+   * @param learningPathId Learning path identifier
+   * @returns Array of facts for the learning path
+   */
+  public getFactsByLearningPath(learningPathId: string): MathematicalFact[] {
+    // Map learning paths to operations and difficulty ranges
+    const pathMapping: Record<string, FactQuery> = {
+      'addition': { operation: 'addition', difficulty: { min: 0, max: 1 } },
+      'subtraction': { operation: 'subtraction', difficulty: { min: 0, max: 1 } },
+      'multiplication': { operation: 'multiplication', difficulty: { min: 0, max: 1 } },
+      'division': { operation: 'division', difficulty: { min: 0, max: 1 } },
+      'basic-arithmetic': { difficulty: { min: 0, max: 0.6 } },
+      'advanced-arithmetic': { difficulty: { min: 0.4, max: 1 } }
+    };
+    
+    const query = pathMapping[learningPathId];
+    if (!query) {
+      // If no specific mapping, return basic addition facts as default
+      return this.getFactsByOperation('addition').slice(0, 20);
+    }
+    
+    return this.queryFacts(query);
+  }
+  
+  /**
+   * Gets question templates for an operation and boundary level
+   * @param operation Mathematical operation
+   * @param boundaryLevel Boundary level (1-5)
+   * @returns Array of question templates
+   */
+  public getQuestionTemplates(operation: string, boundaryLevel: number): string[] {
+    const templates: Record<string, Record<number, string[]>> = {
+      'addition': {
+        1: ['What is {{operand1}} + {{operand2}}?'],
+        2: ['{{operand1}} + {{operand2}} = ?', 'Add {{operand1}} and {{operand2}}'],
+        3: ['Find the sum of {{operand1}} and {{operand2}}', '{{operand1}} + {{operand2}} = ?'],
+        4: ['Calculate {{operand1}} + {{operand2}}', 'What is the total of {{operand1}} and {{operand2}}?'],
+        5: ['Determine the sum: {{operand1}} + {{operand2}}', 'Solve: {{operand1}} + {{operand2}}']
+      },
+      'subtraction': {
+        1: ['What is {{operand1}} - {{operand2}}?'],
+        2: ['{{operand1}} - {{operand2}} = ?', 'Subtract {{operand2}} from {{operand1}}'],
+        3: ['Find the difference of {{operand1}} and {{operand2}}', '{{operand1}} - {{operand2}} = ?'],
+        4: ['Calculate {{operand1}} - {{operand2}}', 'What is {{operand1}} minus {{operand2}}?'],
+        5: ['Determine the difference: {{operand1}} - {{operand2}}', 'Solve: {{operand1}} - {{operand2}}']
+      },
+      'multiplication': {
+        1: ['What is {{operand1}} × {{operand2}}?'],
+        2: ['{{operand1}} × {{operand2}} = ?', 'Multiply {{operand1}} by {{operand2}}'],
+        3: ['Find the product of {{operand1}} and {{operand2}}', '{{operand1}} × {{operand2}} = ?'],
+        4: ['Calculate {{operand1}} × {{operand2}}', 'What is {{operand1}} times {{operand2}}?'],
+        5: ['Determine the product: {{operand1}} × {{operand2}}', 'Solve: {{operand1}} × {{operand2}}']
+      },
+      'division': {
+        1: ['What is {{operand1}} ÷ {{operand2}}?'],
+        2: ['{{operand1}} ÷ {{operand2}} = ?', 'Divide {{operand1}} by {{operand2}}'],
+        3: ['Find the quotient of {{operand1}} and {{operand2}}', '{{operand1}} ÷ {{operand2}} = ?'],
+        4: ['Calculate {{operand1}} ÷ {{operand2}}', 'What is {{operand1}} divided by {{operand2}}?'],
+        5: ['Determine the quotient: {{operand1}} ÷ {{operand2}}', 'Solve: {{operand1}} ÷ {{operand2}}']
+      }
+    };
+    
+    const operationTemplates = templates[operation];
+    if (!operationTemplates) {
+      return [`Calculate {{operand1}} ${operation} {{operand2}}.`];
+    }
+    
+    const levelTemplates = operationTemplates[boundaryLevel];
+    if (!levelTemplates) {
+      return operationTemplates[1] || [`Calculate {{operand1}} ${operation} {{operand2}}.`];
+    }
+    
+    return levelTemplates;
   }
 }

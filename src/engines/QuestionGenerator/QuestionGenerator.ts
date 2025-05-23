@@ -5,11 +5,27 @@ import {
   Question,
   QuestionRequest,
   QuestionSetInfo
-} from './interfaces/QuestionGeneratorInterface';
-import { FactRepositoryInterface } from './interfaces/FactRepositoryInterface';
-import { DistinctionManagerInterface } from './interfaces/DistinctionManagerInterface';
-import { TripleHelixManagerInterface } from '../ProgressionSystem/interfaces/TripleHelixManagerInterface';
-import { Logger } from '../utils/Logger';
+} from '../../interfaces/QuestionGeneratorInterface';
+import { FactRepositoryInterface } from '../../interfaces/FactRepositoryInterface';
+import { DistinctionManagerInterface } from '../../interfaces/DistinctionManagerInterface';
+import { TripleHelixManagerInterface } from '../../interfaces/TripleHelixManagerInterface';
+
+// Simple logger interface
+interface Logger {
+  debug(message: string): void;
+  error(message: string): void;
+}
+
+// Simple console logger implementation
+class SimpleLogger implements Logger {
+  debug(message: string): void {
+    console.log(`[DEBUG] ${message}`);
+  }
+  
+  error(message: string): void {
+    console.error(`[ERROR] ${message}`);
+  }
+}
 
 /**
  * Implementation of QuestionGenerator component
@@ -37,7 +53,7 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     factRepository: FactRepositoryInterface,
     distinctionManager: DistinctionManagerInterface,
     tripleHelixManager: TripleHelixManagerInterface,
-    logger: Logger
+    logger: Logger = new SimpleLogger()
   ) {
     this.factRepository = factRepository;
     this.distinctionManager = distinctionManager;
@@ -252,8 +268,8 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
       let formattedText = template;
       
       // Replace common placeholders
-      formattedText = formattedText.replace(/{{operand1}}/g, fact.operand1.toString());
-      formattedText = formattedText.replace(/{{operand2}}/g, fact.operand2.toString());
+      formattedText = formattedText.replace(/{{operand1}}/g, fact.operands[0]?.toString() || '');
+      formattedText = formattedText.replace(/{{operand2}}/g, fact.operands[1]?.toString() || '');
       formattedText = formattedText.replace(/{{result}}/g, fact.result.toString());
       formattedText = formattedText.replace(/{{operation}}/g, fact.operation);
       

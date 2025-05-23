@@ -47,6 +47,21 @@ export interface FactRepositoryInterface {
    * @throws Error if the query is invalid
    */
   getFactCount(query?: FactQuery): number;
+  
+  /**
+   * Gets facts for a specific learning path
+   * @param learningPathId Learning path identifier
+   * @returns Array of facts for the learning path
+   */
+  getFactsByLearningPath(learningPathId: string): MathematicalFact[];
+  
+  /**
+   * Gets question templates for an operation and boundary level
+   * @param operation Mathematical operation
+   * @param boundaryLevel Boundary level (1-5)
+   * @returns Array of question templates
+   */
+  getQuestionTemplates(operation: string, boundaryLevel: number): string[];
 }
 
 /**
