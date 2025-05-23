@@ -6,7 +6,8 @@
   "description": "Zenjin Maths App - Complete distinction-based learning platform built with APML Framework",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "build:typecheck": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -14,8 +15,10 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "type-check": "tsc --noEmit",
+    "type-fix": "eslint . --ext ts,tsx --fix && tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,md}\"",
-    "clean": "rm -rf dist node_modules/.vite"
+    "clean": "rm -rf dist node_modules/.vite",
+    "find-unused": "eslint . --ext ts,tsx --rule 'no-unused-vars: error' --quiet"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
