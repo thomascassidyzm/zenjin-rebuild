@@ -282,18 +282,25 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
               onAnswerSelected={handleAnswerSelected}
             />
             
-            {/* Temporary Testing Button */}
-            <div className="mt-4 text-center">
+            {/* Testing Buttons */}
+            <div className="mt-4 text-center flex gap-2 justify-center">
               <button
                 onClick={() => {
-                  // Simulate perfect completion - seamless Live-Aid transition
                   const perfectScore = { correct: 20, total: 20 };
                   handleStitchCompletion(perfectScore);
-                  // No setSessionComplete - Live-Aid model continues seamlessly
                 }}
-                className="bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold py-2 px-4 rounded transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
-                🧪 SIMULATE COMPLETE STITCH (Testing)
+                ✓ Perfect (20/20)
+              </button>
+              <button
+                onClick={() => {
+                  const imperfectScore = { correct: 15, total: 20 };
+                  handleStitchCompletion(imperfectScore);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
+              >
+                ✗ Imperfect (15/20)
               </button>
             </div>
           </div>
