@@ -53,7 +53,7 @@
 
 /* Force minimum width to prevent parent responsive compression */
 .player-card-container {
-  min-width: 360px !important;
+  min-width: 370px !important;
   width: max-content !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
@@ -61,22 +61,22 @@
 
 /* Override any parent grid or flex constraints */
 .player-card-container > * {
-  min-width: 320px !important;
+  min-width: 370px !important;
   flex-shrink: 0 !important;
 }
 
 /* Ensure mobile devices respect minimum width */
 @media (max-width: 640px) {
   .player-card-container {
-    min-width: 360px !important;
-    width: 360px !important;
+    min-width: 370px !important;
+    width: 370px !important;
     max-width: none !important;
     flex-shrink: 0 !important;
   }
   
   .player-card-container > * {
-    min-width: 320px !important;
-    width: 320px !important;
+    min-width: 370px !important;
+    width: 370px !important;
     max-width: none !important;
     flex-shrink: 0 !important;
   }

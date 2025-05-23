@@ -286,7 +286,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   // Determine card background class based on feedback state
   const getCardClasses = () => {
     // Fixed size optimized for mobile devices - never goes thinner
-    const baseClasses = "relative w-full max-w-md min-w-[320px] h-[500px] rounded-xl p-6 transition-all duration-300 shadow-lg flex flex-col justify-between";
+    const baseClasses = "relative w-full max-w-md min-w-[370px] h-[500px] rounded-xl p-6 transition-all duration-300 shadow-lg flex flex-col justify-between";
     
     switch (feedbackState) {
       case 'correct':
@@ -362,19 +362,19 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   return (
     <div 
-      className="flex flex-col items-center justify-center w-full min-h-[500px] p-4 player-card-container" 
+      className="flex flex-col items-center justify-start w-full min-h-[500px] p-2 player-card-container" 
       style={{ 
-        minWidth: '360px !important',
+        minWidth: '370px !important',
         width: 'max-content',
         flexShrink: 0 
       }}
     >
       {/* Points Display */}
       <div 
-        className="w-full max-w-md min-w-[320px] mb-4" 
+        className="w-full max-w-md min-w-[370px] mb-2" 
         style={{ 
-          minWidth: '320px !important',
-          width: '320px',
+          minWidth: '370px !important',
+          width: '370px',
           flexShrink: 0 
         }}
       >
@@ -388,10 +388,10 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
       {/* Fixed-size card container to prevent mounting/unmounting */}
       <div 
-        className="relative w-full max-w-md min-w-[320px] h-[500px]" 
+        className="relative w-full max-w-md min-w-[370px] h-[500px]" 
         style={{ 
-          minWidth: '320px !important',
-          width: '320px',
+          minWidth: '370px !important',
+          width: '370px',
           flexShrink: 0 
         }}
       >
