@@ -14,6 +14,83 @@ describe('SessionMetricsManager', () => {
     sessionMetricsManager = new SessionMetricsManager();
   });
   
+  describe('Session Lifecycle', () => {
+    test('should start a session successfully', () => {
+      const sessionId = sessionMetricsManager.startSession('user123');
+      expect(sessionId).toBeDefined();
+      expect(typeof sessionId).toBe('string');
+    });
+    
+    test('should record answers successfully', () => {
+      const sessionId = sessionMetricsManager.startSession('user123');
+      const result = sessionMetricsManager.recordAnswer(sessionId, {
+        questionId: 'q001',
+        isCorrect: true,
+        isFirstAttempt: true,
+        responseTime: 1500,
+        timestamp: new Date().toISOString()
+      });
+      expect(result).toBe(true);
+    });
+    
+    test('should get current metrics successfully', () => {
+      const sessionId = sessionMetricsManager.startSession('user123');
+      sessionMetricsManager.recordAnswer(sessionId, {
+        questionId: 'q001',
+        isCorrect: true,
+        isFirstAttempt: true,
+        responseTime: 1500,
+        timestamp: new Date().toISOString()
+      });
+      
+      const metrics = sessionMetricsManager.getCurrentMetrics(sessionId);
+      expect(metrics).toBeDefined();
+      expect(metrics.questionCount).toBe(1);
+      expect(metrics.ftcCount).toBe(1);
+      expect(metrics.ecCount).toBe(0);
+      expect(metrics.incorrectCount).toBe(0);
+      expect(metrics.currentPoints).toBe(5);
+    });
+    
+    test('should end a session successfully', () => {
+      const sessionId = sessionMetricsManager.startSession('user123');
+      sessionMetricsManager.recordAnswer(sessionId, {
+        questionId: 'q001',
+        isCorrect: true,
+        isFirstAttempt: true,
+        responseTime: 1500,
+        timestamp: new Date().toISOString()
+      });
+      
+      const summary = sessionMetricsManager.endSession(sessionId);
+      expect(summary).toBeDefined();
+      expect(summary.sessionId).toBe(sessionId);
+      expect(summary.userId).toBe('user123');
+      expect(summary.questionCount).toBe(1);
+      expect(summary.ftcCount).toBe(1);
+      expect(summary.ecCount).toBe(0);
+      expect(summary.incorrectCount).toBe(0);
+    });
+    
+    test('should get session summary successfully', () => {
+      const sessionId = sessionMetricsManager.startSession('user123');
+      sessionMetricsManager.recordAnswer(sessionId, {
+        questionId: 'q001',
+        isCorrect: true,
+        isFirstAttempt: true,
+        responseTime: 1500,
+        timestamp: new Date().toISOString()
+      });
+      
+      sessionMetricsManager.endSession(sessionId);
+      const summary = sessionMetricsManager.getSessionSummary(sessionId);
+      
+      expect(summary).toBeDefined();
+      expect(summary.sessionId).toBe(sessionId);
+      expect(summary.userId).toBe('user123');
+    });
+  });
+  
   describe('Error Handling', () => {
     test('should throw USER_NOT_FOUND when starting session with invalid user', () => {
       expect(() => {
@@ -221,213 +298,6 @@ describe('SessionMetricsManager', () => {
       
       expect(summary.ftcCount).toBe(0);
       expect(summary.blinkSpeed).toBe(summary.duration); // BlinkSpeed defaults to session duration when FTCCount is 0
-    });
-  });
-  
-  describe('Validation Criteria', () => {
-    describe('MS-001: Metrics Calculation', () => {
-      test('should correctly calculate all metrics', () => {
-        const sessionId = sessionMetricsManager.startSession('user123');
-        
-        // Create a balanced set of answers with known outcomes
-        
-        // 5 FTC answers
-        for (let i = 0; i < 5; i++) {
-          sessionMetricsManager.recordAnswer(sessionId, {
-            questionId: `q00${i+1}`,
-            isCorrect: true,
-            isFirstAttempt: true,
-            responseTime: 1500,
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        // 2 EC answers
-        for (let i = 0; i < 2; i++) {
-          sessionMetricsManager.recordAnswer(sessionId, {
-            questionId: `q00${i+6}`,
-            isCorrect: false,
-            isFirstAttempt: true,
-            responseTime: 2500,
-            timestamp: new Date().toISOString()
-          });
-          
-          sessionMetricsManager.recordAnswer(sessionId, {
-            questionId: `q00${i+6}`,
-            isCorrect: true,
-            isFirstAttempt: false,
-            responseTime: 1800,
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        // 1 incorrect answer
-        sessionMetricsManager.recordAnswer(sessionId, {
-          questionId: 'q008',
-          isCorrect: false,
-          isFirstAttempt: true,
-          responseTime: 3000,
-          timestamp: new Date().toISOString()
-        });
-        
-        const summary = sessionMetricsManager.endSession(sessionId);
-        
-        // Verify all metrics
-        expect(summary.questionCount).toBe(8);
-        expect(summary.ftcCount).toBe(5);
-        expect(summary.ecCount).toBe(2);
-        expect(summary.incorrectCount).toBe(1);
-        
-        // FTCPoints = 5 * 5 = 25
-        expect(summary.ftcPoints).toBe(25);
-        
-        // ECPoints = 2 * 3 = 6
-        expect(summary.ecPoints).toBe(6);
-        
-        // BasePoints = 25 + 6 = 31
-        expect(summary.basePoints).toBe(31);
-        
-        // Verify that accuracy, consistency, speed, bonusMultiplier, and totalPoints
-        // are calculated and have reasonable values
-        expect(summary.accuracy).toBeCloseTo(7/8, 2); // (5+2)/8 = 0.875
-        expect(summary.consistency).toBeGreaterThanOrEqual(0);
-        expect(summary.consistency).toBeLessThanOrEqual(1);
-        expect(summary.speed).toBeGreaterThanOrEqual(0);
-        expect(summary.speed).toBeLessThanOrEqual(1);
-        expect(summary.bonusMultiplier).toBeGreaterThanOrEqual(1);
-        expect(summary.totalPoints).toBeGreaterThan(summary.basePoints);
-      });
-    });
-    
-    describe('MS-005: Formula Precision', () => {
-      test('should calculate with appropriate precision', () => {
-        const sessionId = sessionMetricsManager.startSession('user123');
-        
-        // Add answers to get predictable metrics values
-        sessionMetricsManager.recordAnswer(sessionId, {
-          questionId: 'q001',
-          isCorrect: true,
-          isFirstAttempt: true,
-          responseTime: 1500, // 0.5 of expected time
-          timestamp: new Date().toISOString()
-        });
-        
-        sessionMetricsManager.recordAnswer(sessionId, {
-          questionId: 'q002',
-          isCorrect: true,
-          isFirstAttempt: true,
-          responseTime: 1500,
-          timestamp: new Date().toISOString()
-        });
-        
-        sessionMetricsManager.recordAnswer(sessionId, {
-          questionId: 'q003',
-          isCorrect: true,
-          isFirstAttempt: true,
-          responseTime: 1500,
-          timestamp: new Date().toISOString()
-        });
-        
-        const summary = sessionMetricsManager.endSession(sessionId);
-        
-        // Check precision of floating-point metrics
-        expect(Number.isFinite(summary.consistency)).toBe(true);
-        expect(Number.isFinite(summary.accuracy)).toBe(true);
-        expect(Number.isFinite(summary.speed)).toBe(true);
-        expect(Number.isFinite(summary.bonusMultiplier)).toBe(true);
-        expect(Number.isFinite(summary.totalPoints)).toBe(true);
-        
-        // Specifically check that speed is calculated correctly
-        // Speed = 1 - (1500/3000) = 0.5
-        expect(summary.speed).toBeCloseTo(0.5, 2);
-        
-        // Check bonusMultiplier precision
-        // BonusMultiplier = 1 + (1 * 0.1) + (1 * 0.1) + (0.5 * 0.1) = 1.25
-        expect(summary.bonusMultiplier).toBeCloseTo(1.25, 2);
-        
-        // Check totalPoints precision
-        // FTCPoints = 3 * 5 = 15
-        // TotalPoints = 15 * 1.25 = 18.75
-        expect(summary.totalPoints).toBeCloseTo(18.75, 2);
-      });
-    });
-  });
-});
-  
-  describe('Session Lifecycle', () => {
-    test('should start a session successfully', () => {
-      const sessionId = sessionMetricsManager.startSession('user123');
-      expect(sessionId).toBeDefined();
-      expect(typeof sessionId).toBe('string');
-    });
-    
-    test('should record answers successfully', () => {
-      const sessionId = sessionMetricsManager.startSession('user123');
-      const result = sessionMetricsManager.recordAnswer(sessionId, {
-        questionId: 'q001',
-        isCorrect: true,
-        isFirstAttempt: true,
-        responseTime: 1500,
-        timestamp: new Date().toISOString()
-      });
-      expect(result).toBe(true);
-    });
-    
-    test('should get current metrics successfully', () => {
-      const sessionId = sessionMetricsManager.startSession('user123');
-      sessionMetricsManager.recordAnswer(sessionId, {
-        questionId: 'q001',
-        isCorrect: true,
-        isFirstAttempt: true,
-        responseTime: 1500,
-        timestamp: new Date().toISOString()
-      });
-      
-      const metrics = sessionMetricsManager.getCurrentMetrics(sessionId);
-      expect(metrics).toBeDefined();
-      expect(metrics.questionCount).toBe(1);
-      expect(metrics.ftcCount).toBe(1);
-      expect(metrics.ecCount).toBe(0);
-      expect(metrics.incorrectCount).toBe(0);
-      expect(metrics.currentPoints).toBe(5);
-    });
-    
-    test('should end a session successfully', () => {
-      const sessionId = sessionMetricsManager.startSession('user123');
-      sessionMetricsManager.recordAnswer(sessionId, {
-        questionId: 'q001',
-        isCorrect: true,
-        isFirstAttempt: true,
-        responseTime: 1500,
-        timestamp: new Date().toISOString()
-      });
-      
-      const summary = sessionMetricsManager.endSession(sessionId);
-      expect(summary).toBeDefined();
-      expect(summary.sessionId).toBe(sessionId);
-      expect(summary.userId).toBe('user123');
-      expect(summary.questionCount).toBe(1);
-      expect(summary.ftcCount).toBe(1);
-      expect(summary.ecCount).toBe(0);
-      expect(summary.incorrectCount).toBe(0);
-    });
-    
-    test('should get session summary successfully', () => {
-      const sessionId = sessionMetricsManager.startSession('user123');
-      sessionMetricsManager.recordAnswer(sessionId, {
-        questionId: 'q001',
-        isCorrect: true,
-        isFirstAttempt: true,
-        responseTime: 1500,
-        timestamp: new Date().toISOString()
-      });
-      
-      sessionMetricsManager.endSession(sessionId);
-      const summary = sessionMetricsManager.getSessionSummary(sessionId);
-      
-      expect(summary).toBeDefined();
-      expect(summary.sessionId).toBe(sessionId);
-      expect(summary.userId).toBe('user123');
     });
   });
   
@@ -738,3 +608,134 @@ describe('SessionMetricsManager', () => {
       // TotalPoints = 13 * 1.25 = 16.25
       expect(summary.totalPoints).toBeCloseTo(16.25, 2);
     });
+  });
+  
+  describe('Validation Criteria', () => {
+    describe('MS-001: Metrics Calculation', () => {
+      test('should correctly calculate all metrics', () => {
+        const sessionId = sessionMetricsManager.startSession('user123');
+        
+        // Create a balanced set of answers with known outcomes
+        
+        // 5 FTC answers
+        for (let i = 0; i < 5; i++) {
+          sessionMetricsManager.recordAnswer(sessionId, {
+            questionId: `q00${i+1}`,
+            isCorrect: true,
+            isFirstAttempt: true,
+            responseTime: 1500,
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        // 2 EC answers
+        for (let i = 0; i < 2; i++) {
+          sessionMetricsManager.recordAnswer(sessionId, {
+            questionId: `q00${i+6}`,
+            isCorrect: false,
+            isFirstAttempt: true,
+            responseTime: 2500,
+            timestamp: new Date().toISOString()
+          });
+          
+          sessionMetricsManager.recordAnswer(sessionId, {
+            questionId: `q00${i+6}`,
+            isCorrect: true,
+            isFirstAttempt: false,
+            responseTime: 1800,
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        // 1 incorrect answer
+        sessionMetricsManager.recordAnswer(sessionId, {
+          questionId: 'q008',
+          isCorrect: false,
+          isFirstAttempt: true,
+          responseTime: 3000,
+          timestamp: new Date().toISOString()
+        });
+        
+        const summary = sessionMetricsManager.endSession(sessionId);
+        
+        // Verify all metrics
+        expect(summary.questionCount).toBe(8);
+        expect(summary.ftcCount).toBe(5);
+        expect(summary.ecCount).toBe(2);
+        expect(summary.incorrectCount).toBe(1);
+        
+        // FTCPoints = 5 * 5 = 25
+        expect(summary.ftcPoints).toBe(25);
+        
+        // ECPoints = 2 * 3 = 6
+        expect(summary.ecPoints).toBe(6);
+        
+        // BasePoints = 25 + 6 = 31
+        expect(summary.basePoints).toBe(31);
+        
+        // Verify that accuracy, consistency, speed, bonusMultiplier, and totalPoints
+        // are calculated and have reasonable values
+        expect(summary.accuracy).toBeCloseTo(7/8, 2); // (5+2)/8 = 0.875
+        expect(summary.consistency).toBeGreaterThanOrEqual(0);
+        expect(summary.consistency).toBeLessThanOrEqual(1);
+        expect(summary.speed).toBeGreaterThanOrEqual(0);
+        expect(summary.speed).toBeLessThanOrEqual(1);
+        expect(summary.bonusMultiplier).toBeGreaterThanOrEqual(1);
+        expect(summary.totalPoints).toBeGreaterThan(summary.basePoints);
+      });
+    });
+    
+    describe('MS-005: Formula Precision', () => {
+      test('should calculate with appropriate precision', () => {
+        const sessionId = sessionMetricsManager.startSession('user123');
+        
+        // Add answers to get predictable metrics values
+        sessionMetricsManager.recordAnswer(sessionId, {
+          questionId: 'q001',
+          isCorrect: true,
+          isFirstAttempt: true,
+          responseTime: 1500, // 0.5 of expected time
+          timestamp: new Date().toISOString()
+        });
+        
+        sessionMetricsManager.recordAnswer(sessionId, {
+          questionId: 'q002',
+          isCorrect: true,
+          isFirstAttempt: true,
+          responseTime: 1500,
+          timestamp: new Date().toISOString()
+        });
+        
+        sessionMetricsManager.recordAnswer(sessionId, {
+          questionId: 'q003',
+          isCorrect: true,
+          isFirstAttempt: true,
+          responseTime: 1500,
+          timestamp: new Date().toISOString()
+        });
+        
+        const summary = sessionMetricsManager.endSession(sessionId);
+        
+        // Check precision of floating-point metrics
+        expect(Number.isFinite(summary.consistency)).toBe(true);
+        expect(Number.isFinite(summary.accuracy)).toBe(true);
+        expect(Number.isFinite(summary.speed)).toBe(true);
+        expect(Number.isFinite(summary.bonusMultiplier)).toBe(true);
+        expect(Number.isFinite(summary.totalPoints)).toBe(true);
+        
+        // Specifically check that speed is calculated correctly
+        // Speed = 1 - (1500/3000) = 0.5
+        expect(summary.speed).toBeCloseTo(0.5, 2);
+        
+        // Check bonusMultiplier precision
+        // BonusMultiplier = 1 + (1 * 0.1) + (1 * 0.1) + (0.5 * 0.1) = 1.25
+        expect(summary.bonusMultiplier).toBeCloseTo(1.25, 2);
+        
+        // Check totalPoints precision
+        // FTCPoints = 3 * 5 = 15
+        // TotalPoints = 15 * 1.25 = 18.75
+        expect(summary.totalPoints).toBeCloseTo(18.75, 2);
+      });
+    });
+  });
+});

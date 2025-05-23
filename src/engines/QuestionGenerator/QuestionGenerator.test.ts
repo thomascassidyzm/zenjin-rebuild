@@ -85,13 +85,172 @@ describe('QuestionGenerator', () => {
   });
   
   describe('generateQuestion', () => {
-    it('should generate a question based on user learning path and mastery level', () => {
+    it('should generate a question with the correct properties', () => {
       // Setup
       const userId = 'user123';
       const learningPathId = 'multiplication-basic';
       
+      mockFactRepository.getFactsByLearningPath.mockReturnValue([
+        createMockFact('mult-7-8', 7, 8, 'multiplication')
+      ]);
+      
+      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(4);
+      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
+      
+      // Execute
+      const request: QuestionRequest = {
+        userId,
+        learningPathId
+      };
+      
+      const question = questionGenerator.generateQuestion(request);
+      
+      // Verify
+      expect(question).toBeDefined();
+      expect(question.factId).toBe('mult-7-8');
+      expect(question.text).toBe('What is 7 × 8?');
+      expect(question.correctAnswer).toBe('56');
+      expect(question.boundaryLevel).toBe(4);
+      expect(question.learningPathId).toBe('multiplication-basic');
+      expect(question.operation).toBe('multiplication');
+    });
+    
+    it('should throw USER_NOT_FOUND error when user does not exist', () => {
+      // Setup
+      mockDistinctionManager.userExists.mockReturnValue(false);
+      
+      // Execute & Verify
+      expect(() => {
+        questionGenerator.generateQuestion({
+          userId: 'nonexistent',
+          learningPathId: 'multiplication-basic'
+        });
+      }).toThrow('USER_NOT_FOUND');
+    });
+    
+    it('should throw LEARNING_PATH_NOT_FOUND error when learning path does not exist', () => {
+      // Setup
+      mockTripleHelixManager.learningPathExists.mockReturnValue(false);
+      
+      // Execute & Verify
+      expect(() => {
+        questionGenerator.generateQuestion({
+          userId: 'user123',
+          learningPathId: 'nonexistent'
+        });
+      }).toThrow('LEARNING_PATH_NOT_FOUND');
+    });
+    
+    it('should throw NO_APPROPRIATE_QUESTIONS error when no eligible facts are found', () => {
+      // Setup
+      mockFactRepository.getFactsByLearningPath.mockReturnValue([]);
+      
+      // Execute & Verify
+      expect(() => {
+        questionGenerator.generateQuestion({
+          userId: 'user123',
+          learningPathId: 'multiplication-basic'
+        });
+      }).toThrow('NO_APPROPRIATE_QUESTIONS');
+    });
+    
+    it('should respect preferred operations when generating questions', () => {
+      // Setup
       mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
-        'mult-7-8': 4
+        'mult-7-8': 3,
+        'add-5-6': 2
+      });
+      
+      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
+      
+      mockFactRepository.getFactsByLearningPath.mockReturnValue([
+        createMockFact('mult-7-8', 7, 8, 'multiplication'),
+        createMockFact('add-5-6', 5, 6, 'addition')
+      ]);
+      
+      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(3);
+      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
+      
+      // Execute
+      const question = questionGenerator.generateQuestion({
+        userId: 'user123',
+        learningPathId: 'mixed-operations',
+        preferredOperations: ['multiplication']
+      });
+      
+      // Verify
+      expect(question.factId).toBe('mult-7-8');
+      expect(question.operation).toBe('multiplication');
+    });
+    
+    it('should respect excluded facts when generating questions', () => {
+      // Setup
+      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
+        'mult-7-8': 3,
+        'mult-6-9': 2
+      });
+      
+      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
+      
+      mockFactRepository.getFactsByLearningPath.mockReturnValue([
+        createMockFact('mult-7-8', 7, 8, 'multiplication'),
+        createMockFact('mult-6-9', 6, 9, 'multiplication')
+      ]);
+      
+      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(2);
+      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
+      
+      // Execute
+      const question = questionGenerator.generateQuestion({
+        userId: 'user123',
+        learningPathId: 'multiplication-basic',
+        excludeFactIds: ['mult-7-8']
+      });
+      
+      // Verify
+      expect(question.factId).toBe('mult-6-9');
+    });
+    
+    it('should respect maximum difficulty when generating questions', () => {
+      // Setup
+      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
+        'mult-7-8': 3,
+        'mult-2-3': 2
+      });
+      
+      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
+      
+      const hardFact = createMockFact('mult-7-8', 7, 8, 'multiplication');
+      hardFact.difficulty = 0.8;
+      
+      const easyFact = createMockFact('mult-2-3', 2, 3, 'multiplication');
+      easyFact.difficulty = 0.3;
+      
+      mockFactRepository.getFactsByLearningPath.mockReturnValue([hardFact, easyFact]);
+      
+      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(2);
+      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
+      
+      // Execute
+      const question = questionGenerator.generateQuestion({
+        userId: 'user123',
+        learningPathId: 'multiplication-basic',
+        maxDifficulty: 0.5
+      });
+      
+      // Verify
+      expect(question.factId).toBe('mult-2-3');
+      expect(question.difficulty).toBeLessThanOrEqual(0.5);
+    });
+  });
+  
+  describe('generateMultipleQuestions', () => {
+    it('should generate the requested number of questions', () => {
+      // Setup
+      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
+        'mult-7-8': 3,
+        'mult-6-9': 3,
+        'mult-5-7': 3
       });
       
       mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
@@ -461,169 +620,3 @@ describe('QuestionGenerator', () => {
     });
   });
 });
-LearningPath.mockReturnValue([
-        createMockFact('mult-7-8', 7, 8, 'multiplication')
-      ]);
-      
-      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(4);
-      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
-      
-      // Execute
-      const request: QuestionRequest = {
-        userId,
-        learningPathId
-      };
-      
-      const question = questionGenerator.generateQuestion(request);
-      
-      // Verify
-      expect(question).toBeDefined();
-      expect(question.factId).toBe('mult-7-8');
-      expect(question.text).toBe('What is 7 × 8?');
-      expect(question.correctAnswer).toBe('56');
-      expect(question.boundaryLevel).toBe(4);
-      expect(question.learningPathId).toBe('multiplication-basic');
-      expect(question.operation).toBe('multiplication');
-    });
-    
-    it('should throw USER_NOT_FOUND error when user does not exist', () => {
-      // Setup
-      mockDistinctionManager.userExists.mockReturnValue(false);
-      
-      // Execute & Verify
-      expect(() => {
-        questionGenerator.generateQuestion({
-          userId: 'nonexistent',
-          learningPathId: 'multiplication-basic'
-        });
-      }).toThrow('USER_NOT_FOUND');
-    });
-    
-    it('should throw LEARNING_PATH_NOT_FOUND error when learning path does not exist', () => {
-      // Setup
-      mockTripleHelixManager.learningPathExists.mockReturnValue(false);
-      
-      // Execute & Verify
-      expect(() => {
-        questionGenerator.generateQuestion({
-          userId: 'user123',
-          learningPathId: 'nonexistent'
-        });
-      }).toThrow('LEARNING_PATH_NOT_FOUND');
-    });
-    
-    it('should throw NO_APPROPRIATE_QUESTIONS error when no eligible facts are found', () => {
-      // Setup
-      mockFactRepository.getFactsByLearningPath.mockReturnValue([]);
-      
-      // Execute & Verify
-      expect(() => {
-        questionGenerator.generateQuestion({
-          userId: 'user123',
-          learningPathId: 'multiplication-basic'
-        });
-      }).toThrow('NO_APPROPRIATE_QUESTIONS');
-    });
-    
-    it('should respect preferred operations when generating questions', () => {
-      // Setup
-      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
-        'mult-7-8': 3,
-        'add-5-6': 2
-      });
-      
-      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
-      
-      mockFactRepository.getFactsByLearningPath.mockReturnValue([
-        createMockFact('mult-7-8', 7, 8, 'multiplication'),
-        createMockFact('add-5-6', 5, 6, 'addition')
-      ]);
-      
-      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(3);
-      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
-      
-      // Execute
-      const question = questionGenerator.generateQuestion({
-        userId: 'user123',
-        learningPathId: 'mixed-operations',
-        preferredOperations: ['multiplication']
-      });
-      
-      // Verify
-      expect(question.factId).toBe('mult-7-8');
-      expect(question.operation).toBe('multiplication');
-    });
-    
-    it('should respect excluded facts when generating questions', () => {
-      // Setup
-      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
-        'mult-7-8': 3,
-        'mult-6-9': 2
-      });
-      
-      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
-      
-      mockFactRepository.getFactsByLearningPath.mockReturnValue([
-        createMockFact('mult-7-8', 7, 8, 'multiplication'),
-        createMockFact('mult-6-9', 6, 9, 'multiplication')
-      ]);
-      
-      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(2);
-      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
-      
-      // Execute
-      const question = questionGenerator.generateQuestion({
-        userId: 'user123',
-        learningPathId: 'multiplication-basic',
-        excludeFactIds: ['mult-7-8']
-      });
-      
-      // Verify
-      expect(question.factId).toBe('mult-6-9');
-    });
-    
-    it('should respect maximum difficulty when generating questions', () => {
-      // Setup
-      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
-        'mult-7-8': 3,
-        'mult-2-3': 2
-      });
-      
-      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
-      
-      const hardFact = createMockFact('mult-7-8', 7, 8, 'multiplication');
-      hardFact.difficulty = 0.8;
-      
-      const easyFact = createMockFact('mult-2-3', 2, 3, 'multiplication');
-      easyFact.difficulty = 0.3;
-      
-      mockFactRepository.getFactsByLearningPath.mockReturnValue([hardFact, easyFact]);
-      
-      mockDistinctionManager.getUserMasteryLevel.mockReturnValue(2);
-      mockDistinctionManager.getTimeSinceLastPractice.mockReturnValue(86400000); // 1 day
-      
-      // Execute
-      const question = questionGenerator.generateQuestion({
-        userId: 'user123',
-        learningPathId: 'multiplication-basic',
-        maxDifficulty: 0.5
-      });
-      
-      // Verify
-      expect(question.factId).toBe('mult-2-3');
-      expect(question.difficulty).toBeLessThanOrEqual(0.5);
-    });
-  });
-  
-  describe('generateMultipleQuestions', () => {
-    it('should generate the requested number of questions', () => {
-      // Setup
-      mockDistinctionManager.getUserMasteryLevels.mockReturnValue({
-        'mult-7-8': 3,
-        'mult-6-9': 3,
-        'mult-5-7': 3
-      });
-      
-      mockTripleHelixManager.getUserActiveLearningPath.mockReturnValue('skill-development');
-      
-      mockFactRepository.getFactsBy
