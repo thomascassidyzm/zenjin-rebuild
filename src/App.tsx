@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard/Dashboard';
 import PlayerCard from './components/PlayerCard/PlayerCard';
+import { BackendTester } from './components/BackendTester';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
@@ -152,6 +153,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentStitch, setCurrentStitch] = useState<any>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
+  const [showBackendTester, setShowBackendTester] = useState(false);
   const userId = 'default-user';
 
   // Generate questions when component mounts or learning path changes
@@ -267,6 +269,26 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
     );
   }
 
+  // Show backend tester if enabled
+  if (showBackendTester) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-800">Zenjin Backend Tester</h1>
+            <button
+              onClick={() => setShowBackendTester(false)}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+            >
+              Back to App
+            </button>
+          </div>
+          <BackendTester />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
       {/* Session Progress */}
@@ -279,6 +301,12 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
             <div className="text-sm">
               Score: {sessionScore.correct}/{sessionScore.total}
             </div>
+            <button
+              onClick={() => setShowBackendTester(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
+            >
+              Test Backend
+            </button>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
             <div 
