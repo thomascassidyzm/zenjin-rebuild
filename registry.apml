@@ -828,7 +828,7 @@
       <Module name="SubscriptionSystem" interfaces="3/3" components="3/3" status="functional" completion="85%" />
       <Module name="OfflineSupport" interfaces="4/4" components="4/4" status="functional" completion="95%" />
       <Module name="UserManagement" interfaces="1/1" components="1/1" status="functional" completion="90%" />
-      <Module name="BackendServices" interfaces="5/5" components="6/6" status="functional" completion="90%" />
+      <Module name="BackendServices" interfaces="5/5" components="6/6" status="integrated" completion="90%" />
     </ModuleStatus>
     
     <CompletedComponents>
