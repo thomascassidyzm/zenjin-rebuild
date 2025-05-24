@@ -83,28 +83,33 @@ export class SupabaseAuthError extends Error {
 }
 
 export class SupabaseAuth {
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
   private currentSession: AuthSession | null = null;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
-    if (supabaseUrl && supabaseKey) {
-      this.supabase = createClient(supabaseUrl, supabaseKey);
-    } else {
-      // Use environment variables
-      this.supabase = createClient(
-        process.env.SUPABASE_URL || '',
-        process.env.SUPABASE_ANON_KEY || ''
-      );
-    }
-
-    // Listen for auth changes
-    this.supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        this.currentSession = this.transformSupabaseSession(session);
-      } else {
-        this.currentSession = null;
+    const url = supabaseUrl || process.env.REACT_APP_SUPABASE_URL || '';
+    const key = supabaseKey || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+    
+    if (url && key) {
+      try {
+        this.supabase = createClient(url, key);
+        
+        // Listen for auth changes
+        this.supabase.auth.onAuthStateChange((event, session) => {
+          if (session) {
+            this.currentSession = this.transformSupabaseSession(session);
+          } else {
+            this.currentSession = null;
+          }
+        });
+      } catch (error) {
+        console.warn('SupabaseAuth: Failed to initialize Supabase client:', error);
+        this.supabase = null;
       }
-    });
+    } else {
+      console.warn('SupabaseAuth: Supabase URL and key not provided, service will be disabled');
+      this.supabase = null;
+    }
   }
 
   /**
@@ -482,5 +487,5 @@ export class SupabaseAuth {
   }
 }
 
-// Create a singleton instance for use throughout the app
-export const supabaseAuth = new SupabaseAuth();
+// Export the class - create instances when needed to avoid initialization errors
+// export const supabaseAuth = new SupabaseAuth();

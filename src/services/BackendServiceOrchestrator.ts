@@ -48,8 +48,14 @@ export class BackendServiceOrchestrator {
   private errors: BackendError[] = [];
 
   constructor() {
-    this.auth = new SupabaseAuth();
-    this.realtime = new SupabaseRealTime();
+    try {
+      this.auth = new SupabaseAuth();
+      this.realtime = new SupabaseRealTime();
+    } catch (error) {
+      console.warn('BackendServiceOrchestrator: Failed to initialize services:', error);
+      this.auth = null as any;
+      this.realtime = null as any;
+    }
   }
 
   /**
@@ -57,8 +63,7 @@ export class BackendServiceOrchestrator {
    */
   async initialize(): Promise<boolean> {
     try {
-      // Services are already initialized in constructors
-      // Could add any additional setup here
+      // Services are initialized in constructor
       return true;
     } catch (error) {
       this.logError('orchestrator', 'initialize', error);
@@ -402,5 +407,5 @@ export class BackendServiceOrchestrator {
   }
 }
 
-// Create a singleton instance for use throughout the app
-export const backendServiceOrchestrator = new BackendServiceOrchestrator();
+// Export the class - create instances when needed to avoid initialization errors
+// export const backendServiceOrchestrator = new BackendServiceOrchestrator();
