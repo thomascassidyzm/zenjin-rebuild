@@ -4,7 +4,7 @@
  */
 
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
-import { configService } from './ConfigurationService';
+import { configurationService } from './ConfigurationService';
 
 // Data Structures from Interface
 export interface RealtimeEvent {
@@ -97,28 +97,11 @@ export class SupabaseRealTime {
 
   /**
    * Initialize Supabase client with configuration
+   * APML-compliant: either works or fails clearly
    */
   private async initialize(): Promise<void> {
-    try {
-      // First try import.meta.env for build-time variables
-      let url = import.meta.env.VITE_SUPABASE_URL;
-      let key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      // If not available, load from configuration service
-      if (!url || !key) {
-        const config = await configService.loadConfig();
-        url = config.supabaseUrl;
-        key = config.supabaseAnonKey;
-      }
-
-      if (url && key) {
-        this.initializeSupabase(url, key);
-      } else {
-        console.warn('SupabaseRealTime: No configuration available');
-      }
-    } catch (error) {
-      console.error('SupabaseRealTime: Failed to initialize:', error);
-    }
+    const config = await configurationService.getConfiguration();
+    this.initializeSupabase(config.supabaseUrl, config.supabaseAnonKey);
   }
 
   private initializeSupabase(url: string, key: string): void {

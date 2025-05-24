@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { APMLBackendTester } from './APMLBackendTester';
+import { ConfigTest } from './ConfigTest';
 
 // APML Status Data (from registry.apml)
 const apmlStatusLevels = [
@@ -200,7 +201,8 @@ export const ProjectStatusDashboard: React.FC = () => {
 
         {/* Testing Tab */}
         {activeTab === 'testing' && (
-          <div>
+          <div className="space-y-6">
+            <ConfigTest />
             <APMLBackendTester />
           </div>
         )}

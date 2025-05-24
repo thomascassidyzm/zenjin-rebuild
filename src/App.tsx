@@ -368,6 +368,7 @@ const App: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [connectionType, setConnectionType] = useState('unknown');
 
+
   // Initialize connectivity monitoring
   useEffect(() => {
     const connectivityManager = new ConnectivityManager();

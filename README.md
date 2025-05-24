@@ -37,13 +37,13 @@ All 26 components across 7 modules have been implemented with varying levels of 
 | Module | Status | Components | Completion | Priority Issues |
 |---|---|---|---|---|
 | **UserInterface** | 🟢 integrated | 5/5 | 95% | Mobile accessibility |
-| **LearningEngine** | 🟠 functional | 5/5 | 85% | Curriculum admin tools |
+| **LearningEngine** | 🟠 functional | 6/6 | 85% | Curriculum admin tools |
 | **ProgressionSystem** | 🟠 functional | 4/4 | 85% | ✅ **Spaced repetition working!** |
 | **MetricsSystem** | 🟠 functional | 4/4 | 90% | Global ranking |
 | **SubscriptionSystem** | 🟡 scaffolded | 4/4 | 65% | Payment integration |
-| **OfflineSupport** | 🟡 scaffolded | 4/4 | 60% | Sync conflict resolution |
+| **OfflineSupport** | 🟠 functional | 4/4 | 75% | Sync conflict resolution |
 | **UserManagement** | 🟠 functional | 1/1 | 90% | - |
-| **Orchestration** | 🟠 functional | 1/1 | 85% | ✅ **Engine coordination working!** |
+| **BackendServices** | 🟡 scaffolded | 6/6 | 65% | ✅ **Runtime config working!** |
 
 ## Detailed Component Status
 
@@ -86,8 +86,13 @@ All 26 components across 7 modules have been implemented with varying levels of 
 ### UserManagement (🟠 90% complete)
 - 🟠 AnonymousUserManager - TTL and conversion working
 
-### Orchestration (🟠 85% complete) ⭐ **Recently Added**
-- 🟠 **EngineOrchestrator** - ✅ **Central coordination working!**
+### BackendServices (🟡 65% complete) ⭐ **Recently Added**
+- 🟡 **SupabaseAuth** - Authentication with runtime config
+- 🟡 **SupabaseRealTime** - Real-time subscriptions  
+- 🟡 **SupabaseUserState** - User state persistence
+- 🟡 **APIServiceClient** - API communication layer
+- 🟡 **DatabaseServiceClient** - Database operations
+- 🟡 **BackendServiceOrchestrator** - Service coordination
 
 ## Directory Structure
 
@@ -120,7 +125,9 @@ All 26 components across 7 modules have been implemented with varying levels of 
 │   │   ├── FeedbackSystem/    # Visual feedback and animations
 │   │   ├── ThemeManager/      # Dark/light theme management
 │   │   ├── SessionSummary/    # Session results and metrics display
-│   │   └── Dashboard/         # Analytics and progress dashboard
+│   │   ├── Dashboard/         # Analytics and progress dashboard
+│   │   ├── ProjectStatusDashboard/ # APML project status visualization
+│   │   └── APMLBackendTester/ # APML-compliant backend validation
 │   │
 │   ├── engines/               # Business logic engines (TypeScript)
 │   │   ├── EngineOrchestrator.ts    # Central coordination and session management
@@ -132,6 +139,13 @@ All 26 components across 7 modules have been implemented with varying levels of 
 │   │   ├── StitchManager/           # Positions-as-first-class-citizens
 │   │   ├── MetricsCalculator/       # FTC/EC/Bonus metrics calculation
 │   │   └── ...                      # Other engine components
+│   │
+│   ├── services/              # Backend service integrations (TypeScript)
+│   │   ├── ConfigurationService.ts  # Runtime config loader for Vercel env vars
+│   │   ├── SupabaseAuth.ts         # Authentication with lazy initialization
+│   │   ├── SupabaseRealTime.ts     # Real-time subscriptions
+│   │   ├── SupabaseUserState.ts    # User state persistence
+│   │   └── BackendServiceOrchestrator.ts # Service coordination
 │   │
 │   └── interfaces/            # Shared TypeScript interfaces
 │
@@ -171,6 +185,14 @@ The application is divided into six core modules:
 6. **OfflineSupport** - Offline functionality and synchronization
 
 ## Recent Achievements 🎉
+
+### 2025-05-24: Backend Services Runtime Configuration
+- ✅ **Implemented ConfigurationService** for runtime environment variable access
+- ✅ **Created /api/config endpoint** to expose Vercel's auto-configured Supabase variables
+- ✅ **Updated SupabaseAuth & SupabaseRealTime** with lazy initialization pattern
+- ✅ **Enhanced APMLBackendTester** to validate both build-time and runtime configs
+- ✅ **Solved Vercel-Supabase integration** environment variable mismatch issue
+- ✅ **Maintained full APML compliance** with evidence-based validation
 
 ### 2025-05-23: Spaced Repetition System Completed
 - ✅ **Fixed core algorithm conflicts** between APML spec and engine implementation

@@ -69,6 +69,21 @@ The deployment relies on these key configuration files:
 - **vite.config.ts**: Optimizes the build for production
 - **tsconfig.json**: TypeScript configuration
 - **package.json**: Defines build commands and dependencies
+- **api/config.ts**: Runtime configuration endpoint for environment variables
+- **.env.example**: Example environment variables (for local development only)
+
+## Environment Variables (Supabase Integration)
+
+### Automatic Configuration
+When you integrate Supabase with Vercel:
+1. Vercel automatically sets `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+2. Our runtime configuration service (`/api/config`) exposes these to the frontend
+3. No manual environment variable setup required!
+
+### Manual Configuration (if needed)
+If you're not using the Supabase integration, add these in Vercel's project settings:
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 
 ## Troubleshooting
 
@@ -77,7 +92,8 @@ If you encounter issues during deployment:
 1. **Build failures**: Check the build logs in Vercel for specific errors
 2. **Routing issues**: Ensure vercel.json has the correct rewrites for SPAs
 3. **Missing dependencies**: Verify all dependencies are in package.json
-4. **Environment variables**: If your app requires environment variables, add them in Vercel's project settings
+4. **Environment variables**: Check `/api/config` endpoint is accessible
+5. **Supabase connection**: Run APML validation tests from the dashboard
 
 ## Development Workflow
 
