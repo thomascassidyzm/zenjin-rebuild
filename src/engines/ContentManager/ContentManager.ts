@@ -13,7 +13,7 @@ import {
   ImportResult,
   RelationshipType,
   DifficultyAlgorithm
-} from './content-manager-types';
+} from './ContentManagerTypes';
 
 /**
  * Implementation of ContentManager that manages mathematical facts and curriculum content

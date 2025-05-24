@@ -648,3 +648,39 @@ export class StorageUtils {
     return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 }
+
+// Export utility functions for backwards compatibility
+export const encryptData = async (data: any): Promise<{ encryptedData: ArrayBuffer; iv: Uint8Array }> => {
+  const encryptionService = new EncryptionService();
+  return encryptionService.encrypt(data);
+};
+
+export const decryptData = async (encryptedData: ArrayBuffer, iv: Uint8Array): Promise<any> => {
+  const encryptionService = new EncryptionService();
+  return encryptionService.decrypt(encryptedData, iv);
+};
+
+export const calculateStorageRequirements = (data: any): number => {
+  try {
+    if (typeof data === 'string') {
+      return data.length * 2;
+    } else if (typeof data === 'number') {
+      return 8;
+    } else if (typeof data === 'boolean') {
+      return 4;
+    } else if (data instanceof ArrayBuffer) {
+      return data.byteLength;
+    } else if (ArrayBuffer.isView(data)) {
+      return data.byteLength;
+    } else {
+      return JSON.stringify(data).length * 2;
+    }
+  } catch (error) {
+    return 1000; // Default 1KB if calculation fails
+  }
+};
+
+export const performContentCycling = async (userId: string, offlineStorage: any): Promise<void> => {
+  const cyclingManager = new ContentCyclingManager(offlineStorage);
+  return cyclingManager.manageContentStorage(userId);
+};

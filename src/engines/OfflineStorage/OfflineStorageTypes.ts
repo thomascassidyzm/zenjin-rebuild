@@ -121,7 +121,7 @@ export interface StorageStats {
 /**
  * Error codes for OfflineStorage operations
  */
-export enum OfflineStorageErrorCodes {
+export enum OfflineStorageErrorCode {
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   ITEM_NOT_FOUND = 'ITEM_NOT_FOUND',
   STORAGE_ERROR = 'STORAGE_ERROR',
@@ -263,4 +263,35 @@ export interface StorageItem {
    * ISO date string of expiration (optional)
    */
   expirationDate?: string;
+}
+
+/**
+ * Storage event types
+ */
+export enum StorageEventType {
+  ITEM_ADDED = 'item_added',
+  ITEM_UPDATED = 'item_updated',
+  ITEM_REMOVED = 'item_removed',
+  STORAGE_FULL = 'storage_full',
+  CLEANUP_COMPLETED = 'cleanup_completed'
+}
+
+/**
+ * Storage event listener function type
+ */
+export type StorageEventListener = (event: {
+  type: StorageEventType;
+  userId: string;
+  key?: string;
+  data?: any;
+}) => void;
+
+/**
+ * Cached item interface for content caching
+ */
+export interface CachedItem {
+  key: string;
+  data: any;
+  timestamp: string;
+  metadata: ContentMetadata;
 }

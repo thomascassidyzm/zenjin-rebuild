@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Dashboard from './components/Dashboard/Dashboard';
 import PlayerCard from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
+import { APMLValidationSuite } from './components/APMLValidationSuite/APMLValidationSuite';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
@@ -124,7 +125,8 @@ const NavigationHeader: React.FC<{
             {[
               { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: 'Dashboard' },
               { id: 'session', icon: '▶', label: 'Play', title: 'Play Session' },
-              { id: 'project-status', icon: '📊', label: 'Status', title: 'Project Status' }
+              { id: 'project-status', icon: '📊', label: 'Status', title: 'Project Status' },
+              { id: 'validation-suite', icon: '🧪', label: 'Tests', title: 'APML Validation Suite' }
             ].map((item) => (
               <button
                 key={item.id}
@@ -473,6 +475,9 @@ const AppContent: React.FC = () => {
       
       case 'project-status':
         return <ProjectStatusDashboard />;
+      
+      case 'validation-suite':
+        return <APMLValidationSuite />;
       
       default:
         return <Navigate to="/dashboard" replace />;
