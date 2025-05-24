@@ -165,29 +165,24 @@ export const APMLBackendTester: React.FC = () => {
       result.success = false;
     }
 
-    // Test createAnonymousUser method (only if environment is configured)
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (supabaseUrl && supabaseKey) {
-      try {
-        // This should not throw even if it returns an error result
-        const authResult = await auth.createAnonymousUser();
-        result.methodTests['createAnonymousUser'] = true;
-        
-        // Validate return type structure
-        if (typeof authResult.success !== 'boolean') {
-          result.errors.push('createAnonymousUser: success field is not boolean');
-          result.interfaceCompliance = false;
-        }
-      } catch (error) {
-        result.methodTests['createAnonymousUser'] = false;
-        result.errors.push(`createAnonymousUser threw exception: ${error}`);
-        result.success = false;
+    // Test createAnonymousUser method - APML compliant testing
+    try {
+      // Verify configuration is available (should be since environment validation passed)
+      await configurationService.getConfiguration();
+      
+      // Test the method - this should not throw even if it returns an error result
+      const authResult = await auth.createAnonymousUser();
+      result.methodTests['createAnonymousUser'] = true;
+      
+      // Validate return type structure
+      if (typeof authResult.success !== 'boolean') {
+        result.errors.push('createAnonymousUser: success field is not boolean');
+        result.interfaceCompliance = false;
       }
-    } else {
+    } catch (error) {
       result.methodTests['createAnonymousUser'] = false;
-      result.errors.push('createAnonymousUser: Cannot test without environment variables');
+      result.errors.push(`createAnonymousUser failed: ${error instanceof Error ? error.message : String(error)}`);
+      result.success = false;
     }
   };
 
