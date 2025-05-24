@@ -479,6 +479,72 @@ export class EngineOrchestrator {
       return [];
     }
   }
+
+  /**
+   * Get all stitch positions for backend synchronization
+   */
+  getAllStitchPositions(userId: string): Record<string, any> {
+    try {
+      // Get all learning paths and their stitch positions
+      const positions: Record<string, any> = {};
+      const learningPaths = ['addition', 'multiplication', 'subtraction', 'division'];
+      
+      learningPaths.forEach(pathId => {
+        try {
+          const stitches = this.stitchManager.getStitchesByLearningPath(pathId);
+          positions[pathId] = {};
+          
+          stitches.forEach(stitch => {
+            const progress = this.stitchManager.getStitchProgress(userId, stitch.id);
+            if (progress) {
+              positions[pathId][stitch.id] = {
+                position: progress.spacedRepetitionPosition || 0,
+                lastSeen: progress.lastSeen,
+                masteryLevel: progress.masteryLevel,
+                sessionCount: progress.sessionCount
+              };
+            }
+          });
+        } catch (error) {
+          console.warn(`Failed to get positions for path ${pathId}:`, error);
+        }
+      });
+      
+      return positions;
+    } catch (error) {
+      console.error('Failed to get all stitch positions:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Get current triple helix state for backend synchronization
+   */
+  getTripleHelixState(userId: string): Record<string, any> {
+    try {
+      const state = this.tripleHelixManager.getHelixState(userId);
+      return {
+        activeTube: state.activeTube,
+        tubeRotationCount: state.tubeRotationCount,
+        lastRotationTime: state.lastRotationTime,
+        learningPaths: state.learningPaths.map(path => ({
+          id: path.id,
+          name: path.name,
+          isActive: path.isActive,
+          completedStitches: path.completedStitches,
+          totalStitches: path.totalStitches
+        }))
+      };
+    } catch (error) {
+      console.error('Failed to get triple helix state:', error);
+      return {
+        activeTube: 'addition',
+        tubeRotationCount: 0,
+        lastRotationTime: new Date().toISOString(),
+        learningPaths: []
+      };
+    }
+  }
   
   // Helper methods
   

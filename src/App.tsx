@@ -8,6 +8,7 @@ import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { ConnectivityManager } from './engines/ConnectivityManager';
+import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
 import './App.css';
 
 // Mock data for initial testing
@@ -141,7 +142,7 @@ const NavigationHeader: React.FC<{
   );
 };
 
-// Learning Session Component
+// Learning Session Component with Backend Integration
 const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId = 'addition' }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
@@ -150,7 +151,10 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
   const [currentStitch, setCurrentStitch] = useState<any>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [showProjectStatus, setShowProjectStatus] = useState(false);
-  const userId = 'default-user';
+  
+  // Backend integration via UserSession context
+  const { state: sessionState, recordSessionMetrics, updateUserState } = useUserSession();
+  const userId = sessionState.user?.id || 'default-user';
 
   // Generate questions when component mounts or learning path changes
   useEffect(() => {
@@ -186,7 +190,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
     }, 1500);
   };
 
-  const handleStitchCompletion = (finalScore: { correct: number; total: number }) => {
+  const handleStitchCompletion = async (finalScore: { correct: number; total: number }) => {
     if (!currentStitch) return;
     
     try {
@@ -197,17 +201,40 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
         completionTime
       };
       
+      // Record session metrics to backend
+      const sessionMetrics = {
+        sessionId: `${currentStitch.id}_${Date.now()}`,
+        correctAnswers: finalScore.correct,
+        totalQuestions: finalScore.total,
+        completionTime,
+        learningPath: learningPathId,
+        timestamp: new Date().toISOString()
+      };
+      
+      await recordSessionMetrics(sessionMetrics);
+      console.log('✅ Session metrics recorded to backend');
+      
       // Complete the stitch and reposition it
       const repositionResult = engineOrchestrator.completeStitch(userId, currentStitch.id, sessionResults);
       
       if (repositionResult) {
         console.log(`Stitch completed! Moved from position ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+        
+        // Update user state with new stitch positions
+        await updateUserState({
+          stitchPositions: engineOrchestrator.getAllStitchPositions(userId)
+        });
       }
       
       // LIVE-AID ROTATION: Automatically rotate to next tube and start next stitch
       const rotationResult = engineOrchestrator.rotateTripleHelix(userId);
       if (rotationResult) {
         console.log(`Tube rotated: ${rotationResult.previousActivePath.id} → ${rotationResult.newActivePath.id}`);
+        
+        // Update user state with new triple helix state
+        await updateUserState({
+          tripleHelixState: engineOrchestrator.getTripleHelixState(userId)
+        });
       }
       
       // Automatically start next stitch from the new active tube
@@ -356,13 +383,15 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
   );
 };
 
-// Main App Component
-const App: React.FC = () => {
+// App Content Component (needs UserSession context)
+const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedLearningPath, setSelectedLearningPath] = useState('addition');
   const [isOnline, setIsOnline] = useState(true);
   const [connectionType, setConnectionType] = useState('unknown');
 
+  // Access UserSession context
+  const { state: sessionState, getBackendStatus } = useUserSession();
 
   // Initialize connectivity monitoring
   useEffect(() => {
@@ -409,6 +438,19 @@ const App: React.FC = () => {
     setCurrentPage('session');
   };
 
+  // Show loading screen during session initialization
+  if (sessionState.isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-white text-lg">Initializing session...</p>
+          <p className="text-gray-400 text-sm mt-2">Connecting to backend services</p>
+        </div>
+      </div>
+    );
+  }
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
@@ -430,16 +472,29 @@ const App: React.FC = () => {
     }
   };
 
+  // Determine online status - combine connectivity and backend status
+  const backendStatus = getBackendStatus();
+  const effectiveOnlineStatus = isOnline && backendStatus.overall;
+
   return (
     <div className="min-h-screen bg-gray-950">
       <NavigationHeader 
         currentPage={currentPage} 
         onNavigate={handleNavigate}
-        isOnline={isOnline}
+        isOnline={effectiveOnlineStatus}
         connectionType={connectionType}
       />
       {renderCurrentPage()}
     </div>
+  );
+};
+
+// Main App Component with UserSession Provider
+const App: React.FC = () => {
+  return (
+    <UserSessionProvider>
+      <AppContent />
+    </UserSessionProvider>
   );
 };
 

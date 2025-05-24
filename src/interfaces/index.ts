@@ -23,3 +23,4 @@ export { default as SubscriptionManagerInterface } from './SubscriptionManagerIn
 export { default as SynchronizationManagerInterface } from './SynchronizationManagerInterface';
 export { default as ThemeManagerInterface } from './ThemeManagerInterface';
 export { default as TripleHelixManagerInterface } from './TripleHelixManagerInterface';
+export { default as UserSessionManagerInterface } from './UserSessionManagerInterface';
