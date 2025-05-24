@@ -96,7 +96,8 @@ const NavigationHeader: React.FC<{
   onNavigate: (page: string) => void;
   isOnline: boolean;
   connectionType: string;
-}> = ({ currentPage, onNavigate, isOnline, connectionType }) => {
+  backendConnected?: boolean;
+}> = ({ currentPage, onNavigate, isOnline, connectionType, backendConnected = false }) => {
   return (
     <header className="bg-gray-900 shadow-lg border-b border-gray-700">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -109,10 +110,15 @@ const NavigationHeader: React.FC<{
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Connectivity Indicator - Just the dot */}
-            <div className={`w-3 h-3 rounded-full ${
-              isOnline ? 'bg-green-400' : 'bg-red-400'
-            }`} title={isOnline ? 'Online' : 'Offline'}></div>
+            {/* Connectivity Indicator with Backend Status */}
+            <div className="flex items-center space-x-1">
+              <div className={`w-3 h-3 rounded-full ${
+                isOnline ? 'bg-green-400' : 'bg-red-400'
+              }`} title={`Network: ${isOnline ? 'Online' : 'Offline'} (${connectionType})`}></div>
+              {backendConnected && (
+                <div className="w-2 h-2 rounded-full bg-blue-400" title="Backend Connected"></div>
+              )}
+            </div>
             
             <nav className="flex space-x-1">
             {[
@@ -399,6 +405,7 @@ const AppContent: React.FC = () => {
     
     // Set initial status
     const status = connectivityManager.getConnectionStatus();
+    console.log('🌐 Initial connectivity status:', status);
     setIsOnline(status.isOnline);
     setConnectionType(status.connectionType);
     
@@ -472,9 +479,15 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Determine online status - combine connectivity and backend status
+  // Determine online status - show green if basic connectivity is working
+  // Don't require full backend integration for green light during development
   const backendStatus = getBackendStatus();
-  const effectiveOnlineStatus = isOnline && backendStatus.overall;
+  const hasBackendConnection = backendStatus.api || sessionState.isAuthenticated;
+  
+  // If backend is working (user authenticated), then connectivity is clearly working
+  // Use practical detection: if we can create users and sync state, we're online
+  const backendIsWorking = sessionState.isAuthenticated || hasBackendConnection;
+  const effectiveOnlineStatus = isOnline || backendIsWorking;
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -483,6 +496,7 @@ const AppContent: React.FC = () => {
         onNavigate={handleNavigate}
         isOnline={effectiveOnlineStatus}
         connectionType={connectionType}
+        backendConnected={hasBackendConnection}
       />
       {renderCurrentPage()}
     </div>
