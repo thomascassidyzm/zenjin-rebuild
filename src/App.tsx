@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard/Dashboard';
 import PlayerCard from './components/PlayerCard/PlayerCard';
-import { BackendTester } from './components/BackendTester';
+import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
@@ -123,7 +123,8 @@ const NavigationHeader: React.FC<{
             <nav className="flex space-x-1">
             {[
               { id: 'dashboard', label: 'Dashboard' },
-              { id: 'session', label: 'Play' }
+              { id: 'session', label: 'Play' },
+              { id: 'project-status', label: '📊 Status' }
             ].map((item) => (
               <button
                 key={item.id}
@@ -153,7 +154,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentStitch, setCurrentStitch] = useState<any>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
-  const [showBackendTester, setShowBackendTester] = useState(false);
+  const [showProjectStatus, setShowProjectStatus] = useState(false);
   const userId = 'default-user';
 
   // Generate questions when component mounts or learning path changes
@@ -269,22 +270,22 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
     );
   }
 
-  // Show backend tester if enabled
-  if (showBackendTester) {
+  // Show project status dashboard if enabled
+  if (showProjectStatus) {
     return (
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">Zenjin Backend Tester</h1>
+      <div>
+        <div className="bg-gray-900 p-3">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 className="text-white font-semibold">Project Status Dashboard</h1>
             <button
-              onClick={() => setShowBackendTester(false)}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+              onClick={() => setShowProjectStatus(false)}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
             >
               Back to App
             </button>
           </div>
-          <BackendTester />
         </div>
+        <ProjectStatusDashboard />
       </div>
     );
   }
@@ -302,10 +303,10 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
               Score: {sessionScore.correct}/{sessionScore.total}
             </div>
             <button
-              onClick={() => setShowBackendTester(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
+              onClick={() => setShowProjectStatus(true)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs"
             >
-              Test Backend
+              📊 Project Status
             </button>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
@@ -424,6 +425,9 @@ const App: React.FC = () => {
       
       case 'session':
         return <LearningSession learningPathId={selectedLearningPath} />;
+      
+      case 'project-status':
+        return <ProjectStatusDashboard />;
       
       default:
         return <Navigate to="/dashboard" replace />;
