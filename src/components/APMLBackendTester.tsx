@@ -52,6 +52,23 @@ export const APMLBackendTester: React.FC = () => {
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
 
   /**
+   * Debug: Log available environment variables
+   */
+  const debugEnvironmentVariables = useCallback(() => {
+    console.log('=== Environment Variable Debug ===');
+    console.log('REACT_APP_SUPABASE_URL:', process.env.REACT_APP_SUPABASE_URL);
+    console.log('REACT_APP_SUPABASE_ANON_KEY:', process.env.REACT_APP_SUPABASE_ANON_KEY);
+    console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
+    console.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY);
+    console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
+    console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY);
+    console.log('All process.env keys:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
+    console.log('=== End Debug ===');
+  }, []);
+
+  /**
    * TS-002: Environment Validation
    * Validate that frontend environment variables are properly configured
    */
@@ -65,16 +82,26 @@ export const APMLBackendTester: React.FC = () => {
       errors: []
     };
 
-    // Check REACT_APP_SUPABASE_URL
-    if (process.env.REACT_APP_SUPABASE_URL) {
+    // Check for Supabase URL (multiple possible environment variable names for Vercel integration)
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 
+                       process.env.VITE_SUPABASE_URL ||
+                       process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                       process.env.SUPABASE_URL;
+    
+    if (supabaseUrl) {
       result.variables.REACT_APP_SUPABASE_URL = true;
     } else {
       result.success = false;
       result.errors.push('REACT_APP_SUPABASE_URL environment variable not set');
     }
 
-    // Check REACT_APP_SUPABASE_ANON_KEY
-    if (process.env.REACT_APP_SUPABASE_ANON_KEY) {
+    // Check for Supabase Anon Key (multiple possible environment variable names for Vercel integration)
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 
+                       process.env.VITE_SUPABASE_ANON_KEY ||
+                       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+                       process.env.SUPABASE_ANON_KEY;
+    
+    if (supabaseKey) {
       result.variables.REACT_APP_SUPABASE_ANON_KEY = true;
     } else {
       result.success = false;
@@ -149,7 +176,17 @@ export const APMLBackendTester: React.FC = () => {
     }
 
     // Test createAnonymousUser method (only if environment is configured)
-    if (process.env.REACT_APP_SUPABASE_URL && process.env.REACT_APP_SUPABASE_ANON_KEY) {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 
+                       process.env.VITE_SUPABASE_URL ||
+                       process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                       process.env.SUPABASE_URL;
+    
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 
+                       process.env.VITE_SUPABASE_ANON_KEY ||
+                       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+                       process.env.SUPABASE_ANON_KEY;
+    
+    if (supabaseUrl && supabaseKey) {
       try {
         // This should not throw even if it returns an error result
         const authResult = await auth.createAnonymousUser();
@@ -316,6 +353,9 @@ export const APMLBackendTester: React.FC = () => {
     setCurrentTest('Initializing APML validation suite...');
 
     try {
+      // Debug: Log environment variables
+      debugEnvironmentVariables();
+      
       // Step 1: Environment Validation (TS-002)
       setCurrentTest('Validating environment variables...');
       const environmentValidation = validateEnvironment();
@@ -366,7 +406,7 @@ export const APMLBackendTester: React.FC = () => {
       setIsRunning(false);
       setCurrentTest('');
     }
-  }, [validateEnvironment, testComponent, testIntegration]);
+  }, [debugEnvironmentVariables, validateEnvironment, testComponent, testIntegration]);
 
   const getStatusIcon = (success: boolean) => success ? '✅' : '❌';
   const getStatusColor = (success: boolean) => success ? 'text-green-400' : 'text-red-400';

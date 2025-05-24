@@ -72,9 +72,18 @@ export class SupabaseRealTime {
   private latencyCount = 0;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
-    // Use frontend environment variables (REACT_APP_ prefix required for Create React App)
-    const url = supabaseUrl || process.env.REACT_APP_SUPABASE_URL;
-    const key = supabaseKey || process.env.REACT_APP_SUPABASE_ANON_KEY;
+    // Check multiple possible environment variable names for Vercel-Supabase integration
+    const url = supabaseUrl || 
+                process.env.REACT_APP_SUPABASE_URL || 
+                process.env.VITE_SUPABASE_URL ||
+                process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                process.env.SUPABASE_URL;
+                
+    const key = supabaseKey || 
+                process.env.REACT_APP_SUPABASE_ANON_KEY || 
+                process.env.VITE_SUPABASE_ANON_KEY ||
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+                process.env.SUPABASE_ANON_KEY;
     
     if (url && key) {
       try {
@@ -85,7 +94,7 @@ export class SupabaseRealTime {
         this.supabase = null as any;
       }
     } else {
-      console.warn('SupabaseRealTime: Missing environment variables. Please set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY');
+      console.warn('SupabaseRealTime: Missing environment variables. Checked REACT_APP_, VITE_, NEXT_PUBLIC_, and direct SUPABASE_ prefixes');
       this.supabase = null as any;
     }
   }
