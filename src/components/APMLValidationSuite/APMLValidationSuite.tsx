@@ -432,7 +432,10 @@ export const APMLValidationSuite: React.FC = () => {
 
     } catch (error) {
       result.success = false;
-      result.errors.push(`OfflineStorage test failed: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      result.errors.push(`OfflineStorage test failed: ${errorMessage}`);
+      result.evidence.push(`❌ Test Execution Error: ${errorMessage}`);
+      console.error('OfflineStorage test error:', error);
     }
 
     return result;
@@ -1177,13 +1180,25 @@ export const APMLValidationSuite: React.FC = () => {
       result.evidence.push(`✓ Algorithm Logic Test: Perfect score skip (${skipNumber}) > Imperfect (${imperfectSkipNumber})`);
       
       // REAL TEST 4: Test stitch repositioning functionality
-      const userId = 'test-user-123';
-      const learningPathId = 'test-path-1';
-      const stitchId = 'test-stitch-1';
-      
-      const repositionResult = srsInstance.repositionStitch(userId, stitchId, perfectPerformance);
-      result.functionalTests['reposition_stitch'] = repositionResult.stitchId === stitchId;
-      result.evidence.push(`✓ Real Reposition Test: Stitch ${stitchId} repositioned from ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+      // APML DISTINCTION: This requires proper user/learning path setup
+      try {
+        const userId = 'test-user-123';
+        const learningPathId = 'test-path-1';
+        const stitchId = 'test-stitch-1';
+        
+        // APML EVIDENCE: Test actual system behavior with proper initialization
+        srsInstance.addUserToLearningPath(userId, learningPathId);
+        srsInstance.addStitchToQueue(userId, learningPathId, stitchId);
+        
+        const repositionResult = srsInstance.repositionStitch(userId, stitchId, perfectPerformance);
+        result.functionalTests['reposition_stitch'] = repositionResult.stitchId === stitchId;
+        result.evidence.push(`✓ Real Reposition Test: Stitch ${stitchId} repositioned from ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
+        
+      } catch (error) {
+        result.functionalTests['reposition_stitch'] = false;
+        result.evidence.push(`❌ APML FUNCTIONAL TEST FAILURE: Stitch repositioning failed - ${error}`);
+        result.evidence.push(`🔧 APML EVIDENCE: Component requires proper system initialization`);
+      }
       
       // REAL TEST 5: Test stitch queue management
       const queue = srsInstance.getStitchQueue(userId, learningPathId);
@@ -1553,23 +1568,51 @@ export const APMLValidationSuite: React.FC = () => {
         result.evidence.push(`✓ Real Creation Test: Anonymous user created with ID: ${anonymousUserId.substring(0, 12)}...`);
       } catch (error) {
         result.functionalTests['create_anonymous_user'] = false;
-        result.errors.push(`Anonymous user creation failed: ${error}`);
-        result.evidence.push(`❌ Real Creation Test: Failed to create anonymous user - ${error}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        result.errors.push(`Anonymous user creation failed: ${errorMessage}`);
         
-        // Use fallback test data for remaining tests
-        anonymousUserId = 'anon_fallback_test_user';
-        result.evidence.push(`🔄 Using fallback test ID for remaining tests: ${anonymousUserId}`);
+        // APML DISTINCTION: Identify environment vs implementation issues
+        if (errorMessage.includes('localStorage') || errorMessage.includes('window') || errorMessage.includes('uuid')) {
+          result.evidence.push(`🔧 APML ENVIRONMENT LIMITATION: Browser-only functionality detected`);
+          result.evidence.push(`📋 APML EVIDENCE: localStorage/browser APIs required for full functional validation`);
+          result.evidence.push(`🎯 APML RECOMMENDATION: Manual testing in browser environment required for functional status`);
+          
+          // APML HONEST STATUS: This is interface/documentation level validation
+          result.testingLayer = TestingLayer.DOCUMENTATION;
+          result.executionType = TestExecutionType.SIMULATED;
+          result.currentStatus = 'scaffolded';
+          result.recommendedStatus = 'scaffolded'; // Honest assessment
+          
+          // Stop further testing - this needs browser environment
+          return result;
+        } else {
+          result.evidence.push(`❌ APML FUNCTIONAL TEST FAILURE: Real implementation issue - ${errorMessage}`);
+          result.evidence.push(`🔧 APML EVIDENCE: Component implementation requires debugging`);
+        }
+        
+        // Don't continue with fallback tests - maintain APML integrity
+        anonymousUserId = 'test-user-failed';
       }
       
-      // REAL TEST 2: Test user existence and retrieval
-      const userExists = userManager.isValidAnonymousUser(anonymousUserId);
-      result.functionalTests['user_existence_check'] = userExists === true;
-      result.evidence.push(`✓ Real Existence Test: User ${anonymousUserId.substring(0, 12)}... exists: ${userExists}`);
+      // REAL TEST 2: Test user existence and retrieval (with fallback handling)
+      try {
+        const userExists = userManager.isValidAnonymousUser(anonymousUserId);
+        result.functionalTests['user_existence_check'] = userExists === true;
+        result.evidence.push(`✓ Real Existence Test: User ${anonymousUserId.substring(0, 12)}... exists: ${userExists}`);
+      } catch (error) {
+        result.functionalTests['user_existence_check'] = false;
+        result.evidence.push(`❌ Existence Test: Method callable but user not found (expected in fallback mode)`);
+      }
       
-      // REAL TEST 3: Test TTL information retrieval
-      const ttlInfo = userManager.getTimeToLive(anonymousUserId);
-      result.functionalTests['ttl_info_retrieval'] = ttlInfo && typeof ttlInfo.expirationTime === 'string';
-      result.evidence.push(`✓ Real TTL Test: TTL expiration set for ${new Date(ttlInfo?.expirationTime || '').toLocaleDateString()}`);
+      // REAL TEST 3: Test TTL information retrieval (with fallback handling)
+      try {
+        const ttlInfo = userManager.getTimeToLive(anonymousUserId);
+        result.functionalTests['ttl_info_retrieval'] = ttlInfo && typeof ttlInfo.expirationTime === 'string';
+        result.evidence.push(`✓ Real TTL Test: TTL expiration set for ${new Date(ttlInfo?.expirationTime || '').toLocaleDateString()}`);
+      } catch (error) {
+        result.functionalTests['ttl_info_retrieval'] = false;
+        result.evidence.push(`❌ TTL Test: Method callable but user not found (expected in fallback mode)`);
+      }
       
       // REAL TEST 4: Test TTL extension functionality
       try {
@@ -1674,10 +1717,18 @@ export const APMLValidationSuite: React.FC = () => {
       result.evidence.push('✓ APML Interface Test: AnonymousUserManager interface methods tested functionally');
       
       const passedTests = Object.values(result.functionalTests).filter(Boolean).length;
-      result.success = passedTests >= Object.keys(result.functionalTests).length * 0.8;
+      const totalTests = Object.keys(result.functionalTests).length;
+      
+      // APML EVIDENCE-BASED SUCCESS: Only count real functional tests
+      const realFunctionalSuccess = passedTests >= totalTests * 0.8;
+      result.success = realFunctionalSuccess;
       
       if (result.success) {
-        result.evidence.push('🚀 REAL TESTING PASSED: UserManagement functional status validated through actual execution');
+        result.evidence.push('🚀 APML FUNCTIONAL STATUS VALIDATED: Real functional testing passed');
+        result.evidence.push(`📊 APML EVIDENCE: ${passedTests}/${totalTests} functional tests passed`);
+      } else {
+        result.evidence.push(`❌ APML FUNCTIONAL STATUS BLOCKED: ${passedTests}/${totalTests} tests passed (need ${Math.ceil(totalTests * 0.8)})`);
+        result.evidence.push(`🎯 APML ADVANCEMENT REQUIREMENT: Manual browser testing or environment setup needed`);
       }
 
     } catch (error) {
@@ -2144,10 +2195,10 @@ export const APMLValidationSuite: React.FC = () => {
           className="p-4 bg-gray-700 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-lg transition-colors text-left border border-gray-600"
         >
           <h3 className="font-semibold text-lg">UserManagement Module</h3>
-          <p className="text-sm opacity-90 mt-1">REAL functional + backend integration testing</p>
-          <p className="text-xs opacity-75 mt-2">Status: 🟠 functional (90% complete)</p>
+          <p className="text-sm opacity-90 mt-1">Browser-dependent functional testing (localStorage required)</p>
+          <p className="text-xs opacity-75 mt-2">Status: 🟠 functional (requires manual testing)</p>
           <div className="mt-2 flex gap-2">
-            <span className="text-xs bg-green-600 px-2 py-1 rounded">⚙️ Real Functional</span>
+            <span className="text-xs bg-orange-600 px-2 py-1 rounded">🌐 Browser Required</span>
             <span className="text-xs bg-purple-600 px-2 py-1 rounded">🔄 Backend Integration</span>
             <span className="text-xs bg-blue-600 px-2 py-1 rounded">📄 + Documentation</span>
           </div>
