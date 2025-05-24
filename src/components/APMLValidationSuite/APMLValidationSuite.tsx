@@ -827,79 +827,6 @@ export const APMLValidationSuite: React.FC = () => {
   };
 
   /**
-   * Run comprehensive project validation
-   */
-  const runProjectValidation = useCallback(async () => {
-    setIsRunning(true);
-    setCurrentModule('Initializing...');
-    setActiveTests([]);
-    
-    const report: ValidationReport = {
-      moduleTests: [],
-      overallSuccess: true,
-      apmlCompliance: true,
-      readyForAdvancement: [],
-      criticalIssues: [],
-      timestamp: new Date().toISOString()
-    };
-
-    try {
-      // Test each module - All 8 APML modules
-      const modules = [
-        { name: 'UserInterface', validator: validateUserInterface },
-        { name: 'LearningEngine', validator: validateLearningEngine },
-        { name: 'ProgressionSystem', validator: validateProgressionSystem },
-        { name: 'MetricsSystem', validator: validateMetricsSystem },
-        { name: 'SubscriptionSystem', validator: validateSubscriptionSystem },
-        { name: 'OfflineSupport', validator: validateOfflineSupport },
-        { name: 'UserManagement', validator: validateUserManagement },
-        { name: 'BackendServices', validator: validateBackendServices }
-      ];
-
-      for (const module of modules) {
-        setCurrentModule(module.name);
-        setActiveTests(prev => [...prev, module.name]);
-        
-        const moduleResult = await module.validator();
-        report.moduleTests.push(moduleResult);
-        
-        // Check for advancement opportunities
-        moduleResult.componentResults.forEach(component => {
-          if (component.recommendedStatus === 'functional' && component.currentStatus === 'scaffolded') {
-            report.readyForAdvancement.push(`${module.name}.${component.componentName}`);
-          }
-          if (!component.success) {
-            report.criticalIssues.push(`${module.name}.${component.componentName}: ${component.errors[0] || 'Unknown issue'}`);
-          }
-        });
-      }
-
-      // Calculate overall success
-      const passedModules = report.moduleTests.filter(m => m.success).length;
-      report.overallSuccess = passedModules >= report.moduleTests.length * 0.75;
-      
-      setValidationReport(report);
-      
-    } catch (error) {
-      console.error('Project validation failed:', error);
-      report.overallSuccess = false;
-      report.criticalIssues.push(`Project validation error: ${error}`);
-    } finally {
-      setIsRunning(false);
-      setCurrentModule('');
-    }
-  }, [
-    validateUserInterface,
-    validateLearningEngine, 
-    validateProgressionSystem,
-    validateMetricsSystem,
-    validateSubscriptionSystem,
-    validateOfflineSupport,
-    validateUserManagement,
-    validateBackendServices
-  ]);
-
-  /**
    * UI-SUITE: UserInterface Module Validation
    */
   const validateUserInterface = useCallback(async (): Promise<ModuleTestResult> => {
@@ -1173,6 +1100,79 @@ export const APMLValidationSuite: React.FC = () => {
 
     return result;
   };
+
+  /**
+   * Run comprehensive project validation
+   */
+  const runProjectValidation = useCallback(async () => {
+    setIsRunning(true);
+    setCurrentModule('Initializing...');
+    setActiveTests([]);
+    
+    const report: ValidationReport = {
+      moduleTests: [],
+      overallSuccess: true,
+      apmlCompliance: true,
+      readyForAdvancement: [],
+      criticalIssues: [],
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      // Test each module - All 8 APML modules
+      const modules = [
+        { name: 'UserInterface', validator: validateUserInterface },
+        { name: 'LearningEngine', validator: validateLearningEngine },
+        { name: 'ProgressionSystem', validator: validateProgressionSystem },
+        { name: 'MetricsSystem', validator: validateMetricsSystem },
+        { name: 'SubscriptionSystem', validator: validateSubscriptionSystem },
+        { name: 'OfflineSupport', validator: validateOfflineSupport },
+        { name: 'UserManagement', validator: validateUserManagement },
+        { name: 'BackendServices', validator: validateBackendServices }
+      ];
+
+      for (const module of modules) {
+        setCurrentModule(module.name);
+        setActiveTests(prev => [...prev, module.name]);
+        
+        const moduleResult = await module.validator();
+        report.moduleTests.push(moduleResult);
+        
+        // Check for advancement opportunities
+        moduleResult.componentResults.forEach(component => {
+          if (component.recommendedStatus === 'functional' && component.currentStatus === 'scaffolded') {
+            report.readyForAdvancement.push(`${module.name}.${component.componentName}`);
+          }
+          if (!component.success) {
+            report.criticalIssues.push(`${module.name}.${component.componentName}: ${component.errors[0] || 'Unknown issue'}`);
+          }
+        });
+      }
+
+      // Calculate overall success
+      const passedModules = report.moduleTests.filter(m => m.success).length;
+      report.overallSuccess = passedModules >= report.moduleTests.length * 0.75;
+      
+      setValidationReport(report);
+      
+    } catch (error) {
+      console.error('Project validation failed:', error);
+      report.overallSuccess = false;
+      report.criticalIssues.push(`Project validation error: ${error}`);
+    } finally {
+      setIsRunning(false);
+      setCurrentModule('');
+    }
+  }, [
+    validateUserInterface,
+    validateLearningEngine, 
+    validateProgressionSystem,
+    validateMetricsSystem,
+    validateSubscriptionSystem,
+    validateOfflineSupport,
+    validateUserManagement,
+    validateBackendServices
+  ]);
 
   /**
    * Run individual module validation
