@@ -57,47 +57,14 @@ export default async function handler(
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + ttlHours);
 
-    // Create anonymous user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: `${anonymousId}@anonymous.local`,
-      password: uuidv4(), // Random password for anonymous user
-      options: {
-        data: {
-          user_type: 'anonymous',
-          anonymous_id: anonymousId,
-          display_name: displayName,
-          device_id: deviceId,
-          expires_at: expiresAt.toISOString()
-        }
-      }
-    });
+    // Generate a UUID for the anonymous user
+    const userId = uuidv4();
 
-    if (authError) {
-      console.error('Anonymous user creation failed:', authError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to create anonymous user',
-        errorCode: 'ANONYMOUS_CREATION_FAILED',
-        timestamp,
-        requestId
-      });
-    }
-
-    if (!authData.user) {
-      return res.status(500).json({
-        success: false,
-        error: 'No user data returned from auth service',
-        errorCode: 'ANONYMOUS_CREATION_FAILED',
-        timestamp,
-        requestId
-      });
-    }
-
-    // Create user record in custom users table
+    // Create user record in custom users table (no auth required for anonymous users)
     const { error: userError } = await supabase
       .from('users')
       .insert({
-        id: authData.user.id,
+        id: userId,
         user_type: 'anonymous',
         anonymous_id: anonymousId,
         display_name: displayName,
@@ -111,9 +78,6 @@ export default async function handler(
 
     if (userError) {
       console.error('User record creation failed:', userError);
-      // Try to cleanup the auth user
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      
       return res.status(500).json({
         success: false,
         error: 'Failed to create user record',
@@ -154,7 +118,7 @@ export default async function handler(
     const { error: stateError } = await supabase
       .from('user_state')
       .insert({
-        user_id: authData.user.id,
+        user_id: userId,
         stitch_positions: defaultState.stitch_positions,
         triple_helix_state: defaultState.triple_helix_state,
         spaced_repetition_state: defaultState.spaced_repetition_state,
@@ -166,9 +130,8 @@ export default async function handler(
 
     if (stateError) {
       console.error('Initial state creation failed:', stateError);
-      // Cleanup user and auth records
-      await supabase.from('users').delete().eq('id', authData.user.id);
-      await supabase.auth.admin.deleteUser(authData.user.id);
+      // Cleanup user record
+      await supabase.from('users').delete().eq('id', userId);
       
       return res.status(500).json({
         success: false,
@@ -179,12 +142,24 @@ export default async function handler(
       });
     }
 
+    // Create a simple JWT token for anonymous users
+    const jwt = require('jsonwebtoken');
+    const accessToken = jwt.sign(
+      { 
+        sub: userId,
+        user_type: 'anonymous',
+        anonymous_id: anonymousId,
+        exp: Math.floor(expiresAt.getTime() / 1000)
+      },
+      process.env.SUPABASE_JWT_SECRET || 'fallback-secret'
+    );
+
     // Return successful response with user data and session
     return res.status(201).json({
       success: true,
       data: {
         user: {
-          id: authData.user.id,
+          id: userId,
           anonymousId,
           displayName,
           userType: 'anonymous',
@@ -193,10 +168,9 @@ export default async function handler(
           createdAt: timestamp
         },
         session: {
-          accessToken: authData.session?.access_token,
-          refreshToken: authData.session?.refresh_token,
-          expiresAt: authData.session?.expires_at,
-          userType: 'anonymous'
+          accessToken,
+          userType: 'anonymous',
+          expiresAt: Math.floor(expiresAt.getTime() / 1000)
         },
         initialState: defaultState
       },
