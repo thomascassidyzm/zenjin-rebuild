@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role for admin operations
 );
 
 interface APIResponse {
