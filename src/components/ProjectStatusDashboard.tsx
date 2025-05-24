@@ -46,25 +46,29 @@ export const ProjectStatusDashboard: React.FC = () => {
   const overallProgress = Math.round(moduleData.reduce((sum, module) => sum + module.completion, 0) / moduleData.length);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm rounded-xl shadow-2xl p-6 mb-6 border border-gray-700/50">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Zenjin Maths App</h1>
-              <p className="text-gray-600 mt-1">APML Framework Development Status</p>
+              <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Zenjin Maths App
+              </h1>
+              <p className="text-gray-300 mt-1">APML Framework Development Status</p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-blue-600">{overallProgress}%</div>
-              <div className="text-sm text-gray-500">Overall Progress</div>
+              <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text">
+                {overallProgress}%
+              </div>
+              <div className="text-sm text-gray-400">Overall Progress</div>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
+        <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm rounded-xl shadow-2xl mb-6 border border-gray-700/50">
+          <div className="border-b border-gray-600/50">
             <nav className="flex space-x-8 px-6">
               {[
                 { id: 'overview', label: 'Overview', icon: '📊' },
@@ -75,10 +79,10 @@ export const ProjectStatusDashboard: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-400 text-blue-400 shadow-lg'
+                      : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'
                   }`}
                 >
                   <span>{tab.icon}</span>
@@ -93,15 +97,15 @@ export const ProjectStatusDashboard: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* APML Status Legend */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">APML Status Levels</h2>
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
+              <h2 className="text-lg font-semibold text-white mb-4">APML Status Levels</h2>
               <div className="space-y-3">
                 {apmlStatusLevels.map((level) => (
-                  <div key={level.name} className="flex items-center space-x-3">
+                  <div key={level.name} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-700/50 border border-gray-600/30">
                     <span className="text-2xl">{level.symbol}</span>
                     <div>
-                      <div className="font-medium capitalize">{level.name}</div>
-                      <div className="text-sm text-gray-600">{level.description}</div>
+                      <div className="font-medium capitalize text-gray-100">{level.name}</div>
+                      <div className="text-sm text-gray-300">{level.description}</div>
                     </div>
                   </div>
                 ))}
@@ -109,36 +113,36 @@ export const ProjectStatusDashboard: React.FC = () => {
             </div>
 
             {/* Module Summary */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Module Summary</h2>
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
+              <h2 className="text-lg font-semibold text-white mb-4">Module Summary</h2>
               <div className="space-y-4">
                 {moduleData.slice(0, 4).map((module) => {
                   const status = getStatusLevel(module.status);
                   return (
-                    <div key={module.name} className="flex items-center justify-between">
+                    <div key={module.name} className="flex items-center justify-between p-3 rounded-lg bg-gray-700/50 border border-gray-600/30 hover:bg-gray-600/50 transition-all duration-200">
                       <div className="flex items-center space-x-3">
                         <span className="text-xl">{status.symbol}</span>
-                        <span className="font-medium">{module.name}</span>
+                        <span className="font-medium text-gray-100">{module.name}</span>
                       </div>
-                      <span className="text-sm text-gray-600">{module.completion}%</span>
+                      <span className="text-sm text-transparent bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text font-semibold">{module.completion}%</span>
                     </div>
                   );
                 })}
-                <div className="text-sm text-gray-500 mt-2">
+                <div className="text-sm text-gray-400 mt-2">
                   + {moduleData.length - 4} more modules
                 </div>
               </div>
             </div>
 
             {/* Recent Achievements */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Achievements</h2>
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
+              <h2 className="text-lg font-semibold text-white mb-4">Recent Achievements</h2>
               <div className="space-y-4">
                 {recentAchievements.map((achievement, index) => (
-                  <div key={index} className="border-l-4 border-green-500 pl-4">
-                    <div className="font-medium text-gray-900">{achievement.title}</div>
-                    <div className="text-sm text-gray-600">{achievement.description}</div>
-                    <div className="text-xs text-gray-500 mt-1">{achievement.date}</div>
+                  <div key={index} className="border-l-4 border-gradient-to-b from-green-400 to-blue-400 pl-4 p-3 rounded-r-lg bg-gray-700/30 border-green-400">
+                    <div className="font-medium text-gray-100">{achievement.title}</div>
+                    <div className="text-sm text-gray-300">{achievement.description}</div>
+                    <div className="text-xs text-gray-400 mt-1">{achievement.date}</div>
                   </div>
                 ))}
               </div>
@@ -205,21 +209,21 @@ export const ProjectStatusDashboard: React.FC = () => {
 
         {/* Timeline Tab */}
         {activeTab === 'timeline' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Development Timeline & Next Steps</h2>
+          <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
+            <h2 className="text-lg font-semibold text-white mb-6">Development Timeline & Next Steps</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Progress */}
               <div>
-                <h3 className="font-medium text-gray-900 mb-4">Recent Progress</h3>
+                <h3 className="font-medium text-gray-100 mb-4">Recent Progress</h3>
                 <div className="space-y-4">
                   {recentAchievements.map((achievement, index) => (
-                    <div key={index} className="flex space-x-3">
-                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                    <div key={index} className="flex space-x-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600/30">
+                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-gradient-to-r from-green-400 to-blue-400 mt-2"></div>
                       <div>
-                        <div className="font-medium text-gray-900">{achievement.title}</div>
-                        <div className="text-sm text-gray-600">{achievement.description}</div>
-                        <div className="text-xs text-gray-500">{achievement.date}</div>
+                        <div className="font-medium text-gray-100">{achievement.title}</div>
+                        <div className="text-sm text-gray-300">{achievement.description}</div>
+                        <div className="text-xs text-gray-400">{achievement.date}</div>
                       </div>
                     </div>
                   ))}
@@ -228,27 +232,27 @@ export const ProjectStatusDashboard: React.FC = () => {
 
               {/* Next Steps */}
               <div>
-                <h3 className="font-medium text-gray-900 mb-4">Next Steps</h3>
+                <h3 className="font-medium text-gray-100 mb-4">Next Steps</h3>
                 <div className="space-y-4">
                   {nextSteps.map((step, index) => (
-                    <div key={index} className="flex space-x-3">
+                    <div key={index} className="flex space-x-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600/30">
                       <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                        step.priority === 'high' ? 'bg-red-500' :
-                        step.priority === 'medium' ? 'bg-yellow-500' :
-                        'bg-gray-400'
+                        step.priority === 'high' ? 'bg-gradient-to-r from-red-400 to-pink-400' :
+                        step.priority === 'medium' ? 'bg-gradient-to-r from-yellow-400 to-orange-400' :
+                        'bg-gradient-to-r from-blue-400 to-purple-400'
                       }`}></div>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium text-gray-900">{step.title}</span>
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            step.priority === 'high' ? 'bg-red-100 text-red-800' :
-                            step.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
+                          <span className="font-medium text-gray-100">{step.title}</span>
+                          <span className={`px-2 py-1 text-xs rounded-full border ${
+                            step.priority === 'high' ? 'bg-red-500/20 text-red-300 border-red-500/50' :
+                            step.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' :
+                            'bg-blue-500/20 text-blue-300 border-blue-500/50'
                           }`}>
                             {step.priority}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-600">{step.description}</div>
+                        <div className="text-sm text-gray-300">{step.description}</div>
                       </div>
                     </div>
                   ))}
@@ -259,7 +263,7 @@ export const ProjectStatusDashboard: React.FC = () => {
         )}
 
         {/* Footer */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mt-6 text-center text-sm text-gray-500">
+        <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm rounded-xl shadow-2xl p-4 mt-6 text-center text-sm text-gray-400 border border-gray-600/50">
           Built with APML Framework v1.3.2 • Last Updated: {new Date().toLocaleDateString()}
         </div>
       </div>

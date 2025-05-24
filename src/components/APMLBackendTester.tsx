@@ -369,31 +369,31 @@ export const APMLBackendTester: React.FC = () => {
   }, [validateEnvironment, testComponent, testIntegration]);
 
   const getStatusIcon = (success: boolean) => success ? '✅' : '❌';
-  const getStatusColor = (success: boolean) => success ? 'text-green-600' : 'text-red-600';
+  const getStatusColor = (success: boolean) => success ? 'text-green-400' : 'text-red-400';
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">APML Backend Services Validation</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-xl font-semibold text-white">APML Backend Services Validation</h2>
+          <p className="text-sm text-gray-300 mt-1">
             Interface compliance testing following APML protocol specifications
           </p>
         </div>
         <button
           onClick={runAPMLValidationSuite}
           disabled={isRunning}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg"
         >
           {isRunning ? 'Running Validation...' : 'Run APML Validation'}
         </button>
       </div>
 
       {isRunning && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="mb-6 p-4 bg-blue-500/20 border border-blue-400/50 rounded-lg">
           <div className="flex items-center space-x-3">
-            <div className="animate-spin w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-            <span className="text-blue-800">{currentTest}</span>
+            <div className="animate-spin w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+            <span className="text-blue-300">{currentTest}</span>
           </div>
         </div>
       )}
@@ -401,8 +401,8 @@ export const APMLBackendTester: React.FC = () => {
       {validationReport && (
         <div className="space-y-6">
           {/* Overall Status */}
-          <div className={`p-4 rounded-md ${
-            validationReport.overallSuccess ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+          <div className={`p-4 rounded-lg border ${
+            validationReport.overallSuccess ? 'bg-green-500/20 border-green-400/50' : 'bg-red-500/20 border-red-400/50'
           }`}>
             <div className="flex items-center space-x-2">
               <span className="text-2xl">{getStatusIcon(validationReport.overallSuccess)}</span>
@@ -410,7 +410,7 @@ export const APMLBackendTester: React.FC = () => {
                 <h3 className={`font-semibold ${getStatusColor(validationReport.overallSuccess)}`}>
                   APML Validation {validationReport.overallSuccess ? 'PASSED' : 'FAILED'}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-300">
                   {validationReport.apmlCompliance ? 'Protocol compliant testing' : 'Non-compliant testing'}
                 </p>
               </div>
@@ -419,19 +419,19 @@ export const APMLBackendTester: React.FC = () => {
 
           {/* Environment Validation */}
           <div>
-            <h3 className="font-medium text-gray-900 mb-3">Environment Validation (TS-002)</h3>
-            <div className={`p-3 rounded-md ${
-              validationReport.environmentValidation.success ? 'bg-green-50' : 'bg-red-50'
+            <h3 className="font-medium text-white mb-3">Environment Validation (TS-002)</h3>
+            <div className={`p-3 rounded-lg border ${
+              validationReport.environmentValidation.success ? 'bg-green-500/20 border-green-400/50' : 'bg-red-500/20 border-red-400/50'
             }`}>
               <div className="space-y-2">
                 {Object.entries(validationReport.environmentValidation.variables).map(([variable, status]) => (
                   <div key={variable} className="flex items-center justify-between">
-                    <span className="text-sm font-mono">{variable}</span>
+                    <span className="text-sm font-mono text-gray-300">{variable}</span>
                     <span className={getStatusColor(status)}>{getStatusIcon(status)}</span>
                   </div>
                 ))}
                 {validationReport.environmentValidation.errors.map((error, index) => (
-                  <p key={index} className="text-sm text-red-600">• {error}</p>
+                  <p key={index} className="text-sm text-red-300">• {error}</p>
                 ))}
               </div>
             </div>
@@ -439,27 +439,27 @@ export const APMLBackendTester: React.FC = () => {
 
           {/* Component Tests */}
           <div>
-            <h3 className="font-medium text-gray-900 mb-3">Component Interface Testing (TS-001)</h3>
+            <h3 className="font-medium text-white mb-3">Component Interface Testing (TS-001)</h3>
             <div className="space-y-3">
               {validationReport.componentTests.map((test, index) => (
-                <div key={index} className={`p-3 rounded-md border ${
-                  test.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                <div key={index} className={`p-3 rounded-lg border ${
+                  test.success ? 'bg-green-500/20 border-green-400/50' : 'bg-red-500/20 border-red-400/50'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{test.componentName}</h4>
+                    <h4 className="font-medium text-gray-100">{test.componentName}</h4>
                     <span className={getStatusColor(test.success)}>{getStatusIcon(test.success)}</span>
                   </div>
-                  <div className="text-sm space-y-1">
+                  <div className="text-sm space-y-1 text-gray-300">
                     <div>Interface Compliance: {getStatusIcon(test.interfaceCompliance)}</div>
                     <div>Methods Tested: {Object.keys(test.methodTests).length}</div>
                     {Object.entries(test.methodTests).map(([method, status]) => (
                       <div key={method} className="ml-4 flex items-center justify-between">
-                        <span className="font-mono text-xs">{method}()</span>
+                        <span className="font-mono text-xs text-gray-400">{method}()</span>
                         <span className={getStatusColor(status)}>{getStatusIcon(status)}</span>
                       </div>
                     ))}
                     {test.errors.map((error, errorIndex) => (
-                      <p key={errorIndex} className="text-red-600">• {error}</p>
+                      <p key={errorIndex} className="text-red-300">• {error}</p>
                     ))}
                   </div>
                 </div>
@@ -469,19 +469,19 @@ export const APMLBackendTester: React.FC = () => {
 
           {/* Integration Tests */}
           <div>
-            <h3 className="font-medium text-gray-900 mb-3">Integration Testing (TS-003)</h3>
+            <h3 className="font-medium text-white mb-3">Integration Testing (TS-003)</h3>
             <div className="space-y-3">
               {validationReport.integrationTests.map((test, index) => (
-                <div key={index} className={`p-3 rounded-md border ${
-                  test.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                <div key={index} className={`p-3 rounded-lg border ${
+                  test.success ? 'bg-green-500/20 border-green-400/50' : 'bg-red-500/20 border-red-400/50'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{test.scenario}</h4>
+                    <h4 className="font-medium text-gray-100">{test.scenario}</h4>
                     <span className={getStatusColor(test.success)}>{getStatusIcon(test.success)}</span>
                   </div>
-                  <p className="text-sm text-gray-600">{test.details}</p>
+                  <p className="text-sm text-gray-300">{test.details}</p>
                   {test.errors.map((error, errorIndex) => (
-                    <p key={errorIndex} className="text-sm text-red-600">• {error}</p>
+                    <p key={errorIndex} className="text-sm text-red-300">• {error}</p>
                   ))}
                 </div>
               ))}
@@ -489,9 +489,9 @@ export const APMLBackendTester: React.FC = () => {
           </div>
 
           {/* APML Compliance Note */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <h4 className="font-medium text-blue-800 mb-2">APML Protocol Compliance</h4>
-            <div className="text-sm text-blue-700 space-y-1">
+          <div className="p-4 bg-blue-500/20 border border-blue-400/50 rounded-lg">
+            <h4 className="font-medium text-blue-300 mb-2">APML Protocol Compliance</h4>
+            <div className="text-sm text-blue-200 space-y-1">
               <div>✓ Axiom 5: Validation Through Distinction - Real testing, no mocks</div>
               <div>✓ Interface compliance testing against APML specifications</div>
               <div>✓ Evidence-based validation for status level progression</div>
