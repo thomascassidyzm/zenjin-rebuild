@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { APMLBackendTester } from './APMLBackendTester';
+import { APMLValidationSuite } from './APMLValidationSuite/APMLValidationSuite';
 
 // APML Status Data (from registry.apml)
 const apmlStatusLevels = [
@@ -357,8 +358,38 @@ export const ProjectStatusDashboard: React.FC = () => {
 
         {/* Testing Tab */}
         {activeTab === 'testing' && (
-          <div>
-            <APMLBackendTester />
+          <div className="space-y-6">
+            {/* APML Validation Suite - Comprehensive Module Testing */}
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-600/50">
+              <div className="p-4 border-b border-gray-600/50">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <span>🧪</span>
+                  APML Comprehensive Module Validation
+                </h2>
+                <p className="text-gray-300 text-sm mt-1">
+                  Evidence-based validation for module status advancement following APML Framework v1.3.3
+                </p>
+              </div>
+              <div className="p-6">
+                <APMLValidationSuite />
+              </div>
+            </div>
+
+            {/* Backend Services Testing - Existing System */}
+            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-600/50">
+              <div className="p-4 border-b border-gray-600/50">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <span>🔧</span>
+                  Backend Services Validation
+                </h2>
+                <p className="text-gray-300 text-sm mt-1">
+                  Interface compliance testing for Supabase integration and backend orchestration
+                </p>
+              </div>
+              <div className="p-6">
+                <APMLBackendTester />
+              </div>
+            </div>
           </div>
         )}
 
