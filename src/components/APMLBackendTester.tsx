@@ -56,15 +56,9 @@ export const APMLBackendTester: React.FC = () => {
    */
   const debugEnvironmentVariables = useCallback(() => {
     console.log('=== Environment Variable Debug ===');
-    console.log('REACT_APP_SUPABASE_URL:', process.env.REACT_APP_SUPABASE_URL);
-    console.log('REACT_APP_SUPABASE_ANON_KEY:', process.env.REACT_APP_SUPABASE_ANON_KEY);
-    console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
-    console.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY);
-    console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-    console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
-    console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY);
-    console.log('All process.env keys:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
+    console.log('import.meta.env.VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('import.meta.env.VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
+    console.log('import.meta.env:', import.meta.env);
     console.log('=== End Debug ===');
   }, []);
 
@@ -82,30 +76,24 @@ export const APMLBackendTester: React.FC = () => {
       errors: []
     };
 
-    // Check for Supabase URL (multiple possible environment variable names for Vercel integration)
-    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 
-                       process.env.VITE_SUPABASE_URL ||
-                       process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                       process.env.SUPABASE_URL;
+    // Check for Supabase URL (using Vite environment variables)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     
     if (supabaseUrl) {
       result.variables.REACT_APP_SUPABASE_URL = true;
     } else {
       result.success = false;
-      result.errors.push('REACT_APP_SUPABASE_URL environment variable not set');
+      result.errors.push('VITE_SUPABASE_URL environment variable not set');
     }
 
-    // Check for Supabase Anon Key (multiple possible environment variable names for Vercel integration)
-    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 
-                       process.env.VITE_SUPABASE_ANON_KEY ||
-                       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-                       process.env.SUPABASE_ANON_KEY;
+    // Check for Supabase Anon Key (using Vite environment variables)
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     if (supabaseKey) {
       result.variables.REACT_APP_SUPABASE_ANON_KEY = true;
     } else {
       result.success = false;
-      result.errors.push('REACT_APP_SUPABASE_ANON_KEY environment variable not set');
+      result.errors.push('VITE_SUPABASE_ANON_KEY environment variable not set');
     }
 
     return result;
@@ -176,15 +164,8 @@ export const APMLBackendTester: React.FC = () => {
     }
 
     // Test createAnonymousUser method (only if environment is configured)
-    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 
-                       process.env.VITE_SUPABASE_URL ||
-                       process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                       process.env.SUPABASE_URL;
-    
-    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 
-                       process.env.VITE_SUPABASE_ANON_KEY ||
-                       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-                       process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     if (supabaseUrl && supabaseKey) {
       try {

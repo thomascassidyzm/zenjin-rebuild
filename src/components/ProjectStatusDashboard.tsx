@@ -37,7 +37,7 @@ const nextSteps = [
 ];
 
 export const ProjectStatusDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'modules' | 'testing' | 'timeline'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'testing' | 'timeline'>('overview');
 
   const getStatusLevel = (statusName: string) => {
     return apmlStatusLevels.find(level => level.name === statusName) || apmlStatusLevels[0];
@@ -71,10 +71,9 @@ export const ProjectStatusDashboard: React.FC = () => {
           <div className="border-b border-gray-600/50">
             <nav className="flex space-x-8 px-6">
               {[
-                { id: 'overview', label: 'Overview', icon: '📊' },
-                { id: 'modules', label: 'Modules', icon: '🧩' },
-                { id: 'testing', label: 'System Tests', icon: '🧪' },
-                { id: 'timeline', label: 'Timeline', icon: '📅' }
+                { id: 'overview', label: 'APML Status', icon: '🎯' },
+                { id: 'testing', label: 'Validation', icon: '🧪' },
+                { id: 'timeline', label: 'Progress', icon: '📈' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -95,56 +94,55 @@ export const ProjectStatusDashboard: React.FC = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* APML Status Legend */}
+          <div className="space-y-6">
+            {/* APML Progress Matrix */}
             <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-              <h2 className="text-lg font-semibold text-white mb-4">APML Status Levels</h2>
-              <div className="space-y-3">
-                {apmlStatusLevels.map((level) => (
-                  <div key={level.name} className="flex items-center space-x-3 p-2 rounded-lg bg-gray-700/50 border border-gray-600/30">
-                    <span className="text-2xl">{level.symbol}</span>
-                    <div>
-                      <div className="font-medium capitalize text-gray-100">{level.name}</div>
-                      <div className="text-sm text-gray-300">{level.description}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Module Summary */}
-            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-              <h2 className="text-lg font-semibold text-white mb-4">Module Summary</h2>
-              <div className="space-y-4">
-                {moduleData.slice(0, 4).map((module) => {
+              <h2 className="text-lg font-semibold text-white mb-4">APML Interface Implementation Matrix</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                {moduleData.map((module) => {
                   const status = getStatusLevel(module.status);
                   return (
-                    <div key={module.name} className="flex items-center justify-between p-3 rounded-lg bg-gray-700/50 border border-gray-600/30 hover:bg-gray-600/50 transition-all duration-200">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl">{status.symbol}</span>
-                        <span className="font-medium text-gray-100">{module.name}</span>
-                      </div>
-                      <span className="text-sm text-transparent bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text font-semibold">{module.completion}%</span>
+                    <div key={module.name} className="text-center p-3 rounded-lg bg-gray-700/50 border border-gray-600/30 hover:bg-gray-600/50 transition-all duration-200">
+                      <div className="text-2xl mb-2">{status.symbol}</div>
+                      <div className="text-xs text-gray-300 font-medium">{module.name}</div>
+                      <div className="text-xs text-gray-400 mt-1">{module.interfaces}</div>
+                      <div className="text-xs text-transparent bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text font-semibold mt-1">{module.completion}%</div>
                     </div>
                   );
                 })}
-                <div className="text-sm text-gray-400 mt-2">
-                  + {moduleData.length - 4} more modules
-                </div>
               </div>
             </div>
 
-            {/* Recent Achievements */}
-            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-              <h2 className="text-lg font-semibold text-white mb-4">Recent Achievements</h2>
-              <div className="space-y-4">
-                {recentAchievements.map((achievement, index) => (
-                  <div key={index} className="border-l-4 border-gradient-to-b from-green-400 to-blue-400 pl-4 p-3 rounded-r-lg bg-gray-700/30 border-green-400">
-                    <div className="font-medium text-gray-100">{achievement.title}</div>
-                    <div className="text-sm text-gray-300">{achievement.description}</div>
-                    <div className="text-xs text-gray-400 mt-1">{achievement.date}</div>
+            {/* APML Axiom Compliance */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
+                <h3 className="text-lg font-semibold text-white mb-4">APML Axiom Compliance</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/20 border border-green-400/50">
+                    <span className="text-green-300">✓ Interface Before Implementation</span>
+                    <span className="text-green-400 text-sm">Active</span>
                   </div>
-                ))}
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/20 border border-green-400/50">
+                    <span className="text-green-300">✓ Validation Through Distinction</span>
+                    <span className="text-green-400 text-sm">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-yellow-500/20 border border-yellow-400/50">
+                    <span className="text-yellow-300">◐ Better × Simpler × Cheaper</span>
+                    <span className="text-yellow-400 text-sm">Partial</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
+                <h3 className="text-lg font-semibold text-white mb-4">Critical Path</h3>
+                <div className="space-y-3">
+                  {nextSteps.filter(step => step.priority === 'high').map((step, index) => (
+                    <div key={index} className="p-3 rounded-lg bg-red-500/20 border border-red-400/50">
+                      <div className="font-medium text-red-300">{step.title}</div>
+                      <div className="text-sm text-red-200">{step.description}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

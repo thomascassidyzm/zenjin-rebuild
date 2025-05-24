@@ -87,18 +87,9 @@ export class SupabaseAuth {
   private currentSession: AuthSession | null = null;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
-    // Check multiple possible environment variable names for Vercel-Supabase integration
-    const url = supabaseUrl || 
-                process.env.REACT_APP_SUPABASE_URL || 
-                process.env.VITE_SUPABASE_URL ||
-                process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                process.env.SUPABASE_URL;
-                
-    const key = supabaseKey || 
-                process.env.REACT_APP_SUPABASE_ANON_KEY || 
-                process.env.VITE_SUPABASE_ANON_KEY ||
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-                process.env.SUPABASE_ANON_KEY;
+    // Use Vite environment variables for frontend builds
+    const url = supabaseUrl || import.meta.env.VITE_SUPABASE_URL;
+    const key = supabaseKey || import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     if (url && key) {
       try {
