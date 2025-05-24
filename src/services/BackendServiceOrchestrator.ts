@@ -407,5 +407,5 @@ export class BackendServiceOrchestrator {
   }
 }
 
-// Export the class - create instances when needed to avoid initialization errors
-// export const backendServiceOrchestrator = new BackendServiceOrchestrator();
+// Create a singleton instance - services now handle missing env vars gracefully
+export const backendServiceOrchestrator = new BackendServiceOrchestrator();

@@ -87,8 +87,9 @@ export class SupabaseAuth {
   private currentSession: AuthSession | null = null;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
-    const url = supabaseUrl || process.env.REACT_APP_SUPABASE_URL || '';
-    const key = supabaseKey || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+    // Use frontend environment variables (REACT_APP_ prefix required for Create React App)
+    const url = supabaseUrl || process.env.REACT_APP_SUPABASE_URL;
+    const key = supabaseKey || process.env.REACT_APP_SUPABASE_ANON_KEY;
     
     if (url && key) {
       try {
@@ -102,12 +103,14 @@ export class SupabaseAuth {
             this.currentSession = null;
           }
         });
+        
+        console.log('SupabaseAuth: Successfully initialized');
       } catch (error) {
-        console.warn('SupabaseAuth: Failed to initialize Supabase client:', error);
+        console.error('SupabaseAuth: Failed to initialize Supabase client:', error);
         this.supabase = null;
       }
     } else {
-      console.warn('SupabaseAuth: Supabase URL and key not provided, service will be disabled');
+      console.warn('SupabaseAuth: Missing environment variables. Please set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY');
       this.supabase = null;
     }
   }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { APMLBackendTester } from './APMLBackendTester';
 
 // APML Status Data (from registry.apml)
 const apmlStatusLevels = [
@@ -18,68 +19,25 @@ const moduleData = [
   { name: 'SubscriptionSystem', interfaces: '4/4', components: '4/4', status: 'scaffolded', completion: 65 },
   { name: 'OfflineSupport', interfaces: '4/4', components: '4/4', status: 'functional', completion: 75 },
   { name: 'UserManagement', interfaces: '1/1', components: '1/1', status: 'functional', completion: 90 },
-  { name: 'BackendServices', interfaces: '5/5', components: '6/6', status: 'functional', completion: 85 }
+  { name: 'BackendServices', interfaces: '5/5', components: '6/6', status: 'scaffolded', completion: 65 }
 ];
 
 const recentAchievements = [
-  { date: '2025-05-24', title: 'Backend Services Complete', description: 'All 6 backend components implemented and tested' },
-  { date: '2025-05-24', title: 'API Endpoints Live', description: 'Anonymous user creation and state management working in production' },
-  { date: '2025-05-23', title: 'Database Schema Deployed', description: 'Complete Postgres schema with RLS policies and stored procedures' },
-  { date: '2025-05-23', title: 'Real-time Integration', description: 'Supabase real-time subscriptions implemented' }
+  { date: '2025-05-24', title: 'APML Compliance Restored', description: 'Implemented proper APML-compliant testing system and corrected status levels' },
+  { date: '2025-05-24', title: 'Backend Services Scaffolded', description: 'All 6 backend components implemented, awaiting proper validation' },
+  { date: '2025-05-24', title: 'API Endpoints Validated', description: 'Anonymous user creation and state management tested and working' },
+  { date: '2025-05-23', title: 'Database Schema Deployed', description: 'Complete Postgres schema with RLS policies and stored procedures' }
 ];
 
 const nextSteps = [
-  { title: 'Frontend Integration', priority: 'high', description: 'Integrate existing frontend with new backend services' },
-  { title: 'Payment Processing', priority: 'medium', description: 'Replace mock payment processor with Stripe integration' },
-  { title: 'Mobile Optimization', priority: 'medium', description: 'Enhance mobile accessibility across all UI components' },
-  { title: 'Performance Testing', priority: 'low', description: 'Comprehensive testing and optimization for production' }
+  { title: 'APML Backend Validation', priority: 'high', description: 'Complete APML validation testing to advance components to functional status' },
+  { title: 'Environment Variable Setup', priority: 'high', description: 'Configure proper frontend environment variables for Supabase services' },
+  { title: 'Frontend Integration', priority: 'medium', description: 'Integrate existing frontend with validated backend services' },
+  { title: 'Payment Processing', priority: 'low', description: 'Replace mock payment processor with Stripe integration' }
 ];
-
-interface TestResult {
-  service: string;
-  status: boolean;
-  timestamp: string;
-}
 
 export const ProjectStatusDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'modules' | 'testing' | 'timeline'>('overview');
-  const [testResults, setTestResults] = useState<TestResult[]>([]);
-  const [isTesting, setIsTesting] = useState(false);
-
-  const runSystemTests = async () => {
-    setIsTesting(true);
-    setTestResults([]);
-
-    try {
-      // Mock test results for demo purposes
-      const mockTests = {
-        'Frontend': true,
-        'API Routes': true,
-        'Database': true,
-        'Authentication': true
-      };
-      
-      // Simulate async testing with delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const results: TestResult[] = Object.entries(mockTests).map(([service, status]) => ({
-        service,
-        status,
-        timestamp: new Date().toLocaleTimeString()
-      }));
-      setTestResults(results);
-    } catch (error) {
-      console.error('Test failed:', error);
-      // Add error result
-      setTestResults([{
-        service: 'System Test',
-        status: false,
-        timestamp: new Date().toLocaleTimeString()
-      }]);
-    }
-
-    setIsTesting(false);
-  };
 
   const getStatusLevel = (statusName: string) => {
     return apmlStatusLevels.find(level => level.name === statusName) || apmlStatusLevels[0];
@@ -240,40 +198,8 @@ export const ProjectStatusDashboard: React.FC = () => {
 
         {/* Testing Tab */}
         {activeTab === 'testing' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">System Tests</h2>
-              <button
-                onClick={runSystemTests}
-                disabled={isTesting}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium"
-              >
-                {isTesting ? 'Running Tests...' : 'Run System Tests'}
-              </button>
-            </div>
-
-            {testResults.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-medium text-gray-900">Test Results</h3>
-                {testResults.map((result, index) => (
-                  <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-                    result.status ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                  }`}>
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xl">{result.status ? '✅' : '❌'}</span>
-                      <span className="font-medium capitalize">{result.service} Service</span>
-                    </div>
-                    <span className="text-sm text-gray-600">{result.timestamp}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {testResults.length === 0 && !isTesting && (
-              <div className="text-center py-8 text-gray-500">
-                Click "Run System Tests" to test all backend services
-              </div>
-            )}
+          <div>
+            <APMLBackendTester />
           </div>
         )}
 

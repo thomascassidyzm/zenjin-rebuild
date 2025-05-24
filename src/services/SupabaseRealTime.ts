@@ -72,18 +72,20 @@ export class SupabaseRealTime {
   private latencyCount = 0;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
-    const url = supabaseUrl || process.env.REACT_APP_SUPABASE_URL || '';
-    const key = supabaseKey || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+    // Use frontend environment variables (REACT_APP_ prefix required for Create React App)
+    const url = supabaseUrl || process.env.REACT_APP_SUPABASE_URL;
+    const key = supabaseKey || process.env.REACT_APP_SUPABASE_ANON_KEY;
     
     if (url && key) {
       try {
         this.supabase = createClient(url, key);
+        console.log('SupabaseRealTime: Successfully initialized');
       } catch (error) {
-        console.warn('SupabaseRealTime: Failed to initialize Supabase client:', error);
+        console.error('SupabaseRealTime: Failed to initialize Supabase client:', error);
         this.supabase = null as any;
       }
     } else {
-      console.warn('SupabaseRealTime: Supabase URL and key not provided, service will be disabled');
+      console.warn('SupabaseRealTime: Missing environment variables. Please set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY');
       this.supabase = null as any;
     }
   }
