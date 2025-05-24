@@ -4,6 +4,7 @@
  */
 
 import { createClient, SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import { configService } from './ConfigurationService';
 
 // Data Structures from Interface
 export interface RealtimeEvent {
@@ -63,37 +64,86 @@ export class SupabaseRealTimeError extends Error {
 }
 
 export class SupabaseRealTime {
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
   private subscriptions: Map<string, SubscriptionStatus> = new Map();
   private channels: Map<string, RealtimeChannel> = new Map();
   private eventCount = 0;
   private startTime = Date.now();
   private latencySum = 0;
   private latencyCount = 0;
+  private initializationPromise: Promise<void> | null = null;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
-    // Use Vite environment variables for frontend builds
-    const url = supabaseUrl || import.meta.env.VITE_SUPABASE_URL;
-    const key = supabaseKey || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    // If explicit values provided, use them immediately
+    if (supabaseUrl && supabaseKey) {
+      this.initializeSupabase(supabaseUrl, supabaseKey);
+    }
+    // Otherwise, initialization will happen lazily on first use
+  }
+
+  /**
+   * Ensure Supabase client is initialized
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (this.supabase) return;
     
-    if (url && key) {
-      try {
-        this.supabase = createClient(url, key);
-        console.log('SupabaseRealTime: Successfully initialized');
-      } catch (error) {
-        console.error('SupabaseRealTime: Failed to initialize Supabase client:', error);
-        this.supabase = null as any;
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    this.initializationPromise = this.initialize();
+    await this.initializationPromise;
+  }
+
+  /**
+   * Initialize Supabase client with configuration
+   */
+  private async initialize(): Promise<void> {
+    try {
+      // First try import.meta.env for build-time variables
+      let url = import.meta.env.VITE_SUPABASE_URL;
+      let key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      // If not available, load from configuration service
+      if (!url || !key) {
+        const config = await configService.loadConfig();
+        url = config.supabaseUrl;
+        key = config.supabaseAnonKey;
       }
-    } else {
-      console.warn('SupabaseRealTime: Missing environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
-      this.supabase = null as any;
+
+      if (url && key) {
+        this.initializeSupabase(url, key);
+      } else {
+        console.warn('SupabaseRealTime: No configuration available');
+      }
+    } catch (error) {
+      console.error('SupabaseRealTime: Failed to initialize:', error);
+    }
+  }
+
+  private initializeSupabase(url: string, key: string): void {
+    try {
+      this.supabase = createClient(url, key);
+      console.log('SupabaseRealTime: Successfully initialized');
+    } catch (error) {
+      console.error('SupabaseRealTime: Failed to create Supabase client:', error);
+      this.supabase = null;
     }
   }
 
   /**
    * Creates a real-time subscription to database changes
    */
-  subscribe(config: SubscriptionConfig, callback: (event: RealtimeEvent) => void): string {
+  async subscribe(config: SubscriptionConfig, callback: (event: RealtimeEvent) => void): Promise<string> {
+    await this.ensureInitialized();
+    
+    if (!this.supabase) {
+      throw new SupabaseRealTimeError(
+        RealtimeErrors.CONNECTION_FAILED,
+        'Supabase client not initialized'
+      );
+    }
+    
     try {
       const subscriptionId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const schema = config.schema || 'public';

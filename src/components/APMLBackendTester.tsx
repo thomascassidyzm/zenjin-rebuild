@@ -10,6 +10,7 @@ import React, { useState, useCallback } from 'react';
 import { SupabaseAuth } from '../services/SupabaseAuth';
 import { SupabaseRealTime } from '../services/SupabaseRealTime';
 import { BackendServiceOrchestrator } from '../services/BackendServiceOrchestrator';
+import { configService } from '../services/ConfigurationService';
 
 // APML Test Result Types
 interface EnvironmentValidationResult {
@@ -54,12 +55,25 @@ export const APMLBackendTester: React.FC = () => {
   /**
    * Debug: Log available environment variables
    */
-  const debugEnvironmentVariables = useCallback(() => {
+  const debugEnvironmentVariables = useCallback(async () => {
     console.log('=== Environment Variable Debug ===');
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    console.log('VITE_SUPABASE_URL:', supabaseUrl);
-    console.log('VITE_SUPABASE_ANON_KEY:', supabaseKey ? '[SET]' : '[NOT SET]');
+    
+    // Check build-time variables
+    const viteUrl = import.meta.env.VITE_SUPABASE_URL;
+    const viteKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    console.log('Build-time VITE_SUPABASE_URL:', viteUrl || '[NOT SET]');
+    console.log('Build-time VITE_SUPABASE_ANON_KEY:', viteKey ? '[SET]' : '[NOT SET]');
+    
+    // Check runtime configuration
+    try {
+      const config = await configService.loadConfig();
+      console.log('Runtime config.supabaseUrl:', config.supabaseUrl || '[NOT SET]');
+      console.log('Runtime config.supabaseAnonKey:', config.supabaseAnonKey ? '[SET]' : '[NOT SET]');
+      console.log('Runtime config.configured:', config.configured);
+    } catch (error) {
+      console.error('Failed to load runtime config:', error);
+    }
+    
     console.log('=== End Debug ===');
   }, []);
 
@@ -67,7 +81,7 @@ export const APMLBackendTester: React.FC = () => {
    * TS-002: Environment Validation
    * Validate that frontend environment variables are properly configured
    */
-  const validateEnvironment = useCallback((): EnvironmentValidationResult => {
+  const validateEnvironment = useCallback(async (): Promise<EnvironmentValidationResult> => {
     const result: EnvironmentValidationResult = {
       success: true,
       variables: {
@@ -77,24 +91,37 @@ export const APMLBackendTester: React.FC = () => {
       errors: []
     };
 
-    // Check for Supabase URL (using Vite environment variables)
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    // First check build-time variables
+    const viteUrl = import.meta.env.VITE_SUPABASE_URL;
+    const viteKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    if (supabaseUrl) {
+    if (viteUrl && viteKey) {
       result.variables.REACT_APP_SUPABASE_URL = true;
-    } else {
-      result.success = false;
-      result.errors.push('VITE_SUPABASE_URL environment variable not set');
+      result.variables.REACT_APP_SUPABASE_ANON_KEY = true;
+      return result;
     }
 
-    // Check for Supabase Anon Key (using Vite environment variables)
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (supabaseKey) {
-      result.variables.REACT_APP_SUPABASE_ANON_KEY = true;
-    } else {
+    // If not available at build time, check runtime configuration
+    try {
+      const config = await configService.loadConfig();
+      
+      if (config.supabaseUrl) {
+        result.variables.REACT_APP_SUPABASE_URL = true;
+      } else {
+        result.success = false;
+        result.errors.push('Neither VITE_SUPABASE_URL nor runtime config.supabaseUrl is set');
+      }
+      
+      if (config.supabaseAnonKey) {
+        result.variables.REACT_APP_SUPABASE_ANON_KEY = true;
+      } else {
+        result.success = false;
+        result.errors.push('Neither VITE_SUPABASE_ANON_KEY nor runtime config.supabaseAnonKey is set');
+      }
+      
+    } catch (error) {
       result.success = false;
-      result.errors.push('VITE_SUPABASE_ANON_KEY environment variable not set');
+      result.errors.push(`Failed to load runtime configuration: ${error}`);
     }
 
     return result;
@@ -307,7 +334,7 @@ export const APMLBackendTester: React.FC = () => {
           break;
 
         case 'EnvironmentIntegration':
-          const envResult = validateEnvironment();
+          const envResult = await validateEnvironment();
           result.details = `Environment validation: ${envResult.success ? 'PASS' : 'FAIL'}`;
           result.success = envResult.success;
           if (!envResult.success) {
@@ -336,11 +363,11 @@ export const APMLBackendTester: React.FC = () => {
 
     try {
       // Debug: Log environment variables
-      debugEnvironmentVariables();
+      await debugEnvironmentVariables();
       
       // Step 1: Environment Validation (TS-002)
       setCurrentTest('Validating environment variables...');
-      const environmentValidation = validateEnvironment();
+      const environmentValidation = await validateEnvironment();
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Step 2: Component Testing (TS-001)
