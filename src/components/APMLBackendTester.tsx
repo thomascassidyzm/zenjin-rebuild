@@ -56,9 +56,10 @@ export const APMLBackendTester: React.FC = () => {
    */
   const debugEnvironmentVariables = useCallback(() => {
     console.log('=== Environment Variable Debug ===');
-    console.log('import.meta.env.VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('import.meta.env.VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
-    console.log('import.meta.env:', import.meta.env);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    console.log('VITE_SUPABASE_URL:', supabaseUrl);
+    console.log('VITE_SUPABASE_ANON_KEY:', supabaseKey ? '[SET]' : '[NOT SET]');
     console.log('=== End Debug ===');
   }, []);
 
