@@ -7,6 +7,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -83,7 +84,8 @@ export default async function handler(
         error: 'Failed to create user record',
         errorCode: 'USER_RECORD_CREATION_FAILED',
         timestamp,
-        requestId
+        requestId,
+        debug: userError.message
       });
     }
 
@@ -138,12 +140,12 @@ export default async function handler(
         error: 'Failed to create initial user state',
         errorCode: 'INITIAL_STATE_CREATION_FAILED',
         timestamp,
-        requestId
+        requestId,
+        debug: stateError.message
       });
     }
 
     // Create a simple JWT token for anonymous users
-    const jwt = require('jsonwebtoken');
     const accessToken = jwt.sign(
       { 
         sub: userId,
@@ -185,7 +187,8 @@ export default async function handler(
       error: 'Internal server error',
       errorCode: 'INTERNAL_SERVER_ERROR',
       timestamp,
-      requestId
+      requestId,
+      debug: error instanceof Error ? error.message : String(error)
     });
   }
 }
