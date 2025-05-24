@@ -5,7 +5,7 @@ import {
   PaymentProcessingInterface,
   ContentAccessControllerInterface,
   ERRORS
-} from './subscription-manager-interfaces';
+} from './SubscriptionManagerInterfaces';
 
 /**
  * Implementation of the SubscriptionManager component
@@ -68,12 +68,12 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
    * @throws SUBSCRIPTION_EXISTS if the user already has an active subscription
    * @throws CREATION_FAILED if failed to create the subscription
    */
-  public createSubscription(
+  public async createSubscription(
     userId: string,
     planId: string,
     paymentMethod?: string,
     autoRenew: boolean = true
-  ): UserSubscription {
+  ): Promise<UserSubscription> {
     try {
       // Validate user, plan, and check for existing subscription
       this.validateUserExists(userId);
@@ -94,7 +94,7 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
         }
         
         // Process payment through payment processor
-        const paymentResult = this.paymentProcessor.processPayment({
+        const paymentResult = await this.paymentProcessor.processPayment({
           userId,
           planId,
           amount: plan.price,
@@ -152,7 +152,7 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
    * @throws NO_SUBSCRIPTION if the user has no active subscription
    * @throws CANCELLATION_FAILED if failed to cancel the subscription
    */
-  public cancelSubscription(userId: string, endImmediately: boolean = false): boolean {
+  public async cancelSubscription(userId: string, endImmediately: boolean = false): Promise<boolean> {
     try {
       this.validateUserExists(userId);
       
@@ -165,7 +165,7 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
       const plan = this.getPlanById(subscription.planId);
       if (plan && plan.price > 0 && subscription.paymentMethod) {
         // Process cancellation through payment processor
-        const cancellationResult = this.paymentProcessor.cancelSubscription({
+        const cancellationResult = await this.paymentProcessor.cancelSubscription({
           userId,
           planId: subscription.planId,
           immediate: endImmediately
@@ -217,14 +217,14 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
    * @throws PAYMENT_METHOD_INVALID if the payment method is invalid
    * @throws UPDATE_FAILED if failed to update the subscription
    */
-  public updateSubscription(
+  public async updateSubscription(
     userId: string,
     updates: {
       planId?: string;
       autoRenew?: boolean;
       paymentMethod?: string;
     }
-  ): UserSubscription {
+  ): Promise<UserSubscription> {
     try {
       this.validateUserExists(userId);
       
@@ -277,7 +277,7 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
           
           // Process payment for plan change
           if (proratedAmount > 0) {
-            const paymentResult = this.paymentProcessor.processPayment({
+            const paymentResult = await this.paymentProcessor.processPayment({
               userId,
               planId: updates.planId,
               amount: proratedAmount,
@@ -301,7 +301,7 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
           // Switching from paid to free
           if (currentPlan.price > 0) {
             // Process cancellation of paid plan
-            const cancellationResult = this.paymentProcessor.cancelSubscription({
+            const cancellationResult = await this.paymentProcessor.cancelSubscription({
               userId,
               planId: subscription.planId,
               immediate: true

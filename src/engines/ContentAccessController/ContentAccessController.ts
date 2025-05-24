@@ -506,6 +506,45 @@ export class ContentAccessController implements ContentAccessControllerInterface
   }
 
   /**
+   * Updates a user's access level based on their subscription plan
+   * @param userId - User identifier
+   * @param planId - Subscription plan identifier
+   * @returns Whether the update was successful
+   */
+  updateUserAccess(userId: string, planId: string): boolean {
+    try {
+      // Map subscription plan IDs to access levels
+      let accessLevel: string;
+      
+      switch (planId) {
+        case 'anonymous':
+          accessLevel = 'anonymous';
+          break;
+        case 'free':
+          accessLevel = 'free';
+          break;
+        case 'premium-monthly':
+        case 'premium-quarterly':
+        case 'premium-annual':
+          accessLevel = 'premium';
+          break;
+        default:
+          // Unknown plan, default to free
+          accessLevel = 'free';
+          break;
+      }
+      
+      // Update the user's access rights
+      this.updateAccessRights(userId, accessLevel);
+      
+      return true;
+    } catch (error) {
+      console.error(`Failed to update user access for ${userId} to plan ${planId}:`, error);
+      return false;
+    }
+  }
+
+  /**
    * Gets all content items accessible to a user
    * @param userId - User identifier
    * @param contentType - Filter by content type (optional)

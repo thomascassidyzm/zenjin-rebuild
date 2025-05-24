@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HandoffDocument version="1.0.0" date="2025-05-24T15:30:00Z">
+  <ProjectContext>
+    <ProjectName>Zenjin Maths App - APML Framework Rebuild</ProjectName>
+    <CurrentStatus>Backend Services Integration Complete</CurrentStatus>
+    <APMLFrameworkVersion>1.3.2</APMLFrameworkVersion>
+    <OverallCompletion>85%</OverallCompletion>
+    <WorkingDirectory>/Users/tomcassidy/claude-code-experiments/APML-Projects/zenjin-rebuild</WorkingDirectory>
+  </ProjectContext>
+
+  <RecentMajorAchievement>
+    <Title>Backend Services Frontend Integration Complete</Title>
+    <Date>2025-05-24</Date>
+    <StatusChange>BackendServices: functional → integrated (95% completion)</StatusChange>
+    <KeyDeliverables>
+      <Deliverable>UserSessionManagerInterface.apml - APML-compliant interface specification</Deliverable>
+      <Deliverable>UserSessionManager.ts - Complete backend-frontend integration service</Deliverable>
+      <Deliverable>UserSessionContext.tsx - React Context for frontend components</Deliverable>
+      <Deliverable>App.tsx integration - Main app now uses backend services</Deliverable>
+      <Deliverable>Anonymous user creation working in live Supabase</Deliverable>
+      <Deliverable>Session metrics recording to backend database</Deliverable>
+      <Deliverable>User state persistence with optimistic updates</Deliverable>
+      <Deliverable>Real-time synchronization established</Deliverable>
+    </KeyDeliverables>
+    <Evidence>
+      <BuildStatus>✅ Successful - npm run build completes without errors</BuildStatus>
+      <LiveDeployment>✅ Working - Vercel deployment functional</LiveDeployment>
+      <BackendLogs>✅ Anonymous user session created with ID: ab424669-fa54-4d03-ae77-f8d1ca3b4acb</BackendLogs>
+      <StateSync>✅ User state refreshed from backend with version: 1</StateSync>
+      <RealtimeConnection>✅ SupabaseRealTime successfully initialized</RealtimeConnection>
+    </Evidence>
+  </RecentMajorAchievement>
+
+  <CurrentModuleStatus>
+    <Module name="UserInterface" status="integrated" completion="95%" priority="low">
+      All 5 components complete and working
+    </Module>
+    <Module name="LearningEngine" status="functional" completion="85%" priority="medium">
+      Core algorithms working, needs curriculum admin tools
+    </Module>
+    <Module name="ProgressionSystem" status="functional" completion="85%" priority="medium">
+      Spaced repetition and Triple Helix working perfectly
+    </Module>
+    <Module name="MetricsSystem" status="functional" completion="90%" priority="medium">
+      Session and lifetime metrics working, needs global ranking
+    </Module>
+    <Module name="SubscriptionSystem" status="scaffolded" completion="65%" priority="high">
+      NEXT PRIORITY - Advance from scaffolded to functional
+    </Module>
+    <Module name="OfflineSupport" status="functional" completion="75%" priority="medium">
+      Basic functionality working, needs conflict resolution enhancement
+    </Module>
+    <Module name="UserManagement" status="functional" completion="90%" priority="low">
+      Anonymous user management working perfectly
+    </Module>
+    <Module name="BackendServices" status="integrated" completion="95%" priority="complete">
+      ✅ JUST COMPLETED - Frontend integration working in production
+    </Module>
+  </CurrentModuleStatus>
+
+  <NextPriorityTasks>
+    <Task priority="1" module="SubscriptionSystem" effort="high">
+      <Title>Advance SubscriptionSystem from scaffolded to functional</Title>
+      <Description>Complete the implementation of subscription management components following APML Interface-First protocol</Description>
+      <APMLRequirements>
+        <Requirement>Review existing SubscriptionManagerInterface specifications</Requirement>
+        <Requirement>Validate interface completeness before implementation</Requirement>
+        <Requirement>Implement components following strict APML compliance</Requirement>
+        <Requirement>Test against validation criteria SS-001 through SS-005</Requirement>
+      </APMLRequirements>
+      <Components>
+        <Component name="SubscriptionManager" currentStatus="scaffolded" targetStatus="functional" />
+        <Component name="ContentAccessController" currentStatus="functional" targetStatus="functional" />
+        <Component name="PaymentProcessor" currentStatus="scaffolded" targetStatus="functional" />
+      </Components>
+    </Task>
+    
+    <Task priority="2" module="OfflineSupport" effort="medium">
+      <Title>Enhance OfflineSupport conflict resolution</Title>
+      <Description>Implement proper conflict resolution in SynchronizationManager for multi-device usage</Description>
+      <Components>
+        <Component name="SynchronizationManager" currentStatus="functional" targetStatus="integrated" />
+      </Components>
+    </Task>
+    
+    <Task priority="3" module="MetricsSystem" effort="low">
+      <Title>Complete MetricsSystem global ranking</Title>
+      <Description>Implement global ranking algorithms in LifetimeMetricsManager</Description>
+      <Components>
+        <Component name="LifetimeMetricsManager" currentStatus="functional" targetStatus="integrated" />
+      </Components>
+    </Task>
+  </NextPriorityTasks>
+
+  <CriticalProjectFiles>
+    <File path="/registry.apml" importance="critical">
+      Single source of truth for all component status and validation criteria
+    </File>
+    <File path="/src/components/ProjectStatusDashboard.tsx" importance="high">
+      APML-compliant project status visualization with current completion data
+    </File>
+    <File path="/apml_framework_v1.3.2.md" importance="critical">
+      APML Framework specification - MUST be followed for all development
+    </File>
+    <File path="/README.md" importance="high">
+      Project overview with current status and recent achievements
+    </File>
+    <File path="/src/interfaces/UserSessionManagerInterface.ts" importance="high">
+      Example of proper APML Interface-First development
+    </File>
+    <File path="/src/services/UserSessionManager.ts" importance="high">
+      Example of APML-compliant implementation following interface specification
+    </File>
+  </CriticalProjectFiles>
+
+  <APMLComplianceReminders>
+    <Principle>Interface Before Implementation - ALWAYS create .apml interface specifications before any code</Principle>
+    <Principle>Evidence-Based Validation - Status changes require concrete evidence of functionality</Principle>
+    <Principle>6-Phase Status System - Use not-started → scaffolded → functional → integrated → tested → optimized</Principle>
+    <Principle>Context Boundaries - Respect token limitations in all interface definitions</Principle>
+    <Principle>Single-Session Completability - Design tasks that fit within one AI session</Principle>
+  </APMLComplianceReminders>
+
+  <WorkingState>
+    <LastSuccessfulBuild>2025-05-24T15:25:00Z</LastSuccessfulBuild>
+    <LiveDeploymentStatus>✅ Working on Vercel</LiveDeploymentStatus>
+    <BackendIntegration>✅ Full Supabase integration functional</BackendIntegration>
+    <DatabaseStatus>✅ Anonymous users being created successfully</DatabaseStatus>
+    <KnownIssues>
+      <Issue severity="minor">Connectivity indicator shows red on mobile hotspot (fixed with backend-based detection)</Issue>
+    </KnownIssues>
+    <DevelopmentEnvironment>
+      <DeploymentMethod>GitHub Desktop → Vercel auto-deploy</DeploymentMethod>
+      <BuildCommand>npm run build</BuildCommand>
+      <TestingMethod>Live deployment testing via Vercel</TestingMethod>
+    </DevelopmentEnvironment>
+  </WorkingState>
+
+  <HandoffInstructions>
+    <Step>1. Confirm understanding of current BackendServices integration completion</Step>
+    <Step>2. Review APML Framework v1.3.2 requirements for Interface-First development</Step>
+    <Step>3. Focus on SubscriptionSystem as next priority (scaffolded → functional)</Step>
+    <Step>4. Follow strict APML compliance: interface definition before implementation</Step>
+    <Step>5. Use TodoWrite tool to track tasks throughout development process</Step>
+    <Step>6. Update registry.apml status when components advance between phases</Step>
+    <Step>7. Test all changes via GitHub Desktop → Vercel deployment workflow</Step>
+  </HandoffInstructions>
+
+  <SuccessMetrics>
+    <Metric>SubscriptionSystem advanced to functional status (target: 85% completion)</Metric>
+    <Metric>All subscription components properly integrated with backend services</Metric>
+    <Metric>Payment processor mockups replaced with functional interfaces</Metric>
+    <Metric>Content access control working with subscription tiers</Metric>
+    <Metric>Build successful and deployed to Vercel without errors</Metric>
+  </SuccessMetrics>
+</HandoffDocument>

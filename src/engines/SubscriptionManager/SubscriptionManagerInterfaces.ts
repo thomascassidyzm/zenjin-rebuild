@@ -71,7 +71,8 @@ export interface UserSubscription {
 }
 
 /**
- * Interface for the payment processing component
+ * Interface for the payment processing component used by SubscriptionManager
+ * This is a simplified interface that adapts the complex PaymentProcessor for subscription use
  */
 export interface PaymentProcessingInterface {
   /**
@@ -85,11 +86,11 @@ export interface PaymentProcessingInterface {
     amount: number;
     currency: string;
     paymentMethod: string;
-  }): {
+  }): Promise<{
     success: boolean;
     transactionId?: string;
     errorMessage?: string;
-  };
+  }>;
   
   /**
    * Cancels a subscription payment
@@ -100,10 +101,10 @@ export interface PaymentProcessingInterface {
     userId: string;
     planId: string;
     immediate: boolean;
-  }): {
+  }): Promise<{
     success: boolean;
     errorMessage?: string;
-  };
+  }>;
   
   /**
    * Updates a payment method for a subscription
@@ -113,10 +114,10 @@ export interface PaymentProcessingInterface {
   updatePaymentMethod(params: {
     userId: string;
     paymentMethod: string;
-  }): {
+  }): Promise<{
     success: boolean;
     errorMessage?: string;
-  };
+  }>;
 }
 
 /**
@@ -169,7 +170,7 @@ export interface SubscriptionManagerInterface {
     planId: string, 
     paymentMethod?: string, 
     autoRenew?: boolean
-  ): UserSubscription;
+  ): Promise<UserSubscription>;
   
   /**
    * Cancels a user's subscription
@@ -180,7 +181,7 @@ export interface SubscriptionManagerInterface {
    * @throws NO_SUBSCRIPTION if the user has no active subscription
    * @throws CANCELLATION_FAILED if failed to cancel the subscription
    */
-  cancelSubscription(userId: string, endImmediately?: boolean): boolean;
+  cancelSubscription(userId: string, endImmediately?: boolean): Promise<boolean>;
   
   /**
    * Updates a user's subscription
@@ -200,7 +201,7 @@ export interface SubscriptionManagerInterface {
       autoRenew?: boolean;
       paymentMethod?: string;
     }
-  ): UserSubscription;
+  ): Promise<UserSubscription>;
   
   /**
    * Checks if a user has an active subscription
