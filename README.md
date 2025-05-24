@@ -20,6 +20,42 @@ This project is a rebuild of the Zenjin Maths App using the APML Framework v1.3.
 - **Project Status**: [`/status.html`](./status.html) - Visual project progress dashboard
 - **Deployment Guide**: [`/DEPLOYMENT.md`](./DEPLOYMENT.md) - Instructions for deploying to Vercel
 
+## Development & Deployment Workflow
+
+### 🚀 **AI-Assisted Development with Vercel Deployment**
+This project uses an **AI-implement-deploy-test** workflow with continuous deployment:
+
+1. **AI Implementation** → Claude/AI makes necessary code changes
+2. **Local Build Verification** → `npm run build` to ensure code compiles  
+3. **GitHub Desktop Commit** → Human commits and pushes to GitHub
+4. **Vercel Auto-Build** → Automatic deployment triggered by GitHub push
+5. **Live Testing** → Two types of validation on live deployment
+
+### 📋 **Standard Development Process**
+```bash
+# 1. AI makes code changes (automatically verified for compilation)
+# 2. ALWAYS verify build locally before committing
+npm run build
+# ✓ Ensure 770+ modules transform successfully
+# ✓ Check for TypeScript errors or build failures
+
+# 3. Human commits via GitHub Desktop
+# - Review AI changes
+# - Stage and commit with descriptive message
+# - Push to origin/main
+
+# 4. Vercel auto-builds and deploys
+# - Monitor Vercel dashboard for deployment status
+# - Wait for live deployment URL to be ready
+```
+
+### 🧪 **Testing & Validation (Live Deployment)**
+- **Subjective Testing**: UI/UX validation via live web app interaction
+- **Functional Testing**: APMLValidationSuite automated validation via Status → Validation tab
+- **ProjectStatusDashboard**: Real-time module status and completion tracking  
+- **APML Compliance**: Evidence-based advancement using live testing results
+- **No Local Dev Server**: All testing happens on live Vercel deployment
+
 ## Implementation Status
 
 All 26 components across 7 modules have been implemented with varying levels of completion:
@@ -263,22 +299,23 @@ The application is divided into six core modules:
 
 ## Next Steps
 
-### Phase 1: Core Functionality (1-2 weeks)
+### Priority 1: Core Functionality Completion
 1. **Implement ConnectivityManagerInterface** for offline detection
-2. **Add conflict resolution** to SynchronizationManager
-3. **Deploy to Vercel** for testing (see DEPLOYMENT.md)
-4. **Run integration tests** on all modules
+2. **Add conflict resolution** to SynchronizationManager  
+3. **Run APMLValidationSuite** on live deployment for integration testing
+4. **Advance modules from functional → integrated** status using APML protocols
 
-### Phase 2: Production Readiness (2-3 weeks)  
+### Priority 2: Production Readiness
 5. **Mobile accessibility audit** and WCAG compliance
 6. **Performance optimization** - lazy loading, code splitting
-7. **End-to-end testing** for critical user flows
+7. **End-to-end testing** for critical user flows via live deployment
+8. **Module advancement to tested status** following APML Framework
 
-### Phase 3: Enhancement (1-2 weeks)
-8. **Global ranking implementation**
-9. **Curriculum admin tools** completion
-10. **Advanced analytics** and reporting
-11. **Beta deployment** preparation
+### Priority 3: Enhancement & Optimization
+9. **Global ranking implementation** in MetricsSystem
+10. **Curriculum admin tools** completion in LearningEngine
+11. **Advanced analytics** and reporting features
+12. **Module advancement to optimized status** for production-ready components
 
 ## Contact
 
