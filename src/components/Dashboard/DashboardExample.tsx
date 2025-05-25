@@ -99,7 +99,7 @@ const mockDashboardData: DashboardData = {
       name: "Perfect Session",
       description: "Complete a session with 100% first-time correct answers",
       dateEarned: "2025-05-18T14:32:00Z",
-      iconUrl: "/api/placeholder/50/50",
+      iconUrl: "",
       pointsAwarded: 500
     },
     {
