@@ -4,6 +4,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Dashboard from './components/Dashboard/Dashboard';
 import PlayerCard from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
+import LaunchInterface from './components/LaunchInterface';
+import LoadingInterface from './components/LoadingInterface';
+import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
+import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
@@ -395,9 +399,12 @@ const AppContent: React.FC = () => {
   const [selectedLearningPath, setSelectedLearningPath] = useState('addition');
   const [isOnline, setIsOnline] = useState(true);
   const [connectionType, setConnectionType] = useState('unknown');
+  const [launchComplete, setLaunchComplete] = useState(false);
+  const [userAuthChoice, setUserAuthChoice] = useState<UserAuthChoice | null>(null);
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
 
   // Access UserSession context
-  const { state: sessionState, getBackendStatus } = useUserSession();
+  const { state: sessionState, getBackendStatus, createAnonymousUser, initializeSession } = useUserSession();
 
   // Initialize connectivity monitoring
   useEffect(() => {
@@ -445,16 +452,67 @@ const AppContent: React.FC = () => {
     setCurrentPage('session');
   };
 
-  // Show loading screen during session initialization
-  if (sessionState.isLoading) {
+  // Handle user authentication choice
+  const handleAuthChoice = async (choice: UserAuthChoice): Promise<void> => {
+    setUserAuthChoice(choice);
+    
+    try {
+      switch (choice) {
+        case UserAuthChoice.ANONYMOUS:
+          // Create anonymous user session
+          await createAnonymousUser();
+          break;
+        case UserAuthChoice.SIGN_IN:
+          // TODO: Implement sign in flow
+          console.log('Sign in requested - not yet implemented');
+          break;
+        case UserAuthChoice.SIGN_UP:
+          // TODO: Implement sign up flow
+          console.log('Sign up requested - not yet implemented');
+          break;
+      }
+    } catch (error) {
+      console.error('Auth choice failed:', error);
+      throw error; // Let LaunchInterface handle the error
+    }
+  };
+
+  // Handle initial loading completion
+  const handleInitialLoadingComplete = () => {
+    setShowInitialLoading(false);
+  };
+
+  // Phase 1: Initial Loading (engines, backend connection)
+  if (showInitialLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white text-lg">Initializing session...</p>
-          <p className="text-gray-400 text-sm mt-2">Connecting to backend services</p>
-        </div>
-      </div>
+      <LoadingInterface
+        context={LoadingContext.INITIAL_APP_LOAD}
+        onLoadingComplete={handleInitialLoadingComplete}
+      />
+    );
+  }
+
+  // Phase 2: User Choice (Launch Interface)
+  if (!userAuthChoice) {
+    return (
+      <LaunchInterface
+        onAuthChoiceSelected={handleAuthChoice}
+        onInterfaceComplete={() => setLaunchComplete(true)}
+      />
+    );
+  }
+
+  // Phase 3: Session Loading (after user choice, before app)
+  if (sessionState.isLoading) {
+    const loadingContext = userAuthChoice === UserAuthChoice.ANONYMOUS 
+      ? LoadingContext.SESSION_INITIALIZATION 
+      : LoadingContext.USER_AUTHENTICATION;
+      
+    return (
+      <LoadingInterface
+        context={loadingContext}
+        onLoadingComplete={() => setLaunchComplete(true)}
+      />
     );
   }
 
@@ -489,7 +547,8 @@ const AppContent: React.FC = () => {
   const backendIsWorking = sessionState.isAuthenticated || hasBackendConnection;
   const effectiveOnlineStatus = isOnline || backendIsWorking;
 
-  return (
+  // Main app content with smooth launch transition
+  const mainAppContent = (
     <div className="min-h-screen bg-gray-950">
       <NavigationHeader 
         currentPage={currentPage} 
@@ -501,6 +560,9 @@ const AppContent: React.FC = () => {
       {renderCurrentPage()}
     </div>
   );
+
+  // Phase 4: Main Application (after all loading and choices complete)
+  return mainAppContent;
 };
 
 // Main App Component with UserSession Provider

@@ -62,6 +62,7 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
     super();
     
     // Initialize with default state per interface specification
+    // Start with isLoading: false since LaunchInterface will handle user choice first
     this._state = {
       user: null,
       session: null,

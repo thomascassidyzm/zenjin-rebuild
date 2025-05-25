@@ -38,14 +38,8 @@ export const useUserSession = (): UserSessionContextType => {
 export const UserSessionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [sessionState, setSessionState] = useState<UserSessionState>(userSessionManager.state);
 
-  // Initialize session on mount
+  // Set up event subscriptions (but don't auto-initialize)
   useEffect(() => {
-    const initializeSession = async () => {
-      console.log('Initializing user session...');
-      await userSessionManager.initializeSession();
-    };
-
-    initializeSession();
 
     // Subscribe to state changes
     const unsubscribeSessionState = userSessionManager.on('sessionStateChanged', (event) => {
