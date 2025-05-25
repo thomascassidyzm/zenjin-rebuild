@@ -462,14 +462,7 @@ const DashboardDemo = () => {
         }
       }));
       
-      // Highlight the updated metrics
-      setHighlightedMetric('totalPoints');
-      setTimeout(() => {
-        setHighlightedMetric('totalSessions');
-        setTimeout(() => {
-          setHighlightedMetric(null);
-        }, 1500);
-      }, 1500);
+      // Accessibility: Removed rapid highlight animations to prevent epileptic triggers
     }, 500);
   };
 
@@ -534,8 +527,7 @@ const DashboardDemo = () => {
                     totalPoints: prev.lifetimeMetrics.totalPoints + 500
                   }
                 }));
-                setHighlightedMetric('totalPoints');
-                setTimeout(() => setHighlightedMetric(null), 2000);
+                // Accessibility: Removed highlight animation to prevent epileptic triggers
               }}
               className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-sm"
             >
@@ -550,8 +542,7 @@ const DashboardDemo = () => {
                     globalRanking: Math.max(1, prev.lifetimeMetrics.globalRanking - 50)
                   }
                 }));
-                setHighlightedMetric('globalRanking');
-                setTimeout(() => setHighlightedMetric(null), 2000);
+                // Accessibility: Removed highlight animation to prevent epileptic triggers
               }}
               className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-sm"
             >
