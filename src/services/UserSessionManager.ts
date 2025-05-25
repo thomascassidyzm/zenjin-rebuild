@@ -185,6 +185,95 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
   }
 
   /**
+   * Register a new user account
+   */
+  async registerUser(email: string, password: string, displayName?: string): Promise<boolean> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      const registrationRequest = {
+        email,
+        password,
+        displayName,
+        // Include current anonymous user ID for migration if available
+        anonymousId: this._state.user?.id
+      };
+
+      const result = await backendServiceOrchestrator.registerUser(registrationRequest);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'User registration failed');
+      }
+
+      // Update session state with registered user
+      this.updateState({
+        user: result.user,
+        session: result.session,
+        isAuthenticated: true,
+        isLoading: false,
+        backendStatus: backendServiceOrchestrator.getServiceStatus()
+      });
+
+      // Load user state from backend
+      await this.refreshUserState();
+
+      console.log('✅ User registered successfully:', result.user);
+      return true;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'User registration failed';
+      this.updateState({ 
+        isLoading: false, 
+        error: errorMessage 
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Sign in an existing user
+   */
+  async signInUser(email: string, password: string): Promise<boolean> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      const loginRequest = {
+        email,
+        password
+      };
+
+      const result = await backendServiceOrchestrator.loginUser(loginRequest);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'User login failed');
+      }
+
+      // Update session state with authenticated user
+      this.updateState({
+        user: result.user,
+        session: result.session,
+        isAuthenticated: true,
+        isLoading: false,
+        backendStatus: backendServiceOrchestrator.getServiceStatus()
+      });
+
+      // Load user state from backend
+      await this.refreshUserState();
+
+      console.log('✅ User signed in successfully:', result.user);
+      return true;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'User login failed';
+      this.updateState({ 
+        isLoading: false, 
+        error: errorMessage 
+      });
+      return false;
+    }
+  }
+
+  /**
    * Get current user application state
    */
   getUserState(): UserApplicationState {

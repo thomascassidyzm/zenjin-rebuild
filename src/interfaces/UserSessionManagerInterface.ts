@@ -113,6 +113,23 @@ export interface UserSessionManagerInterface {
   createAnonymousUser(deviceId?: string): Promise<boolean>;
 
   /**
+   * Register a new user account with email and password
+   * @param email User's email address
+   * @param password User's password
+   * @param displayName Optional display name for the user
+   * @returns Promise<boolean> True if user registered successfully, false otherwise
+   */
+  registerUser(email: string, password: string, displayName?: string): Promise<boolean>;
+
+  /**
+   * Sign in an existing user with email and password
+   * @param email User's email address
+   * @param password User's password
+   * @returns Promise<boolean> True if user signed in successfully, false otherwise
+   */
+  signInUser(email: string, password: string): Promise<boolean>;
+
+  /**
    * Get current user application state
    * @returns UserApplicationState Current user application state
    */

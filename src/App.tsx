@@ -6,6 +6,7 @@ import PlayerCard from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
+import AuthForm from './components/AuthForm';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
@@ -401,9 +402,17 @@ const AppContent: React.FC = () => {
   const [connectionType, setConnectionType] = useState('unknown');
   const [launchComplete, setLaunchComplete] = useState(false);
   const [userAuthChoice, setUserAuthChoice] = useState<UserAuthChoice | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Access UserSession context
-  const { state: sessionState, getBackendStatus, createAnonymousUser, initializeSession } = useUserSession();
+  const { 
+    state: sessionState, 
+    getBackendStatus, 
+    createAnonymousUser, 
+    initializeSession,
+    registerUser,
+    signInUser
+  } = useUserSession();
 
   // Initialize connectivity monitoring
   useEffect(() => {
@@ -462,12 +471,12 @@ const AppContent: React.FC = () => {
           await createAnonymousUser();
           break;
         case UserAuthChoice.SIGN_IN:
-          // TODO: Implement sign in flow
-          console.log('Sign in requested - not yet implemented');
+          // Sign in flow will be handled by dedicated form component
+          console.log('Sign in flow initiated');
           break;
         case UserAuthChoice.SIGN_UP:
-          // TODO: Implement sign up flow
-          console.log('Sign up requested - not yet implemented');
+          // Sign up flow will be handled by dedicated form component
+          console.log('Sign up flow initiated');
           break;
       }
     } catch (error) {
@@ -486,7 +495,67 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Phase 2: Session Loading (after user choice, before app)
+  // Phase 2: Authentication Forms (for Sign In/Sign Up choices)
+  if ((userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP) && !sessionState.isAuthenticated && !sessionState.isLoading) {
+    const handleAuthAction = async (email: string, password: string, displayName?: string): Promise<boolean> => {
+      setAuthError(null);
+      
+      if (userAuthChoice === UserAuthChoice.SIGN_UP) {
+        return await registerUser(email, password, displayName);
+      } else {
+        return await signInUser(email, password);
+      }
+    };
+
+    const handleAuthSuccess = () => {
+      console.log('Authentication successful, proceeding to loading phase');
+      // The UserSession context will automatically update and trigger the loading phase
+    };
+
+    const handleAuthError = (error: string) => {
+      setAuthError(error);
+    };
+
+    const handleBack = () => {
+      setUserAuthChoice(null);
+      setAuthError(null);
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-2xl">Z</span>
+            </div>
+            <h1 className="text-white text-2xl font-bold">
+              {userAuthChoice === UserAuthChoice.SIGN_IN ? 'Welcome Back' : 'Create Account'}
+            </h1>
+            <p className="text-gray-400 mt-2">
+              {userAuthChoice === UserAuthChoice.SIGN_IN ? 'Sign in to your account' : 'Join Zenjin Maths today'}
+            </p>
+          </div>
+          
+          {/* Show error message if any */}
+          {authError && (
+            <div className="mb-6 p-4 bg-red-900/50 border border-red-500/50 rounded-lg">
+              <p className="text-red-300 text-sm">{authError}</p>
+            </div>
+          )}
+          
+          <AuthForm
+            mode={userAuthChoice}
+            onSuccess={handleAuthSuccess}
+            onError={handleAuthError}
+            onBack={handleBack}
+            onAuthAction={handleAuthAction}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Phase 3: Session Loading (after authentication, before app)
   if (sessionState.isLoading) {
     const loadingContext = userAuthChoice === UserAuthChoice.ANONYMOUS 
       ? LoadingContext.SESSION_INITIALIZATION 

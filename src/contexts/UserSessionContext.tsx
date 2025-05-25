@@ -79,6 +79,14 @@ export const UserSessionProvider: React.FC<{ children: ReactNode }> = ({ childre
       return await userSessionManager.createAnonymousUser(deviceId);
     },
 
+    registerUser: async (email: string, password: string, displayName?: string): Promise<boolean> => {
+      return await userSessionManager.registerUser(email, password, displayName);
+    },
+
+    signInUser: async (email: string, password: string): Promise<boolean> => {
+      return await userSessionManager.signInUser(email, password);
+    },
+
     getUserState: (): UserApplicationState => {
       return userSessionManager.getUserState();
     },
