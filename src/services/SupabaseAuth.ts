@@ -530,7 +530,19 @@ export class SupabaseAuth {
               hint: userRecordError.hint,
               code: userRecordError.code,
               userId: data.user.id,
-              email: email
+              email: email,
+              userCreatedAt: data.user.created_at,
+              userLastSignIn: data.user.last_sign_in_at,
+              isNewUserCheck: data.user.created_at === data.user.last_sign_in_at,
+              insertData: {
+                id: data.user.id,
+                user_type: 'registered',
+                anonymous_id: null,
+                email: email,
+                expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+                subscription_tier: 'Free',
+                metadata: {}
+              }
             });
             // Don't fail the authentication for this - auth user was created successfully
           } else {
