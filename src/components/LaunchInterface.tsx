@@ -62,9 +62,16 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
     backgroundGradientPosition: 0
   });
 
-  // Initialize launch sequence
+  // Initialize immediately - no loading sequence, just show the start page
   useEffect(() => {
-    initializeLaunchSequence();
+    // Immediately show welcome state
+    setPhase(LaunchPhase.WELCOME);
+    setAnimationState({
+      logoScale: 1,
+      welcomeTextOpacity: 1,
+      buttonsVisible: true,
+      backgroundGradientPosition: 0
+    });
   }, []);
 
   // Animate background gradient if enabled
@@ -80,41 +87,6 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
       return () => clearInterval(interval);
     }
   }, [animations.backgroundAnimationEnabled, accessibility.reducedMotion]);
-
-  const initializeLaunchSequence = async () => {
-    // Phase 1: Appearing
-    setPhase(LaunchPhase.APPEARING);
-    
-    if (animations.enableAnimations && !accessibility.reducedMotion) {
-      // Animate logo scale
-      setTimeout(() => {
-        setAnimationState(prev => ({ ...prev, logoScale: 1 }));
-      }, 100);
-
-      // Animate welcome text
-      setTimeout(() => {
-        setAnimationState(prev => ({ ...prev, welcomeTextOpacity: 1 }));
-      }, 300);
-
-      // Show buttons
-      setTimeout(() => {
-        setAnimationState(prev => ({ ...prev, buttonsVisible: true }));
-      }, 600);
-    } else {
-      // Immediate display for reduced motion
-      setAnimationState({
-        logoScale: 1,
-        welcomeTextOpacity: 1,
-        buttonsVisible: true,
-        backgroundGradientPosition: 0
-      });
-    }
-
-    // Phase 2: Welcome (ready for user interaction)
-    setTimeout(() => {
-      setPhase(LaunchPhase.WELCOME);
-    }, animations.enableAnimations ? 800 : 100);
-  };
 
   const handleAuthChoice = async (choice: UserAuthChoice) => {
     if (isProcessingChoice) return;
@@ -205,15 +177,7 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
       >
         <div className="text-center max-w-lg w-full px-6">
           {/* Logo */}
-          <motion.div
-            className="mb-8"
-            initial={{ scale: animations.enableAnimations ? 0.8 : 1 }}
-            animate={{ scale: animationState.logoScale }}
-            transition={{ 
-              duration: animations.logoAnimationDuration / 1000, 
-              ease: "easeOut" 
-            }}
-          >
+          <div className="mb-8">
             <div 
               className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl"
               style={{
@@ -222,36 +186,20 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
             >
               <span className="text-white font-bold text-3xl">Z</span>
             </div>
-          </motion.div>
+          </div>
 
           {/* Welcome Text */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: animations.enableAnimations ? 0 : 1, y: animations.enableAnimations ? 20 : 0 }}
-            animate={{ 
-              opacity: animationState.welcomeTextOpacity, 
-              y: 0 
-            }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
+          <div className="mb-8">
             <h1 className="text-white text-3xl font-bold mb-2">
               Welcome to {branding.appName}
             </h1>
             <p className="text-gray-400 text-lg">
               {branding.appTagline}
             </p>
-          </motion.div>
+          </div>
 
           {/* Authentication Options */}
-          <AnimatePresence>
-            {animationState.buttonsVisible && (
-              <motion.div
-                className="space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-              >
+          <div className="space-y-4">
                 {/* Sign In Button */}
                 {authOptions.enableSignIn && (
                   <motion.button
@@ -264,9 +212,6 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
                     }}
                     whileHover={animations.enableAnimations ? { scale: 1.02 } : {}}
                     whileTap={animations.enableAnimations ? { scale: 0.98 } : {}}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
                   >
                     {authOptions.signInLabel}
                   </motion.button>
@@ -280,9 +225,6 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
                     className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 border-2 border-gray-600 hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={animations.enableAnimations ? { scale: 1.02 } : {}}
                     whileTap={animations.enableAnimations ? { scale: 0.98 } : {}}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
                   >
                     {authOptions.signUpLabel}
                   </motion.button>
@@ -308,16 +250,11 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
                     className="w-full bg-transparent hover:bg-gray-800/50 text-gray-300 hover:text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 border border-gray-600 hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={animations.enableAnimations ? { scale: 1.02 } : {}}
                     whileTap={animations.enableAnimations ? { scale: 0.98 } : {}}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
                   >
                     {authOptions.anonymousLabel}
                   </motion.button>
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
 
           {/* Error Message */}
           {hasError && errorMessage && (
@@ -332,14 +269,9 @@ const LaunchInterface: React.FC<LaunchInterfaceProps> = ({
           )}
 
           {/* Terms and Privacy */}
-          <motion.p
-            className="text-gray-500 text-sm mt-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: animationState.buttonsVisible ? 1 : 0 }}
-            transition={{ delay: 0.5 }}
-          >
+          <p className="text-gray-500 text-sm mt-8">
             {authOptions.termsText}
-          </motion.p>
+          </p>
         </div>
 
         {/* Screen Reader Support */}

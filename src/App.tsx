@@ -401,7 +401,6 @@ const AppContent: React.FC = () => {
   const [connectionType, setConnectionType] = useState('unknown');
   const [launchComplete, setLaunchComplete] = useState(false);
   const [userAuthChoice, setUserAuthChoice] = useState<UserAuthChoice | null>(null);
-  const [showInitialLoading, setShowInitialLoading] = useState(true);
 
   // Access UserSession context
   const { state: sessionState, getBackendStatus, createAnonymousUser, initializeSession } = useUserSession();
@@ -477,22 +476,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Handle initial loading completion
-  const handleInitialLoadingComplete = () => {
-    setShowInitialLoading(false);
-  };
-
-  // Phase 1: Initial Loading (engines, backend connection)
-  if (showInitialLoading) {
-    return (
-      <LoadingInterface
-        context={LoadingContext.INITIAL_APP_LOAD}
-        onLoadingComplete={handleInitialLoadingComplete}
-      />
-    );
-  }
-
-  // Phase 2: User Choice (Launch Interface)
+  // Phase 1: User Choice (Launch Interface - immediate start page)
   if (!userAuthChoice) {
     return (
       <LaunchInterface
@@ -502,7 +486,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Phase 3: Session Loading (after user choice, before app)
+  // Phase 2: Session Loading (after user choice, before app)
   if (sessionState.isLoading) {
     const loadingContext = userAuthChoice === UserAuthChoice.ANONYMOUS 
       ? LoadingContext.SESSION_INITIALIZATION 
@@ -561,7 +545,7 @@ const AppContent: React.FC = () => {
     </div>
   );
 
-  // Phase 4: Main Application (after all loading and choices complete)
+  // Phase 3: Main Application (after loading and choices complete)
   return mainAppContent;
 };
 
