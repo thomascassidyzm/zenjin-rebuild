@@ -53,8 +53,8 @@ const mockDashboardData: DashboardData = {
   ],
   recentAchievements: [
     {
-      id: "perfect-session",
-      name: "Perfect Session",
+      id: "flawless-session",
+      name: "Flawless Session",
       description: "Complete a session with 100% accuracy",
       dateEarned: "2025-05-22T10:30:00Z",
       iconUrl: "/api/placeholder/50/50",
@@ -364,12 +364,12 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
             <div className="mt-4 text-center flex gap-2 justify-center">
               <button
                 onClick={() => {
-                  const perfectScore = { correct: 20, total: 20 };
-                  handleStitchCompletion(perfectScore);
+                  const flawlessScore = { correct: 20, total: 20 };
+                  handleStitchCompletion(flawlessScore);
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
-                ✓ Perfect (20/20)
+                ✓ Flawless (20/20)
               </button>
               <button
                 onClick={() => {

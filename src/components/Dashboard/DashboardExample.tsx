@@ -257,11 +257,7 @@ const RecentAchievements = ({
           >
             <div className="flex items-center">
               <div className="flex-shrink-0 h-12 w-12 bg-indigo-900 rounded-full flex items-center justify-center">
-                <img 
-                  src={achievement.iconUrl} 
-                  alt={achievement.name} 
-                  className="h-8 w-8"
-                />
+                <span className="text-white text-xl">✓</span>
               </div>
               <div className="ml-4">
                 <h3 className="text-white font-medium">{achievement.name}</h3>
@@ -302,11 +298,7 @@ const AchievementNotification = ({
       <div className="p-4">
         <div className="flex items-center">
           <div className="flex-shrink-0 h-12 w-12 bg-indigo-800 rounded-full flex items-center justify-center">
-            <img 
-              src={achievement.iconUrl} 
-              alt={achievement.name} 
-              className="h-8 w-8" 
-            />
+            <span className="text-white text-xl">✓</span>
           </div>
           <div className="ml-4 flex-1">
             <div className="flex items-start justify-between">
