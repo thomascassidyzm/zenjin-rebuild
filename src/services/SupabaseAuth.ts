@@ -410,10 +410,10 @@ export class SupabaseAuth {
       const { data, error } = await this.supabase.auth.signInWithOtp({
         email: email,
         options: {
-          // Allow creating new users automatically
-          shouldCreateUser: true,
-          // Don't need redirect URL for OTP flow
-          emailRedirectTo: undefined
+          // Send OTP without creating session
+          shouldCreateUser: false,
+          // Explicitly don't create session on OTP send
+          data: { create_session: false }
         }
       });
       
