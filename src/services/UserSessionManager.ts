@@ -275,9 +275,11 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
 
   /**
    * Send OTP code to email address for passwordless authentication
+   * Note: Does NOT set global loading state - OTP send is not an authentication event
    */
   async sendEmailOTP(email: string): Promise<boolean> {
-    this.updateState({ isLoading: true, error: null });
+    // Clear any previous errors, but don't set loading state
+    this.updateState({ error: null });
 
     try {
       const result = await backendServiceOrchestrator.sendEmailOTP(email);
@@ -286,16 +288,12 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
         throw new Error(result.error || 'Failed to send OTP');
       }
 
-      // Don't update authentication state yet - wait for OTP verification
-      this.updateState({ isLoading: false });
-
       console.log('✅ OTP sent successfully to:', email);
       return true;
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send OTP';
       this.updateState({ 
-        isLoading: false, 
         error: errorMessage 
       });
       return false;
