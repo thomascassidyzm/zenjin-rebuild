@@ -251,6 +251,7 @@ const OTPAuthentication: React.FC<OTPAuthenticationProps> = ({
 
   // State Machine Renderer
   const renderCurrentState = () => {
+    console.log('🔍 OTP Authentication: Rendering state:', currentState);
     switch (currentState) {
       case 'EMAIL_ENTRY':
         return <EmailEntryForm />;
