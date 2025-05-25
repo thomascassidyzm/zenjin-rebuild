@@ -93,24 +93,7 @@ const mockDashboardData: DashboardData = {
       active: false
     }
   ],
-  recentAchievements: [
-    {
-      id: "first-perfect",
-      name: "PS",
-      description: "Complete a session with 100% first-time correct answers",
-      dateEarned: "2025-05-18T14:32:00Z",
-      iconUrl: "",
-      pointsAwarded: 500
-    },
-    {
-      id: "streak-7",
-      name: "Weekly Wizard",
-      description: "Complete sessions on 7 consecutive days",
-      dateEarned: "2025-05-15T09:15:00Z",
-      iconUrl: "/api/placeholder/50/50",
-      pointsAwarded: 700
-    }
-  ],
+  recentAchievements: [],
   subscriptionType: "Premium",
   username: "MathWhiz123",
   avatarUrl: "/api/placeholder/100/100",
