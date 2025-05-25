@@ -262,9 +262,9 @@ export class SupabaseAuth {
         );
       }
 
-      // Create user record in our custom users table using admin client
+      // Create user record in our custom app_users table using admin client
       const { error: userRecordError } = await this.adminSupabase
-        .from('users')
+        .from('app_users')
         .insert({
           id: data.user.id,
           user_type: 'registered',
@@ -522,9 +522,9 @@ export class SupabaseAuth {
       const isNewUser = data.user.created_at === data.user.last_sign_in_at;
       if (isNewUser) {
         try {
-          // Create user record in our custom users table using admin client
+          // Create user record in our custom app_users table using admin client
           const { error: userRecordError } = await this.adminSupabase
-            .from('users')
+            .from('app_users')
             .insert({
               id: data.user.id,
               user_type: 'registered',
