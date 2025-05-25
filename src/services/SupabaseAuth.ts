@@ -480,6 +480,15 @@ export class SupabaseAuth {
         type: 'email'
       });
 
+      console.log('🔍 OTP Verification Result:', { 
+        hasData: !!data, 
+        hasUser: !!data?.user, 
+        hasSession: !!data?.session,
+        error: error,
+        userCreatedAt: data?.user?.created_at,
+        userLastSignIn: data?.user?.last_sign_in_at
+      });
+
       if (error) {
         // Map common OTP errors
         if (error.message.includes('expired') || error.message.includes('invalid')) {
