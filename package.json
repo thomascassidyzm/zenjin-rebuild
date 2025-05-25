@@ -25,6 +25,7 @@
     "@hookform/resolvers": "^3.3.2",
     "@supabase/supabase-js": "^2.38.5",
     "@types/jsonwebtoken": "^9.0.9",
+    "@vercel/node": "^5.1.16",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.9",
     "clsx": "^2.0.0",

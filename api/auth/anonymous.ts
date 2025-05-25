@@ -21,6 +21,7 @@ interface APIResponse {
   errorCode?: string;
   timestamp: string;
   requestId: string;
+  debug?: any;
 }
 
 interface AnonymousUserRequest {
