@@ -261,6 +261,7 @@ export class SupabaseAuth {
         .insert({
           id: data.user.id,
           user_type: 'registered',
+          anonymous_id: null, // Explicitly set to null for registered users
           email: registrationRequest.email,
           display_name: registrationRequest.displayName,
           subscription_tier: 'Free',
@@ -507,6 +508,7 @@ export class SupabaseAuth {
             .insert({
               id: data.user.id,
               user_type: 'registered',
+              anonymous_id: null, // Explicitly set to null for registered users
               email: email,
               expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days TTL
               subscription_tier: 'Free',
