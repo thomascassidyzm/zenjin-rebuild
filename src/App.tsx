@@ -6,7 +6,7 @@ import PlayerCard from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
-import UnifiedAuthForm, { AuthMode } from './components/UnifiedAuthForm';
+import OTPAuthentication from './components/OTPAuthentication';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
@@ -500,19 +500,16 @@ const AppContent: React.FC = () => {
 
   // Phase 2: Authentication Forms (for Sign In/Sign Up choices)
   if ((userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP) && !sessionState.isAuthenticated && !sessionState.isLoading) {
-    const handleSendOTP = async (email: string): Promise<boolean> => {
+    const handleSendOTP = async (email: string): Promise<{success: boolean, error?: string}> => {
       setAuthError(null);
-      return await sendEmailOTP(email);
+      const success = await sendEmailOTP(email);
+      return { success };
     };
 
-    const handleVerifyOTP = async (email: string, otp: string): Promise<boolean> => {
+    const handleVerifyOTP = async (email: string, otp: string): Promise<{success: boolean, error?: string}> => {
       setAuthError(null);
-      return await verifyEmailOTP(email, otp);
-    };
-
-    const handlePasswordLogin = async (email: string, password: string): Promise<boolean> => {
-      setAuthError(null);
-      return await signInUser(email, password);
+      const success = await verifyEmailOTP(email, otp);
+      return { success };
     };
 
     const handleAuthSuccess = () => {
@@ -520,29 +517,13 @@ const AppContent: React.FC = () => {
       // The UserSession context will automatically update and trigger the loading phase
     };
 
-    const handleBack = () => {
-      setUserAuthChoice(null);
-      setAuthError(null);
-    };
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-bold text-2xl">Z</span>
-            </div>
-          </div>
-          
-          <UnifiedAuthForm
-            mode={AuthMode.EMAIL_ENTRY}
-            onSuccess={handleAuthSuccess}
-            onCancel={handleBack}
-            onSendOTP={handleSendOTP}
-            onVerifyOTP={handleVerifyOTP}
-            onLoginWithPassword={handlePasswordLogin}
-          />
-        </div>
+        <OTPAuthentication
+          onAuthenticated={handleAuthSuccess}
+          onSendOTP={handleSendOTP}
+          onVerifyOTP={handleVerifyOTP}
+        />
       </div>
     );
   }
