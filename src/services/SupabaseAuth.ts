@@ -514,11 +514,27 @@ export class SupabaseAuth {
             });
 
           if (userRecordError) {
-            console.error('Failed to create user record:', userRecordError);
+            console.error('❌ DETAILED DATABASE ERROR:', {
+              error: userRecordError,
+              message: userRecordError.message,
+              details: userRecordError.details,
+              hint: userRecordError.hint,
+              code: userRecordError.code,
+              userId: data.user.id,
+              email: email
+            });
             // Don't fail the authentication for this - auth user was created successfully
+          } else {
+            console.log('✅ User record created successfully in database');
           }
         } catch (recordError) {
-          console.error('Error creating user record:', recordError);
+          console.error('❌ EXCEPTION in user record creation:', {
+            error: recordError,
+            message: recordError.message,
+            stack: recordError.stack,
+            userId: data.user.id,
+            email: email
+          });
           // Continue with authentication even if user record creation fails
         }
       }
