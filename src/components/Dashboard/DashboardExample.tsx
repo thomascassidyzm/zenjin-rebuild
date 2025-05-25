@@ -246,18 +246,14 @@ const RecentAchievements = ({
       <h2 className="text-white text-lg font-bold mb-4">Recent Achievements</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {achievements.map((achievement) => (
-          <motion.div
+          <div
             key={achievement.id}
-            className="p-4 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-lg"
-            whileHover={{ scale: 1.02 }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
+            className="p-4 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-lg hover:scale-[1.02] transition-transform cursor-pointer"
             onClick={() => onAchievementSelected && onAchievementSelected(achievement.id)}
           >
             <div className="flex items-center">
               <div className="flex-shrink-0 h-12 w-12 bg-indigo-900 rounded-full flex items-center justify-center">
-                <span className="text-white text-xl">✓</span>
+                <span className="text-white text-xl">⭐</span>
               </div>
               <div className="ml-4">
                 <h3 className="text-white font-medium">{achievement.name}</h3>
@@ -270,7 +266,7 @@ const RecentAchievements = ({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
@@ -288,17 +284,11 @@ const AchievementNotification = ({
   onClose: () => void;
 }) => {
   return (
-    <motion.div
-      className="fixed top-4 right-4 max-w-sm w-full bg-gradient-to-r from-indigo-900 to-purple-900 rounded-lg shadow-lg z-50 overflow-hidden"
-      initial={{ opacity: 0, y: -50, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -50, scale: 0.9 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="fixed top-4 right-4 max-w-sm w-full bg-gradient-to-r from-indigo-900 to-purple-900 rounded-lg shadow-lg z-50 overflow-hidden">
       <div className="p-4">
         <div className="flex items-center">
           <div className="flex-shrink-0 h-12 w-12 bg-indigo-800 rounded-full flex items-center justify-center">
-            <span className="text-white text-xl">✓</span>
+            <span className="text-white text-xl">⭐</span>
           </div>
           <div className="ml-4 flex-1">
             <div className="flex items-start justify-between">
@@ -323,13 +313,8 @@ const AchievementNotification = ({
           </div>
         </div>
       </div>
-      <motion.div 
-        className="h-1 bg-indigo-400"
-        initial={{ width: "100%" }}
-        animate={{ width: "0%" }}
-        transition={{ duration: 5, ease: "linear" }}
-      />
-    </motion.div>
+      <div className="h-1 bg-indigo-400"></div>
+    </div>
   );
 };
 
@@ -676,14 +661,12 @@ const DashboardDemo = () => {
         />
 
         {/* Achievement Notification */}
-        <AnimatePresence>
-          {notification && (
-            <AchievementNotification
-              achievement={notification}
-              onClose={() => setNotification(null)}
-            />
-          )}
-        </AnimatePresence>
+        {notification && (
+          <AchievementNotification
+            achievement={notification}
+            onClose={() => setNotification(null)}
+          />
+        )}
       </div>
     </div>
   );
