@@ -481,7 +481,7 @@ const DashboardDemo = () => {
   const unlockNewAchievement = () => {
     const newAchievement: Achievement = {
       id: "mastery-addition",
-      name: "A",
+      name: "Addition Master",
       description: "Reach level 10 in the Addition path",
       dateEarned: new Date().toISOString(),
       iconUrl: "/api/placeholder/50/50",
