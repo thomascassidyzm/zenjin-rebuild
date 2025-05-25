@@ -54,7 +54,7 @@ const mockDashboardData: DashboardData = {
   recentAchievements: [
     {
       id: "flawless-session",
-      name: "Flawless Session",
+      name: "F",
       description: "Complete a session with 100% accuracy",
       dateEarned: "2025-05-22T10:30:00Z",
       iconUrl: "/api/placeholder/50/50",
