@@ -506,11 +506,9 @@ export class SupabaseAuth {
             .from('users')
             .insert({
               id: data.user.id,
-              user_type: 'ttl_account',
+              user_type: 'registered',
               email: email,
-              email_verified: true,
-              created_at: new Date().toISOString(),
-              expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
+              expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days TTL
               subscription_tier: 'Free',
               metadata: {}
             });
