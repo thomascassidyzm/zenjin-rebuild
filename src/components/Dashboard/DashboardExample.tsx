@@ -96,7 +96,7 @@ const mockDashboardData: DashboardData = {
   recentAchievements: [
     {
       id: "first-perfect",
-      name: "Perfect Session",
+      name: "PS",
       description: "Complete a session with 100% first-time correct answers",
       dateEarned: "2025-05-18T14:32:00Z",
       iconUrl: "",
