@@ -48,16 +48,16 @@ const OTPAuthentication: React.FC<OTPAuthenticationProps> = ({
 
     setIsLoading(true);
     setError(null);
+    // Immediate transition to OTP_VERIFICATION as per interface contract
+    setCurrentState('OTP_VERIFICATION');
 
     try {
       const result = await onSendOTP(email);
-      if (result.success) {
-        setCurrentState('OTP_VERIFICATION');
-        console.log('✅ OTP Authentication: Transitioned to OTP_VERIFICATION');
-      } else {
+      if (!result.success) {
         setError(result.error || 'Failed to send OTP');
         setCurrentState('ERROR');
       }
+      // Stay in OTP_VERIFICATION if successful
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to send OTP');
       setCurrentState('ERROR');
@@ -251,7 +251,6 @@ const OTPAuthentication: React.FC<OTPAuthenticationProps> = ({
 
   // State Machine Renderer
   const renderCurrentState = () => {
-    console.log('🔍 OTP Authentication: Rendering state:', currentState);
     switch (currentState) {
       case 'EMAIL_ENTRY':
         return <EmailEntryForm />;
