@@ -54,13 +54,17 @@ const UnifiedAuthForm: React.FC<UnifiedAuthFormProps> = ({
     setError(null);
 
     try {
+      console.log('🔍 UnifiedAuthForm: Sending OTP to', email);
       const success = await onSendOTP(email);
+      console.log('🔍 UnifiedAuthForm: OTP send result:', success);
       if (success) {
+        console.log('🔍 UnifiedAuthForm: Setting otpSent to true');
         setOtpSent(true);
       } else {
         setError('Failed to send OTP. Please try again.');
       }
     } catch (error) {
+      console.error('🔍 UnifiedAuthForm: OTP send error:', error);
       setError(error instanceof Error ? error.message : 'Failed to send OTP');
     } finally {
       setIsLoading(false);
