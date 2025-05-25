@@ -177,6 +177,13 @@
   animation: glow-pulse 2s infinite;
 }
 
+/* ACCESSIBILITY FIX: Remove flashing from Perfect Session achievement specifically */
+.achievement-item[data-achievement-id="first-perfect"] .achievement-icon::after {
+  animation: none !important;
+  border: 2px solid transparent;
+  box-shadow: none;
+}
+
 @keyframes glow-pulse {
   0%, 100% {
     border-color: rgba(79, 70, 229, 0);
