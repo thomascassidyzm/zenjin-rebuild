@@ -374,6 +374,178 @@ export class SupabaseAuth {
   }
 
   /**
+   * Send OTP code to email address for passwordless authentication
+   * Works for both new user registration and existing user login
+   */
+  async sendEmailOTP(email: string): Promise<AuthResult> {
+    try {
+      await this.ensureInitialized();
+      
+      if (!this.supabase) {
+        throw new SupabaseAuthError(
+          AuthErrors.SESSION_CREATION_FAILED,
+          'Supabase client not initialized'
+        );
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new SupabaseAuthError(
+          AuthErrors.INVALID_EMAIL,
+          'Email address format is invalid'
+        );
+      }
+
+      const { data, error } = await this.supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          // Allow creating new users automatically
+          shouldCreateUser: true,
+          // Don't need redirect URL for OTP flow
+          emailRedirectTo: undefined
+        }
+      });
+
+      if (error) {
+        throw new SupabaseAuthError(
+          AuthErrors.LOGIN_FAILED,
+          error.message
+        );
+      }
+
+      // Supabase returns null user/session for OTP requests
+      // This is expected - user will be authenticated after OTP verification
+      return {
+        success: true,
+        // No session yet - will be created after OTP verification
+        session: undefined,
+        user: undefined
+      };
+
+    } catch (error) {
+      if (error instanceof SupabaseAuthError) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send OTP'
+      };
+    }
+  }
+
+  /**
+   * Verify OTP code and create authenticated session
+   */
+  async verifyEmailOTP(email: string, otp: string): Promise<AuthResult> {
+    try {
+      await this.ensureInitialized();
+      
+      if (!this.supabase) {
+        throw new SupabaseAuthError(
+          AuthErrors.SESSION_CREATION_FAILED,
+          'Supabase client not initialized'
+        );
+      }
+
+      // Validate inputs
+      if (!email || !otp) {
+        throw new SupabaseAuthError(
+          AuthErrors.INVALID_CREDENTIALS,
+          'Email and OTP code are required'
+        );
+      }
+
+      if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+        throw new SupabaseAuthError(
+          AuthErrors.INVALID_CREDENTIALS,
+          'OTP must be a 6-digit number'
+        );
+      }
+
+      const { data, error } = await this.supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email'
+      });
+
+      if (error) {
+        // Map common OTP errors
+        if (error.message.includes('expired') || error.message.includes('invalid')) {
+          throw new SupabaseAuthError(
+            AuthErrors.INVALID_CREDENTIALS,
+            'Invalid or expired OTP code'
+          );
+        } else {
+          throw new SupabaseAuthError(
+            AuthErrors.LOGIN_FAILED,
+            error.message
+          );
+        }
+      }
+
+      if (!data.session || !data.user) {
+        throw new SupabaseAuthError(
+          AuthErrors.LOGIN_FAILED,
+          'OTP verification failed - no session created'
+        );
+      }
+
+      const authSession = this.transformSupabaseSession(data.session);
+      this.currentSession = authSession;
+
+      // Check if this is a new user that needs a user record
+      const isNewUser = data.user.created_at === data.user.last_sign_in_at;
+      if (isNewUser) {
+        try {
+          // Create user record in our custom users table
+          const { error: userRecordError } = await this.supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              user_type: 'ttl_account',
+              email: email,
+              email_verified: true,
+              created_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days
+              subscription_tier: 'Free',
+              metadata: {}
+            });
+
+          if (userRecordError) {
+            console.error('Failed to create user record:', userRecordError);
+            // Don't fail the authentication for this - auth user was created successfully
+          }
+        } catch (recordError) {
+          console.error('Error creating user record:', recordError);
+          // Continue with authentication even if user record creation fails
+        }
+      }
+
+      return {
+        success: true,
+        session: authSession,
+        user: this.transformSupabaseUser(data.user)
+      };
+
+    } catch (error) {
+      if (error instanceof SupabaseAuthError) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'OTP verification failed'
+      };
+    }
+  }
+
+  /**
    * Logs out the current user and invalidates session
    */
   async logoutUser(): Promise<boolean> {

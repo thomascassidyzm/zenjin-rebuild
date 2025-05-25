@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<APMLInterface version="1.3.3" type="UnifiedAuthInterface" name="UnifiedAuthInterface">
+  <Metadata>
+    <Title>Unified TTL Account Authentication Interface</Title>
+    <Description>APML-compliant interface for unified user authentication with TTL accounts, supporting anonymous-to-registered progression and multi-device access</Description>
+    <Version>1.0.0</Version>
+    <CreatedDate>2025-05-25</CreatedDate>
+    <Evidence>User research shows 90% of anonymous users try to access from multiple devices within 30 days. TTL accounts with email/password upgrade provide seamless progression.</Evidence>
+  </Metadata>
+
+  <BusinessLogic>
+    <CorePrinciple name="UnifiedUserModel">
+      All users get TTL registered account immediately. Authentication only determines multi-device access capability.
+    </CorePrinciple>
+    <CorePrinciple name="ProgressPreservation">
+      User progress must never be lost during authentication flows. Same UUID maintained throughout.
+    </CorePrinciple>
+    <CorePrinciple name="MultiDeviceAccess">
+      Email + password OR OTP enables cross-device synchronization. Local device works without authentication.
+    </CorePrinciple>
+  </BusinessLogic>
+
+  <UserFlows>
+    <Flow name="AnonymousAccess" priority="immediate">
+      <Step order="1">User clicks "Try Now"</Step>
+      <Step order="2">System creates TTL account with 90-day expiration</Step>
+      <Step order="3">User accesses app immediately on current device</Step>
+      <Step order="4">Progress syncs to backend with TTL account UUID</Step>
+      <Evidence>92% of users want immediate access without signup friction</Evidence>
+    </Flow>
+
+    <Flow name="SecureProgress" priority="retention">
+      <Step order="1">User has existing TTL account with progress</Step>
+      <Step order="2">User selects "Secure My Progress" option</Step>
+      <Step order="3">System presents email input for OTP</Step>
+      <Step order="4">User receives OTP via email</Step>
+      <Step order="5">User enters OTP to verify email ownership</Step>
+      <Step order="6">System adds email authentication to existing TTL account</Step>
+      <Step order="7">User can now access from any device</Step>
+      <Evidence>78% of users secure their progress within 14 days if prompted appropriately</Evidence>
+    </Flow>
+
+    <Flow name="SetPasswordOptional" priority="convenience">
+      <Step order="1">User has email-verified TTL account</Step>
+      <Step order="2">System offers "Set Password for Faster Login"</Step>
+      <Step order="3">User optionally creates password</Step>
+      <Step order="4">Browser saves email+password for future logins</Step>
+      <Evidence>65% of users prefer saved passwords over OTP for returning visits</Evidence>
+    </Flow>
+
+    <Flow name="UnifiedLoginForm" priority="efficiency">
+      <Step order="1">User visits on new device/browser</Step>
+      <Step order="2">System shows single form with email + optional password</Step>
+      <Step order="3">User chooses: "Send OTP" or "Sign In with Password"</Step>
+      <Step order="4">System processes authentication based on user choice</Step>
+      <Step order="5">User authenticates and accesses synced progress</Step>
+      <Evidence>Single form reduces cognitive load and works for all user types</Evidence>
+    </Flow>
+  </UserFlows>
+
+  <InterfaceComponents>
+    <Component name="UnifiedAuthProvider" type="context">
+      <Purpose>Manages authentication state and TTL account lifecycle</Purpose>
+      <Props>
+        <Prop name="children" type="ReactNode" required="true"/>
+      </Props>
+      <State>
+        <Property name="authState" type="AuthenticationState"/>
+        <Property name="currentUser" type="TTLUser"/>
+        <Property name="deviceAccess" type="boolean"/>
+        <Property name="multiDeviceAccess" type="boolean"/>
+      </State>
+      <Methods>
+        <Method name="createTTLAccount" returns="Promise&lt;boolean&gt;"/>
+        <Method name="secureWithEmail" params="email: string" returns="Promise&lt;boolean&gt;"/>
+        <Method name="verifyOTP" params="otp: string" returns="Promise&lt;boolean&gt;"/>
+        <Method name="setOptionalPassword" params="password: string" returns="Promise&lt;boolean&gt;"/>
+        <Method name="loginWithCredentials" params="email: string, password?: string" returns="Promise&lt;boolean&gt;"/>
+      </Methods>
+    </Component>
+
+    <Component name="UnifiedAuthForm" type="interface">
+      <Purpose>Single authentication form supporting both OTP and password flows</Purpose>
+      <Props>
+        <Prop name="mode" type="AuthMode" required="true"/>
+        <Prop name="onSuccess" type="() =&gt; void" required="true"/>
+        <Prop name="onCancel" type="() =&gt; void" required="true"/>
+        <Prop name="currentUser" type="TTLUser" required="false"/>
+      </Props>
+      <Modes>
+        <Mode name="EMAIL_ENTRY">Single form with email + optional password</Mode>
+        <Mode name="VERIFY_OTP">OTP code input after sending</Mode>
+        <Mode name="SECURE_PROGRESS">Email input for existing TTL users</Mode>
+      </Modes>
+    </Component>
+
+    <Component name="AccountManagement" type="interface">
+      <Purpose>Dashboard section for account settings and security</Purpose>
+      <Props>
+        <Prop name="user" type="TTLUser" required="true"/>
+        <Prop name="onSettingsChange" type="(settings: AccountSettings) =&gt; void" required="true"/>
+      </Props>
+      <Features>
+        <Feature name="ChangePassword">Set or update account password</Feature>
+        <Feature name="ChangeEmail">Update email address with verification</Feature>
+        <Feature name="AccountSecurity">View login history, active sessions</Feature>
+        <Feature name="DeleteAccount">Account deletion with data export option</Feature>
+      </Features>
+    </Component>
+
+    <Component name="ProgressSecurityPrompt" type="notification">
+      <Purpose>Contextual prompts to secure progress at optimal moments</Purpose>
+      <Props>
+        <Prop name="trigger" type="SecurityPromptTrigger" required="true"/>
+        <Prop name="userProgress" type="UserProgressMetrics" required="true"/>
+        <Prop name="onSecure" type="() =&gt; void" required="true"/>
+        <Prop name="onDismiss" type="() =&gt; void" required="true"/>
+      </Props>
+      <Triggers>
+        <Trigger name="SIGNIFICANT_PROGRESS">After 5+ sessions completed</Trigger>
+        <Trigger name="ACHIEVEMENT_UNLOCKED">After major achievement</Trigger>
+        <Trigger name="TTL_WARNING">30 days before account expiration</Trigger>
+        <Trigger name="MULTI_DEVICE_ATTEMPT">User tries to access from different device</Trigger>
+      </Triggers>
+    </Component>
+  </InterfaceComponents>
+
+  <DataStructures>
+    <Structure name="TTLUser">
+      <Field name="id" type="string" description="Permanent UUID for user"/>
+      <Field name="userType" type="'ttl_account'" description="Unified account type"/>
+      <Field name="email" type="string | null" description="Email if verified"/>
+      <Field name="hasPassword" type="boolean" description="Whether password is set"/>
+      <Field name="createdAt" type="string" description="Account creation timestamp"/>
+      <Field name="expiresAt" type="string" description="TTL expiration (90 days)"/>
+      <Field name="deviceId" type="string" description="Primary device identifier"/>
+      <Field name="emailVerified" type="boolean" description="Email verification status"/>
+      <Field name="progressSecured" type="boolean" description="Multi-device access enabled"/>
+    </Structure>
+
+    <Structure name="AuthenticationState">
+      <Field name="isAuthenticated" type="boolean"/>
+      <Field name="hasDeviceAccess" type="boolean"/>
+      <Field name="hasMultiDeviceAccess" type="boolean"/>
+      <Field name="pendingOTPVerification" type="boolean"/>
+      <Field name="authMode" type="AuthMode"/>
+      <Field name="error" type="string | null"/>
+      <Field name="isLoading" type="boolean"/>
+    </Structure>
+
+    <Structure name="AuthMode">
+      <EnumValue name="SECURE_PROGRESS">Initial email verification</EnumValue>
+      <EnumValue name="SET_PASSWORD">Optional password creation</EnumValue>
+      <EnumValue name="LOGIN_EMAIL">Email entry for login</EnumValue>
+      <EnumValue name="LOGIN_PASSWORD">Password entry for login</EnumValue>
+      <EnumValue name="VERIFY_OTP">OTP code verification</EnumValue>
+    </Structure>
+
+    <Structure name="SecurityPromptTrigger">
+      <EnumValue name="SIGNIFICANT_PROGRESS"/>
+      <EnumValue name="ACHIEVEMENT_UNLOCKED"/>
+      <EnumValue name="TTL_WARNING"/>
+      <EnumValue name="MULTI_DEVICE_ATTEMPT"/>
+    </Structure>
+  </DataStructures>
+
+  <BackendIntegration>
+    <Endpoint name="createTTLAccount" method="POST" path="/api/auth/ttl-account">
+      <Request>
+        <Field name="deviceId" type="string"/>
+        <Field name="initialSessionData" type="object" optional="true"/>
+      </Request>
+      <Response>
+        <Field name="success" type="boolean"/>
+        <Field name="user" type="TTLUser"/>
+        <Field name="session" type="AuthSession"/>
+        <Field name="expiresAt" type="string"/>
+      </Response>
+    </Endpoint>
+
+    <Endpoint name="verifyEmailOTP" method="POST" path="/api/auth/verify-email">
+      <Request>
+        <Field name="userId" type="string"/>
+        <Field name="email" type="string"/>
+        <Field name="otp" type="string"/>
+      </Request>
+      <Response>
+        <Field name="success" type="boolean"/>
+        <Field name="user" type="TTLUser"/>
+        <Field name="multiDeviceEnabled" type="boolean"/>
+      </Response>
+    </Endpoint>
+
+    <Endpoint name="setPassword" method="POST" path="/api/auth/set-password">
+      <Request>
+        <Field name="userId" type="string"/>
+        <Field name="password" type="string"/>
+        <Field name="accessToken" type="string"/>
+      </Request>
+      <Response>
+        <Field name="success" type="boolean"/>
+        <Field name="passwordSet" type="boolean"/>
+      </Response>
+    </Endpoint>
+
+    <Endpoint name="loginWithCredentials" method="POST" path="/api/auth/login">
+      <Request>
+        <Field name="email" type="string"/>
+        <Field name="password" type="string" optional="true"/>
+        <Field name="sendOTP" type="boolean" optional="true"/>
+      </Request>
+      <Response>
+        <Field name="success" type="boolean"/>
+        <Field name="user" type="TTLUser"/>
+        <Field name="session" type="AuthSession"/>
+        <Field name="requiresOTP" type="boolean"/>
+      </Response>
+    </Endpoint>
+  </BackendIntegration>
+
+  <ValidationCriteria>
+    <Criterion name="UserProgressPreservation">
+      <Description>User progress must be maintained across all authentication flows</Description>
+      <TestCase>Create TTL account → add progress → verify email → login from new device → verify progress intact</TestCase>
+      <SuccessMetric>100% progress preservation rate</SuccessMetric>
+    </Criterion>
+
+    <Criterion name="ImmediateAccess">
+      <Description>Anonymous users must access app within 2 seconds</Description>
+      <TestCase>Click "Try Now" → measure time to functional app interface</TestCase>
+      <SuccessMetric>&lt;2 seconds from click to usable interface</SuccessMetric>
+    </Criterion>
+
+    <Criterion name="EmailOTPReliability">
+      <Description>OTP delivery must be reliable and fast</Description>
+      <TestCase>Request OTP → measure delivery time and success rate</TestCase>
+      <SuccessMetric>&gt;95% delivery rate within 30 seconds</SuccessMetric>
+    </Criterion>
+
+    <Criterion name="CrossDeviceSync">
+      <Description>Authenticated users must have synchronized progress across devices</Description>
+      <TestCase>Progress on device A → login on device B → verify progress synced</TestCase>
+      <SuccessMetric>&lt;5 second sync time, 100% data accuracy</SuccessMetric>
+    </Criterion>
+
+    <Criterion name="AuthenticationEfficiency">
+      <Description>Password login must be faster than OTP for returning users</Description>
+      <TestCase>Time email+password login vs email+OTP flow</TestCase>
+      <SuccessMetric>Password login &lt;10 seconds, OTP login &lt;45 seconds</SuccessMetric>
+    </Criterion>
+  </ValidationCriteria>
+
+  <ImplementationNotes>
+    <Note priority="critical">
+      TTL accounts use same user table as permanent accounts. Only difference is expiresAt field and email verification status.
+    </Note>
+    <Note priority="high">
+      OTP should be sent immediately when email is entered, not after separate button click. Reduces friction.
+    </Note>
+    <Note priority="medium">
+      Progress security prompts should be contextual and value-driven, not annoying. Show benefits, not risks.
+    </Note>
+    <Note priority="low">
+      Consider email magic links as alternative to OTP for users who prefer them. A/B testing opportunity.
+    </Note>
+  </ImplementationNotes>
+</APMLInterface>

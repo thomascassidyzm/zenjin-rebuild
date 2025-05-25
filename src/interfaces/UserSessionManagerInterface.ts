@@ -130,6 +130,21 @@ export interface UserSessionManagerInterface {
   signInUser(email: string, password: string): Promise<boolean>;
 
   /**
+   * Send OTP code to email address for passwordless authentication
+   * @param email User's email address
+   * @returns Promise<boolean> True if OTP sent successfully, false otherwise
+   */
+  sendEmailOTP(email: string): Promise<boolean>;
+
+  /**
+   * Verify OTP code and establish authenticated session
+   * @param email User's email address
+   * @param otp 6-digit OTP code
+   * @returns Promise<boolean> True if OTP verified and user authenticated, false otherwise
+   */
+  verifyEmailOTP(email: string, otp: string): Promise<boolean>;
+
+  /**
    * Get current user application state
    * @returns UserApplicationState Current user application state
    */

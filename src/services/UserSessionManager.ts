@@ -274,6 +274,73 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
   }
 
   /**
+   * Send OTP code to email address for passwordless authentication
+   */
+  async sendEmailOTP(email: string): Promise<boolean> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      const result = await backendServiceOrchestrator.sendEmailOTP(email);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send OTP');
+      }
+
+      // Don't update authentication state yet - wait for OTP verification
+      this.updateState({ isLoading: false });
+
+      console.log('✅ OTP sent successfully to:', email);
+      return true;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send OTP';
+      this.updateState({ 
+        isLoading: false, 
+        error: errorMessage 
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Verify OTP code and establish authenticated session
+   */
+  async verifyEmailOTP(email: string, otp: string): Promise<boolean> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      const result = await backendServiceOrchestrator.verifyEmailOTP(email, otp);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'OTP verification failed');
+      }
+
+      // Update session state with authenticated user
+      this.updateState({
+        user: result.user,
+        session: result.session,
+        isAuthenticated: true,
+        isLoading: false,
+        backendStatus: backendServiceOrchestrator.getServiceStatus()
+      });
+
+      // Load user state from backend
+      await this.refreshUserState();
+
+      console.log('✅ OTP verified successfully, user authenticated:', result.user);
+      return true;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'OTP verification failed';
+      this.updateState({ 
+        isLoading: false, 
+        error: errorMessage 
+      });
+      return false;
+    }
+  }
+
+  /**
    * Get current user application state
    */
   getUserState(): UserApplicationState {

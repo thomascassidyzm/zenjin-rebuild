@@ -87,6 +87,14 @@ export const UserSessionProvider: React.FC<{ children: ReactNode }> = ({ childre
       return await userSessionManager.signInUser(email, password);
     },
 
+    sendEmailOTP: async (email: string): Promise<boolean> => {
+      return await userSessionManager.sendEmailOTP(email);
+    },
+
+    verifyEmailOTP: async (email: string, otp: string): Promise<boolean> => {
+      return await userSessionManager.verifyEmailOTP(email, otp);
+    },
+
     getUserState: (): UserApplicationState => {
       return userSessionManager.getUserState();
     },

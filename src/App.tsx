@@ -6,7 +6,7 @@ import PlayerCard from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
-import AuthForm from './components/AuthForm';
+import UnifiedAuthForm, { AuthMode } from './components/UnifiedAuthForm';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
@@ -411,7 +411,9 @@ const AppContent: React.FC = () => {
     createAnonymousUser, 
     initializeSession,
     registerUser,
-    signInUser
+    signInUser,
+    sendEmailOTP,
+    verifyEmailOTP
   } = useUserSession();
 
   // Initialize connectivity monitoring
@@ -497,23 +499,24 @@ const AppContent: React.FC = () => {
 
   // Phase 2: Authentication Forms (for Sign In/Sign Up choices)
   if ((userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP) && !sessionState.isAuthenticated && !sessionState.isLoading) {
-    const handleAuthAction = async (email: string, password: string, displayName?: string): Promise<boolean> => {
+    const handleSendOTP = async (email: string): Promise<boolean> => {
       setAuthError(null);
-      
-      if (userAuthChoice === UserAuthChoice.SIGN_UP) {
-        return await registerUser(email, password, displayName);
-      } else {
-        return await signInUser(email, password);
-      }
+      return await sendEmailOTP(email);
+    };
+
+    const handleVerifyOTP = async (email: string, otp: string): Promise<boolean> => {
+      setAuthError(null);
+      return await verifyEmailOTP(email, otp);
+    };
+
+    const handlePasswordLogin = async (email: string, password: string): Promise<boolean> => {
+      setAuthError(null);
+      return await signInUser(email, password);
     };
 
     const handleAuthSuccess = () => {
       console.log('Authentication successful, proceeding to loading phase');
       // The UserSession context will automatically update and trigger the loading phase
-    };
-
-    const handleAuthError = (error: string) => {
-      setAuthError(error);
     };
 
     const handleBack = () => {
@@ -528,27 +531,15 @@ const AppContent: React.FC = () => {
             <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl flex items-center justify-center mx-auto mb-4">
               <span className="text-white font-bold text-2xl">Z</span>
             </div>
-            <h1 className="text-white text-2xl font-bold">
-              {userAuthChoice === UserAuthChoice.SIGN_IN ? 'Welcome Back' : 'Create Account'}
-            </h1>
-            <p className="text-gray-400 mt-2">
-              {userAuthChoice === UserAuthChoice.SIGN_IN ? 'Sign in to your account' : 'Join Zenjin Maths today'}
-            </p>
           </div>
           
-          {/* Show error message if any */}
-          {authError && (
-            <div className="mb-6 p-4 bg-red-900/50 border border-red-500/50 rounded-lg">
-              <p className="text-red-300 text-sm">{authError}</p>
-            </div>
-          )}
-          
-          <AuthForm
-            mode={userAuthChoice}
+          <UnifiedAuthForm
+            mode={AuthMode.EMAIL_ENTRY}
             onSuccess={handleAuthSuccess}
-            onError={handleAuthError}
-            onBack={handleBack}
-            onAuthAction={handleAuthAction}
+            onCancel={handleBack}
+            onSendOTP={handleSendOTP}
+            onVerifyOTP={handleVerifyOTP}
+            onLoginWithPassword={handlePasswordLogin}
           />
         </div>
       </div>

@@ -157,6 +157,44 @@ export class BackendServiceOrchestrator {
   }
 
   /**
+   * Send OTP code to email address for passwordless authentication
+   */
+  async sendEmailOTP(email: string): Promise<AuthResult> {
+    try {
+      const result = await this.auth.sendEmailOTP(email);
+      return result;
+    } catch (error) {
+      this.logError('auth', 'sendEmailOTP', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send OTP'
+      };
+    }
+  }
+
+  /**
+   * Verify OTP code and establish authenticated session
+   */
+  async verifyEmailOTP(email: string, otp: string): Promise<AuthResult> {
+    try {
+      const result = await this.auth.verifyEmailOTP(email, otp);
+      
+      if (result.success && result.user) {
+        // Set up real-time subscriptions for the authenticated user
+        this.setupUserRealTimeSubscriptions(result.user.id);
+      }
+
+      return result;
+    } catch (error) {
+      this.logError('auth', 'verifyEmailOTP', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'OTP verification failed'
+      };
+    }
+  }
+
+  /**
    * Logout the current user
    */
   async logoutUser(): Promise<boolean> {
