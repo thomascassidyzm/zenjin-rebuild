@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<InterfaceSpecification name="BuildBadgeInterface" version="1.0" date="2025-05-25">
+  <Purpose>
+    APML-compliant build versioning and timestamp interface for testing validation. 
+    Provides evidence-based testing capability with clear build identification across all pages.
+  </Purpose>
+  
+  <EvidenceBase>
+    <UserResearch>Testing requires immediate visual confirmation of deployed version to avoid false debugging</UserResearch>
+    <TechnicalEvidence>Build timestamps eliminate deployment uncertainty during rapid iteration cycles</TechnicalEvidence>
+    <APMLRequirement>Evidence-based testing demands clear version identification for all validation activities</APMLRequirement>
+  </EvidenceBase>
+  
+  <ValidationCriteria>
+    <Criterion id="visibility" measurement="visual_prominence" target="clearly_visible_on_all_pages">Build badge must be immediately visible on every page</Criterion>
+    <Criterion id="accuracy" measurement="timestamp_precision" target="second_level_accuracy">Build timestamp accurate to the second</Criterion>
+    <Criterion id="persistence" measurement="display_consistency" target="100_percent_uptime">Badge displays consistently across all routes and states</Criterion>
+    <Criterion id="non_interference" measurement="ui_integration" target="no_layout_disruption">Badge does not interfere with existing UI elements</Criterion>
+  </ValidationCriteria>
+  
+  <ComponentInterface>
+    <Component name="BuildBadge">
+      <DataStructures>
+        <Structure name="BuildInfo">
+          <Field name="buildTimestamp" type="string" format="ISO8601" required="true" />
+          <Field name="buildNumber" type="string" required="true" />
+          <Field name="gitCommit" type="string" required="false" />
+          <Field name="environment" type="string" enum="['development', 'production']" required="true" />
+        </Structure>
+      </DataStructures>
+      
+      <Methods>
+        <Method name="getBuildInfo" returnType="BuildInfo">
+          <Purpose>Retrieve current build information</Purpose>
+          <ValidationStandard>Must return accurate build data or fail clearly</ValidationStandard>
+        </Method>
+        
+        <Method name="formatDisplayText" returnType="string" parameters="buildInfo: BuildInfo">
+          <Purpose>Format build information for display</Purpose>
+          <ValidationStandard>Must create human-readable build identification string</ValidationStandard>
+        </Method>
+      </Methods>
+      
+      <Behaviors>
+        <Behavior name="VisualDisplay">
+          <Description>Fixed position badge showing build timestamp</Description>
+          <Trigger>Component mount</Trigger>
+          <ValidationCriteria>Badge appears within 100ms of page load</ValidationCriteria>
+        </Behavior>
+        
+        <Behavior name="ClickInteraction">
+          <Description>Click to show detailed build information</Description>
+          <Trigger>User click on badge</Trigger>
+          <ValidationCriteria>Detailed info modal opens within 200ms</ValidationCriteria>
+        </Behavior>
+      </Behaviors>
+    </Component>
+  </ComponentInterface>
+  
+  <IntegrationSpecification>
+    <Integration name="AppWideDisplay">
+      <Description>Build badge integrated into root App component for universal display</Description>
+      <Requirements>
+        <Requirement>Badge must appear on every route without exception</Requirement>
+        <Requirement>Badge position must not interfere with existing navigation or content</Requirement>
+        <Requirement>Badge must be accessible for testing automation</Requirement>
+      </Requirements>
+    </Integration>
+    
+    <Integration name="BuildProcessIntegration">
+      <Description>Build timestamp generation during Vite build process</Description>
+      <Requirements>
+        <Requirement>Build timestamp must be injected at build time, not runtime</Requirement>
+        <Requirement>Build information must be accessible to all components</Requirement>
+        <Requirement>Build process must fail if timestamp generation fails</Requirement>
+      </Requirements>
+    </Integration>
+  </IntegrationSpecification>
+  
+  <UserFlows>
+    <Flow name="TestingValidation">
+      <Step>Tester loads any page in application</Step>
+      <Step>Build badge is immediately visible with current build timestamp</Step>
+      <Step>Tester can click badge to see detailed build information</Step>
+      <Step>Tester confirms they are testing the expected build version</Step>
+      <ExpectedOutcome>Clear evidence of build version being tested</ExpectedOutcome>
+    </Flow>
+    
+    <Flow name="DeploymentVerification">
+      <Step>Developer deploys new build</Step>
+      <Step>Developer loads application</Step>
+      <Step>Build badge shows updated timestamp confirming new deployment</Step>
+      <Step>Developer proceeds with testing knowing correct version is live</Step>
+      <ExpectedOutcome>Immediate confirmation of successful deployment</ExpectedOutcome>
+    </Flow>
+  </UserFlows>
+  
+  <ImplementationGuidelines>
+    <Guideline category="APML_Compliance">
+      <Principle>Interface specification must precede implementation</Principle>
+      <Application>This specification defines exact behavior before component creation</Application>
+    </Guideline>
+    
+    <Guideline category="Evidence_Based_Design">
+      <Principle>All design decisions must be evidence-based</Principle>
+      <Application>Build badge placement and behavior based on testing validation requirements</Application>
+    </Guideline>
+    
+    <Guideline category="Fail_Fast_Approach">
+      <Principle>Component must work or fail clearly with no degraded states</Principle>
+      <Application>Build info retrieval succeeds completely or throws clear error</Application>
+    </Guideline>
+  </ImplementationGuidelines>
+</InterfaceSpecification>

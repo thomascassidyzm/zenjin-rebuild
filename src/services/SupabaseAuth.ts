@@ -85,6 +85,7 @@ export class SupabaseAuthError extends Error {
 
 export class SupabaseAuth {
   private supabase: SupabaseClient | null = null;
+  private adminSupabase: SupabaseClient | null = null;
   private currentSession: AuthSession | null = null;
   private initializationPromise: Promise<void> | null = null;
 
@@ -100,7 +101,7 @@ export class SupabaseAuth {
    * Ensure Supabase client is initialized
    */
   private async ensureInitialized(): Promise<void> {
-    if (this.supabase) return;
+    if (this.supabase && this.adminSupabase) return;
     
     if (this.initializationPromise) {
       return this.initializationPromise;
@@ -116,12 +117,16 @@ export class SupabaseAuth {
    */
   private async initialize(): Promise<void> {
     const config = await configurationService.getConfiguration();
-    this.initializeSupabase(config.supabaseUrl, config.supabaseAnonKey);
+    this.initializeSupabase(config.supabaseUrl, config.supabaseAnonKey, config.supabaseServiceKey);
   }
 
-  private initializeSupabase(url: string, key: string): void {
+  private initializeSupabase(url: string, anonKey: string, serviceKey: string): void {
     try {
-      this.supabase = createClient(url, key);
+      // Regular client for auth operations
+      this.supabase = createClient(url, anonKey);
+      
+      // Admin client for user creation operations - APML: required, no fallbacks
+      this.adminSupabase = createClient(url, serviceKey);
       
       // Listen for auth changes
       this.supabase.auth.onAuthStateChange((event, session) => {
@@ -132,10 +137,12 @@ export class SupabaseAuth {
         }
       });
       
-      console.log('SupabaseAuth: Successfully initialized');
+      console.log('SupabaseAuth: Successfully initialized with admin client');
     } catch (error) {
-      console.error('SupabaseAuth: Failed to create Supabase client:', error);
+      console.error('SupabaseAuth: Failed to create Supabase clients:', error);
       this.supabase = null;
+      this.adminSupabase = null;
+      throw error; // APML: fail fast, no graceful degradation
     }
   }
 
@@ -255,8 +262,8 @@ export class SupabaseAuth {
         );
       }
 
-      // Create user record in our custom users table
-      const { error: userRecordError } = await this.supabase
+      // Create user record in our custom users table using admin client
+      const { error: userRecordError } = await this.adminSupabase
         .from('users')
         .insert({
           id: data.user.id,
@@ -502,8 +509,8 @@ export class SupabaseAuth {
       const isNewUser = data.user.created_at === data.user.last_sign_in_at;
       if (isNewUser) {
         try {
-          // Create user record in our custom users table
-          const { error: userRecordError } = await this.supabase
+          // Create user record in our custom users table using admin client
+          const { error: userRecordError } = await this.adminSupabase
             .from('users')
             .insert({
               id: data.user.id,

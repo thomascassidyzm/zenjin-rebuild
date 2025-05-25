@@ -14,6 +14,7 @@ import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
+import BuildBadge from './components/BuildBadge';
 import './App.css';
 
 // Mock data for initial testing
@@ -614,6 +615,7 @@ const App: React.FC = () => {
   return (
     <UserSessionProvider>
       <AppContent />
+      <BuildBadge />
     </UserSessionProvider>
   );
 };

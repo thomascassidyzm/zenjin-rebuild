@@ -5,6 +5,12 @@ import { resolve } from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    // Inject build timestamp at build time
+    'import.meta.env.VITE_BUILD_TIMESTAMP': JSON.stringify(new Date().toISOString()),
+    'import.meta.env.VITE_BUILD_NUMBER': JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 8) || Date.now().toString()),
+    'import.meta.env.VITE_GIT_COMMIT': JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA || ''),
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

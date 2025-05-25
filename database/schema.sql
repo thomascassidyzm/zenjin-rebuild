@@ -216,6 +216,10 @@ ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can access own data" ON users
   FOR SELECT USING ((select auth.uid()) = id);
 
+-- Users can insert their own data during registration
+CREATE POLICY "Users can insert own data" ON users
+  FOR INSERT WITH CHECK ((select auth.uid()) = id);
+
 CREATE POLICY "Users can access own state" ON user_state
   FOR SELECT USING ((select auth.uid()) = user_id);
 
