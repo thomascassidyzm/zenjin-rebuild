@@ -405,6 +405,8 @@ export class SupabaseAuth {
         );
       }
 
+      console.log('🔍 Attempting OTP send for email:', email);
+      
       const { data, error } = await this.supabase.auth.signInWithOtp({
         email: email,
         options: {
@@ -414,6 +416,8 @@ export class SupabaseAuth {
           emailRedirectTo: undefined
         }
       });
+      
+      console.log('🔍 OTP Send Result:', { data, error, errorMessage: error?.message, errorStatus: error?.status });
 
       if (error) {
         throw new SupabaseAuthError(
