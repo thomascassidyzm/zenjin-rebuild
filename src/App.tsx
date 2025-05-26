@@ -574,8 +574,8 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Phase 3: Session Loading (after authentication, before app)
-  if (sessionState.isLoading) {
+  // Phase 3: Session Loading (only show for anonymous users or initial loading, not after successful auth)
+  if (sessionState.isLoading && !sessionState.isAuthenticated) {
     const loadingContext = userAuthChoice === UserAuthChoice.ANONYMOUS 
       ? LoadingContext.SESSION_INITIALIZATION 
       : LoadingContext.USER_AUTHENTICATION;
