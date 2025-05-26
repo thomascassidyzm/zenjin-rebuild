@@ -129,5 +129,4 @@ export interface TripleHelixManagerInterface {
   ): LearningPath;
 }
 
-// Explicit exports for better compatibility
-export { LearningPath, TripleHelixState, TripleHelixManagerInterface };
+// Types are already exported with 'export interface' above
