@@ -223,14 +223,16 @@
             <File path="src/engines/TripleHelixManager/TripleHelixManagerTypes.ts" />
             <File path="src/engines/TripleHelixManager/TripleHelixManager.README.md" />
             <File path="src/engines/TripleHelixManager/index.ts" />
+            <File path="src/services/CurriculumMapper.ts" />
+            <File path="src/services/UserStateInitializer.ts" />
           </Files>
           <ValidationStatus>
             <Criterion id="PS-001" status="passed" />
           </ValidationStatus>
           <ImplementationDate>2025-05-21</ImplementationDate>
-          <LastUpdated>2025-05-23</LastUpdated>
+          <LastUpdated>2025-05-26</LastUpdated>
           <LLM>Claude 3.7 Sonnet</LLM>
-          <Notes>Triple helix rotation working with Live Aid model</Notes>
+          <Notes>CORRECTED ARCHITECTURE: 3 rotating tubes (1→2→3→1) with stitch groupings by concept. Fixed TypeScript build errors with type-only imports. Proper user state initialization implemented.</Notes>
         </Component>
         <Component name="SpacedRepetitionSystem" implementationStatus="functional">
           <Files>
@@ -622,6 +624,8 @@
           <Files>
             <File path="src/services/SupabaseAuth.ts" />
             <File path="src/services/SupabaseAuth/SupabaseAuth.test.ts" />
+            <File path="src/services/AuthToPlayerEventBus.ts" />
+            <File path="src/components/OTPAuthentication.tsx" />
           </Files>
           <ValidationStatus>
             <Criterion id="BS-013" status="passed" />
@@ -631,9 +635,9 @@
             <Criterion id="BS-017" status="passed" />
           </ValidationStatus>
           <ImplementationDate>2025-05-24</ImplementationDate>
-          <LastUpdated>2025-05-24</LastUpdated>
+          <LastUpdated>2025-05-26</LastUpdated>
           <LLM>Claude 3.7 Sonnet</LLM>
-          <Notes>ADVANCED: Complete APML validation testing confirms functional status. Authentication interface compliance, workflow validation, error handling, state management, and integration points all validated. OTP signup issue resolved by changing shouldCreateUser configuration.</Notes>
+          <Notes>ADVANCED: Complete APML validation testing confirms functional status. OTP signup issue resolved by changing shouldCreateUser: false → true. Event-driven architecture implemented with AuthToPlayerEventBus. Fixed keyboard input bug in OTPAuthentication component.</Notes>
         </Component>
         <Component name="BackendServiceOrchestrator" implementationStatus="functional">
           <Files>
@@ -847,14 +851,14 @@
     </StatusLevels>
     
     <ModuleStatus>
-      <Module name="UserInterface" interfaces="6/6" components="7/7" status="integrated" completion="98%" />
+      <Module name="UserInterface" interfaces="6/6" components="7/7" status="integrated" completion="100%" />
       <Module name="LearningEngine" interfaces="5/5" components="5/5" status="functional" completion="95%" />
-      <Module name="ProgressionSystem" interfaces="4/4" components="4/4" status="functional" completion="85%" />
+      <Module name="ProgressionSystem" interfaces="4/4" components="4/4" status="functional" completion="95%" />
       <Module name="MetricsSystem" interfaces="4/4" components="4/4" status="functional" completion="90%" />
       <Module name="SubscriptionSystem" interfaces="3/3" components="3/3" status="functional" completion="85%" />
       <Module name="OfflineSupport" interfaces="4/4" components="4/4" status="functional" completion="95%" />
       <Module name="UserManagement" interfaces="1/1" components="1/1" status="functional" completion="90%" />
-      <Module name="BackendServices" interfaces="5/5" components="6/6" status="integrated" completion="90%" />
+      <Module name="BackendServices" interfaces="5/5" components="6/6" status="integrated" completion="95%" />
     </ModuleStatus>
     
     <CompletedComponents>
@@ -908,9 +912,18 @@
   </ImplementationProgress>
   
   <LastUpdated>2025-05-26</LastUpdated>
-  <!-- 2025-05-26: Added Auth-to-Player flow implementation with APML v1.4.1 framework -->
-  <!-- 2025-05-26: Completed PreEngagementCard, MathLoadingAnimation, and useAuthToPlayerFlow hook -->
-  <!-- 2025-05-26: Fixed Supabase OTP authentication with shouldCreateUser configuration -->
+  <!-- 2025-05-26: MAJOR ARCHITECTURE COMPLETION - Triple Helix & Auth-to-Player Flow -->
+  <!-- 2025-05-26: Updated APML Framework to v1.4.1 with Specification Type Taxonomy (Interface/Behavioral/Experience) -->
+  <!-- 2025-05-26: Corrected Triple Helix architecture: 3 rotating tubes (1→2→3→1) with stitch groupings by concept -->
+  <!-- 2025-05-26: Implemented complete Auth-to-Player flow state machine: AUTH_SUCCESS → PRE_ENGAGEMENT → LOADING_WITH_ANIMATION → ACTIVE_LEARNING -->
+  <!-- 2025-05-26: Replaced useAuthToPlayerFlow hook with event-driven AuthToPlayerEventBus architecture -->
+  <!-- 2025-05-26: Added PreEngagementCard with YouTube-style big play button interface -->
+  <!-- 2025-05-26: Added MathLoadingAnimation with 3-second floating math symbols -->
+  <!-- 2025-05-26: Fixed OTP authentication: shouldCreateUser configuration corrected in SupabaseAuth -->
+  <!-- 2025-05-26: Fixed TypeScript build errors: changed to type-only imports in TripleHelixManager -->
+  <!-- 2025-05-26: Implemented proper user state initialization: anonymous vs authenticated differentiation -->
+  <!-- 2025-05-26: Updated all project documentation: HANDOFF_TRIPLE_HELIX_ARCHITECTURE.apml, README.md, registry.apml -->
+  <!-- 2025-05-26: Build successful and production deployment ready -->
   <!-- 2025-05-24: REGISTRY STATUS ALIGNMENT - Replaced all 'complete' status with proper APML 6-phase system alignment -->
   <!-- 2025-05-24: UserInterface components advanced to 'integrated' status (components work together as cohesive system) -->
   <!-- 2025-05-24: All other components aligned to 'functional' status (basic functionality works, not yet fully integrated/tested) -->

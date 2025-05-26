@@ -4,7 +4,7 @@
 
 This project is a rebuild of the Zenjin Maths App using the APML Framework v1.4.1. The rebuild preserves the effective theoretical foundation and user experience while improving component separation, interface clarity, and testability to support ongoing adaptation and enhancement.
 
-**Current Status**: Authentication complete, Auth-to-Player flow implemented following APML v1.4.1 Behavioral Specifications.
+**Current Status**: Authentication complete, Auth-to-Player flow implemented with Triple Helix architecture following APML v1.4.1 Specification Type Taxonomy. Build successful and production-ready.
 
 ## Key Project Files
 
@@ -14,9 +14,10 @@ This project is a rebuild of the Zenjin Maths App using the APML Framework v1.4.
 - **Quick Reference**: [`/QUICK_HANDOFF.md`](./QUICK_HANDOFF.md) - Fast orientation for immediate context
 
 ### Framework & Methodology  
-- **Framework Definition**: [`/apml_framework_v1.3.3.md`](./apml_framework_v1.3.3.md) - APML Framework v1.3.3 with Continuing Chat Protocol
+- **Framework Definition**: [`/apml_framework_v1.4.1.md`](./apml_framework_v1.4.1.md) - APML Framework v1.4.1 with Specification Type Taxonomy
 - **Framework Explainer**: [`/APML_EXPLAINER.md`](./APML_EXPLAINER.md) - Overview of APML methodology and interface-first development
 - **Knowledge Transfer**: [`/knowledge_transfer.md`](./knowledge_transfer.md) - Project structure and implementation approach
+- **Triple Helix Handoff**: [`/HANDOFF_TRIPLE_HELIX_ARCHITECTURE.apml`](./HANDOFF_TRIPLE_HELIX_ARCHITECTURE.apml) - Complete architecture implementation handoff
 
 ### Operational
 - **Project Status**: [`/status.html`](./status.html) - Visual project progress dashboard
@@ -229,6 +230,17 @@ The application is divided into six core modules:
 6. **OfflineSupport** - Offline functionality and synchronization
 
 ## Recent Achievements 🎉
+
+### 2025-05-26: Triple Helix Architecture & Auth-to-Player Flow Complete ⭐ **MAJOR MILESTONE**
+- ✅ **APML Framework v1.4.1** - Updated with Specification Type Taxonomy (Interface/Behavioral/Experience)
+- ✅ **Triple Helix Architecture** - Corrected implementation: 3 rotating tubes (1→2→3→1) with stitch groupings by concept
+- ✅ **Auth-to-Player Flow** - Complete state machine: AUTH_SUCCESS → PRE_ENGAGEMENT → LOADING_WITH_ANIMATION → ACTIVE_LEARNING
+- ✅ **Event-Driven Architecture** - Replaced hooks with AuthToPlayerEventBus for better maintainability
+- ✅ **YouTube-Style Play Button** - PreEngagementCard with big play button interface
+- ✅ **User State Initialization** - Proper differentiation: anonymous users start Tube 1/Stitch 1, authenticated users resume
+- ✅ **OTP Authentication Fix** - Supabase shouldCreateUser configuration corrected
+- ✅ **TypeScript Build Fix** - Type-only imports resolved Rollup export errors
+- ✅ **Production Deployment Ready** - Build successful, all components integrated
 
 ### 2025-05-24: SubscriptionSystem Advanced to Functional ⭐ **MAJOR MILESTONE**
 - ✅ **APML Interface-First Development** - Fixed broken imports and interface mismatches following strict APML protocol
