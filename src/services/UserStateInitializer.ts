@@ -13,11 +13,12 @@ import { StitchManager } from '../engines/StitchManager/StitchManager';
 import { StitchLibrary, Stitch } from '../engines/StitchLibrary';
 import { FactRepository } from '../engines/FactRepository/FactRepository';
 import { SupabaseUserState } from './SupabaseUserState';
+import { CurriculumMapper, UserTripleHelixPosition } from './CurriculumMapper';
 
 export interface UserLearningState {
   userId: string;
   userType: 'anonymous' | 'authenticated';
-  currentTube: number;
+  tripleHelixPosition: UserTripleHelixPosition;
   currentStitch: Stitch;
   tripleHelixInitialized: boolean;
   progress: {
@@ -43,6 +44,7 @@ export class UserStateInitializer {
   private stitchManager: StitchManager;
   private stitchLibrary: StitchLibrary;
   private userStateService: SupabaseUserState;
+  private curriculumMapper: CurriculumMapper;
 
   constructor() {
     // Initialize dependencies
@@ -51,6 +53,7 @@ export class UserStateInitializer {
     this.tripleHelixManager = new TripleHelixManager();
     this.stitchManager = new StitchManager();
     this.userStateService = new SupabaseUserState();
+    this.curriculumMapper = new CurriculumMapper();
   }
 
   /**
@@ -74,8 +77,14 @@ export class UserStateInitializer {
   private async initializeAnonymousUser(userId: string): Promise<UserLearningState> {
     console.log('📚 Setting up anonymous user with default content');
     
-    // Get the first stitch from the default learning path
-    const defaultStitch = this.getDefaultStartingStitch();
+    // Get the default Triple Helix starting position
+    const defaultPosition = this.curriculumMapper.getDefaultStartingPosition();
+    
+    // Get the first stitch to work on
+    const currentStitch = this.curriculumMapper.getCurrentStitch(defaultPosition);
+    if (!currentStitch) {
+      throw new Error('No starting stitch available in curriculum');
+    }
     
     // Initialize basic triple helix (in-memory only for anonymous users)
     try {
@@ -88,8 +97,8 @@ export class UserStateInitializer {
     return {
       userId,
       userType: 'anonymous',
-      currentTube: 1,
-      currentStitch: defaultStitch,
+      tripleHelixPosition: defaultPosition,
+      currentStitch,
       tripleHelixInitialized: true,
       progress: {
         totalStitchesCompleted: 0,
@@ -151,6 +160,21 @@ export class UserStateInitializer {
     // Get the stitch they were working on
     const currentStitch = this.getStitchById(savedPosition.stitchId);
     
+    // Reconstruct Triple Helix position from saved data
+    // TODO: In a real implementation, this would be saved as a complete UserTripleHelixPosition
+    // For now, we'll approximate based on the saved position
+    const tripleHelixPosition: UserTripleHelixPosition = {
+      currentTube: this.extractTubeNumber(savedPosition.tubeId),
+      tubePositions: {
+        tube1Position: this.extractTubeNumber(savedPosition.tubeId) === 1 ? savedPosition.position : 1,
+        tube2Position: this.extractTubeNumber(savedPosition.tubeId) === 2 ? savedPosition.position : 1,
+        tube3Position: this.extractTubeNumber(savedPosition.tubeId) === 3 ? savedPosition.position : 1
+      },
+      completedGroupings: [], // Would be restored from saved data
+      currentStitchInGroup: savedPosition.stitchId,
+      rotationCount: 0 // Would be restored from saved data
+    };
+    
     // Restore triple helix state
     let tripleHelixState;
     try {
@@ -163,7 +187,7 @@ export class UserStateInitializer {
     return {
       userId,
       userType: 'authenticated',
-      currentTube: this.extractTubeNumber(savedPosition.tubeId),
+      tripleHelixPosition,
       currentStitch,
       tripleHelixInitialized: true,
       progress: {
@@ -181,7 +205,14 @@ export class UserStateInitializer {
   private async initializeFirstTimeAuthenticatedUser(userId: string): Promise<UserLearningState> {
     console.log('🎓 Setting up first-time authenticated user');
     
-    const defaultStitch = this.getDefaultStartingStitch();
+    // Get the default Triple Helix starting position
+    const defaultPosition = this.curriculumMapper.getDefaultStartingPosition();
+    
+    // Get the first stitch to work on
+    const currentStitch = this.curriculumMapper.getCurrentStitch(defaultPosition);
+    if (!currentStitch) {
+      throw new Error('No starting stitch available in curriculum');
+    }
     
     // Initialize triple helix
     const tripleHelixState = this.tripleHelixManager.initializeTripleHelix(userId, 1);
@@ -189,8 +220,8 @@ export class UserStateInitializer {
     // Save initial state to backend
     try {
       await this.saveUserLearningPosition(userId, {
-        tubeId: 'tube-1',
-        stitchId: defaultStitch.id,
+        tubeId: `tube-${defaultPosition.currentTube}`,
+        stitchId: currentStitch.id,
         position: 1
       });
       console.log('✅ Initial learning position saved to backend');
@@ -201,8 +232,8 @@ export class UserStateInitializer {
     return {
       userId,
       userType: 'authenticated',
-      currentTube: 1,
-      currentStitch: defaultStitch,
+      tripleHelixPosition: defaultPosition,
+      currentStitch,
       tripleHelixInitialized: true,
       progress: {
         totalStitchesCompleted: 0,
@@ -213,22 +244,23 @@ export class UserStateInitializer {
   }
 
   /**
-   * Get the default starting stitch (Tube 1, Stitch 1)
-   */
-  private getDefaultStartingStitch(): Stitch {
-    // Get the first addition stitch as the default starting point
-    const additionStitches = this.stitchLibrary.createAdditionStitches();
-    return additionStitches.find(stitch => stitch.position === 1) || additionStitches[0];
-  }
-
-  /**
-   * Get stitch by ID
+   * Get stitch by ID from the curriculum
    */
   private getStitchById(stitchId: string): Stitch {
-    // This would lookup stitch from the library
-    // For now, return default if not found
-    const additionStitches = this.stitchLibrary.createAdditionStitches();
-    return additionStitches.find(stitch => stitch.id === stitchId) || additionStitches[0];
+    const allStitches = this.stitchLibrary.getAllStitches();
+    const stitch = allStitches.find(s => s.id === stitchId);
+    
+    if (!stitch) {
+      // Fallback to default starting stitch
+      const defaultPosition = this.curriculumMapper.getDefaultStartingPosition();
+      const defaultStitch = this.curriculumMapper.getCurrentStitch(defaultPosition);
+      if (!defaultStitch) {
+        throw new Error('No fallback stitch available');
+      }
+      return defaultStitch;
+    }
+    
+    return stitch;
   }
 
   /**

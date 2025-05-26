@@ -179,9 +179,10 @@ class AuthToPlayerEventBus {
       this.backgroundData.contentPrepared = true;
       
       console.log('✅ User learning state initialized:', {
-        tube: userLearningState.currentTube,
+        tube: userLearningState.tripleHelixPosition.currentTube,
         stitch: userLearningState.currentStitch.name,
-        userType: userLearningState.userType
+        userType: userLearningState.userType,
+        rotationCount: userLearningState.tripleHelixPosition.rotationCount
       });
       
       this.emit('background:content-prepared', { firstStitch: this.backgroundData.firstStitch });
