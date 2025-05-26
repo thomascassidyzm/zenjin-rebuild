@@ -6,7 +6,7 @@ import PlayerCard from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
-import OTPAuthentication from './components/OTPAuthentication';
+import UnifiedAuthForm, { AuthMode } from './components/UnifiedAuthForm';
 import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
@@ -507,7 +507,7 @@ const AppContent: React.FC = () => {
             email: undefined
           };
           
-          authToPlayerActions.initializeFlow(anonymousUserContext);
+          authToPlayerEventBus.startFlow(anonymousUserContext);
           break;
         case UserAuthChoice.SIGN_IN:
           // Sign in flow will be handled by dedicated form component
@@ -536,16 +536,38 @@ const AppContent: React.FC = () => {
 
   // Phase 2: Authentication Forms (for Sign In/Sign Up choices)
   if ((userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP) && !sessionState.isAuthenticated && !sessionState.isLoading) {
-    const handleSendOTP = async (email: string): Promise<{success: boolean, error?: string}> => {
+    const handleSendOTP = async (email: string): Promise<boolean> => {
       setAuthError(null);
-      const success = await sendEmailOTP(email);
-      return { success };
+      return await sendEmailOTP(email);
     };
 
-    const handleVerifyOTP = async (email: string, otp: string): Promise<{success: boolean, error?: string}> => {
+    const handleVerifyOTP = async (email: string, otp: string): Promise<boolean> => {
       setAuthError(null);
-      const success = await verifyEmailOTP(email, otp);
-      return { success };
+      return await verifyEmailOTP(email, otp);
+    };
+
+    const handlePasswordLogin = async (email: string, password: string): Promise<boolean> => {
+      setAuthError(null);
+      try {
+        // First try to sign in with existing account
+        const signInSuccess = await signInUser(email, password);
+        if (signInSuccess) {
+          return true;
+        }
+        
+        // If sign in fails, try to register new account (auto-registration flow)
+        console.log('Sign in failed, attempting auto-registration for new user');
+        const registerSuccess = await registerUser(email, password, email.split('@')[0]);
+        if (registerSuccess) {
+          return true;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error('Password authentication failed:', error);
+        setAuthError(error instanceof Error ? error.message : 'Authentication failed');
+        return false;
+      }
     };
 
     const handleAuthSuccess = () => {
@@ -563,13 +585,29 @@ const AppContent: React.FC = () => {
       authToPlayerEventBus.startFlow(userContext);
     };
 
+    const handleCancel = () => {
+      setUserAuthChoice(null);
+      setAuthError(null);
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-        <OTPAuthentication
-          onAuthenticated={handleAuthSuccess}
-          onSendOTP={handleSendOTP}
-          onVerifyOTP={handleVerifyOTP}
-        />
+        <div className="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-white font-bold text-2xl">Z</span>
+            </div>
+          </div>
+          
+          <UnifiedAuthForm
+            mode={AuthMode.EMAIL_ENTRY}
+            onSuccess={handleAuthSuccess}
+            onCancel={handleCancel}
+            onSendOTP={handleSendOTP}
+            onVerifyOTP={handleVerifyOTP}
+            onLoginWithPassword={handlePasswordLogin}
+          />
+        </div>
       </div>
     );
   }

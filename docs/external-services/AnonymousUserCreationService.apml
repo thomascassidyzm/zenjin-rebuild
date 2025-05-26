@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalServiceDocumentation>
+  <ServiceName>Anonymous User Creation Service</ServiceName>
+  <DocumentationSources>
+    <Source url="/api/auth/anonymous.ts" type="internal-api">
+      Internal API endpoint for anonymous user creation
+    </Source>
+    <Source url="https://supabase.com/docs/guides/auth" type="external-dependency">
+      Supabase authentication service documentation
+    </Source>
+    <Source url="https://supabase.com/docs/reference/javascript/auth-admin-createuser" type="api-reference">
+      Supabase user creation API reference
+    </Source>
+  </DocumentationSources>
+  
+  <ServicePurpose>
+    Creates anonymous user accounts with temporary access for users who want to try the application without providing personal information. Provides full app functionality with local progress tracking that can be migrated to permanent accounts.
+  </ServicePurpose>
+  
+  <ServiceBehavior>
+    <NormalOperation>
+      <Step>Accept optional device ID for user tracking</Step>
+      <Step>Generate unique anonymous user identifier</Step>
+      <Step>Create user record in Supabase users table</Step>
+      <Step>Initialize default user state in user_state table</Step>
+      <Step>Generate JWT token for session management</Step>
+      <Step>Return user data and session token</Step>
+    </NormalOperation>
+    
+    <FailureModes>
+      <FailureMode name="DatabaseUnavailable">
+        <Condition>Supabase database connection fails</Condition>
+        <Behavior>Returns HTTP 500 with database connection error</Behavior>
+        <RecoveryTime>Dependent on Supabase service restoration</RecoveryTime>
+      </FailureMode>
+      <FailureMode name="UserRecordCreationFailed">
+        <Condition>User table insertion fails due to constraints or conflicts</Condition>
+        <Behavior>Returns HTTP 500 with user creation error</Behavior>
+        <RecoveryTime>Immediate retry possible</RecoveryTime>
+      </FailureMode>
+      <FailureMode name="StateInitializationFailed">
+        <Condition>User state table insertion fails</Condition>
+        <Behavior>Cleanup user record, return HTTP 500 with state creation error</Behavior>
+        <RecoveryTime>Immediate retry possible</RecoveryTime>
+      </FailureMode>
+      <FailureMode name="JWTGenerationFailed">
+        <Condition>JWT signing fails due to missing secret or crypto errors</Condition>
+        <Behavior>Returns HTTP 500 with token generation error</Behavior>
+        <RecoveryTime>Requires environment configuration fix</RecoveryTime>
+      </FailureMode>
+    </FailureModes>
+    
+    <ServiceDependencies>
+      <Dependency name="Supabase" criticality="high">
+        Database and authentication service
+      </Dependency>
+      <Dependency name="JWT_SECRET" criticality="high">
+        Environment variable for token signing
+      </Dependency>
+      <Dependency name="UUID_GENERATION" criticality="medium">
+        UUID library for unique identifiers
+      </Dependency>
+    </ServiceDependencies>
+  </ServiceBehavior>
+  
+  <APIContract>
+    <Endpoint>
+      <Method>POST</Method>
+      <Path>/api/auth/anonymous</Path>
+      <RequestSchema>
+        <Field name="deviceId" type="string" required="false">
+          Optional device identifier for tracking
+        </Field>
+        <Field name="initialSessionData" type="object" required="false">
+          Optional initial session configuration
+        </Field>
+        <Field name="ttlHours" type="number" required="false" default="168">
+          Time-to-live in hours (default 7 days)
+        </Field>
+      </RequestSchema>
+      <ResponseSchema>
+        <SuccessResponse statusCode="201">
+          <Field name="success" type="boolean" value="true" />
+          <Field name="data" type="object">
+            <Field name="user" type="object">
+              <Field name="id" type="string">UUID of created user</Field>
+              <Field name="anonymousId" type="string">Anonymous identifier</Field>
+              <Field name="displayName" type="string">Generated display name</Field>
+              <Field name="userType" type="string" value="anonymous" />
+              <Field name="subscriptionTier" type="string" value="Free" />
+              <Field name="expiresAt" type="string">ISO timestamp of expiration</Field>
+            </Field>
+            <Field name="session" type="object">
+              <Field name="accessToken" type="string">JWT access token</Field>
+              <Field name="userType" type="string" value="anonymous" />
+              <Field name="expiresAt" type="number">Unix timestamp of expiration</Field>
+            </Field>
+            <Field name="initialState" type="object">Default user application state</Field>
+          </Field>
+          <Field name="timestamp" type="string">ISO timestamp of response</Field>
+          <Field name="requestId" type="string">Unique request identifier</Field>
+        </SuccessResponse>
+        <ErrorResponse statusCode="500">
+          <Field name="success" type="boolean" value="false" />
+          <Field name="error" type="string">Human readable error message</Field>
+          <Field name="errorCode" type="string">Machine readable error code</Field>
+          <Field name="timestamp" type="string">ISO timestamp of response</Field>
+          <Field name="requestId" type="string">Unique request identifier</Field>
+          <Field name="debug" type="string" required="false">Debug information</Field>
+        </ErrorResponse>
+      </ResponseSchema>
+    </Endpoint>
+  </APIContract>
+  
+  <ServiceQuirks>
+    <Quirk name="AutoCleanup">
+      Anonymous users are automatically cleaned up after expiration time (default 7 days)
+    </Quirk>
+    <Quirk name="NoEmailVerification">
+      Anonymous users bypass all email verification requirements
+    </Quirk>
+    <Quirk name="TemporaryState">
+      User state is stored in database but considered temporary and non-recoverable
+    </Quirk>
+    <Quirk name="UUIDGeneration">
+      Uses UUID v4 for user IDs to avoid collisions with authenticated users
+    </Quirk>
+  </ServiceQuirks>
+  
+  <IntegrationRequirements>
+    <Requirement name="ErrorHandling">
+      Must handle all failure modes gracefully without exposing internal implementation details
+    </Requirement>
+    <Requirement name="StateManagement">
+      Must initialize complete user application state matching authenticated user schema
+    </Requirement>
+    <Requirement name="SessionManagement">
+      Must provide valid JWT tokens compatible with existing authentication system
+    </Requirement>
+    <Requirement name="OfflineFallback">
+      Must provide alternative when service is unavailable to maintain user experience
+    </Requirement>
+  </IntegrationRequirements>
+</ExternalServiceDocumentation>

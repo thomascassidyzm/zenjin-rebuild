@@ -148,30 +148,51 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
 
   /**
    * Create new anonymous user and establish authenticated session
+   * Uses APML-compliant service adapter with proper fallback handling
    */
   async createAnonymousUser(deviceId?: string): Promise<boolean> {
     this.updateState({ isLoading: true, error: null });
 
     try {
-      const result = await backendServiceOrchestrator.createAnonymousUserSession(deviceId);
+      // Use APML-compliant service adapter
+      const { anonymousUserService } = await import('./AnonymousUserService');
+      
+      const result = await anonymousUserService.createAnonymousUser({
+        deviceId,
+        mode: 'Hybrid' // Attempt online first, fall back to offline
+      });
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to create anonymous user');
       }
 
-      // Update session state
+      // Map service adapter result to session state
       this.updateState({
-        user: result.user,
-        session: result.session,
+        user: {
+          id: result.user!.id,
+          anonymousId: result.user!.anonymousId,
+          displayName: result.user!.displayName,
+          userType: result.user!.userType,
+          subscriptionTier: result.user!.subscriptionTier,
+          isLocal: result.user!.isLocal
+        },
+        session: {
+          accessToken: result.session!.accessToken,
+          userType: result.session!.userType,
+          isLocal: result.session!.isLocal
+        },
         isAuthenticated: true,
         isLoading: false,
+        userState: result.initialState,
         backendStatus: backendServiceOrchestrator.getServiceStatus()
       });
 
-      // Load initial user state from backend
-      await this.refreshUserState();
+      // Only attempt to refresh user state if online
+      if (!result.isOffline) {
+        await this.refreshUserState();
+      }
 
-      console.log('✅ Anonymous user session created:', result.user);
+      console.log(`✅ Anonymous user session created (${result.mode} mode):`, result.user);
       return true;
 
     } catch (error) {
