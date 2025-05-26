@@ -7,33 +7,18 @@
  */
 
 import { UserStateInitializer, UserLearningState } from './UserStateInitializer';
-
-export type AuthToPlayerState = 
-  | 'AUTH_SUCCESS'
-  | 'PRE_ENGAGEMENT' 
-  | 'LOADING_WITH_ANIMATION'
-  | 'ACTIVE_LEARNING';
-
-export interface AuthToPlayerEvents {
-  // State transition events
-  'auth:success': { userType: 'authenticated' | 'anonymous'; userId?: string; userName?: string; email?: string };
-  'preengagement:play-clicked': {};
-  'loading:animation-started': {};
-  'loading:animation-completed': {};
-  'loading:content-ready': { content: any };
-  'player:ready': { content: any; userLearningState: UserLearningState };
-  
-  // Background process events
-  'background:dashboard-loaded': { dashboardData: any };
-  'background:content-prepared': { firstStitch: any };
-  
-  // State change events
-  'state:changed': { from: AuthToPlayerState; to: AuthToPlayerState };
-}
+import { 
+  AuthToPlayerInterface,
+  AuthToPlayerEvents,
+  AuthToPlayerState,
+  UserContext,
+  AuthenticatedUserContext,
+  AnonymousUserContext
+} from '../interfaces/AuthToPlayerInterface';
 
 type EventCallback<T = any> = (data: T) => void;
 
-class AuthToPlayerEventBus {
+class AuthToPlayerEventBus implements AuthToPlayerInterface {
   private listeners: Map<keyof AuthToPlayerEvents, EventCallback[]> = new Map();
   private currentState: AuthToPlayerState = 'AUTH_SUCCESS';
   private backgroundData: { dashboardLoaded: boolean; contentPrepared: boolean; firstStitch?: any; userLearningState?: UserLearningState } = {
@@ -43,7 +28,7 @@ class AuthToPlayerEventBus {
   private isAnimationCompleted = false;
   private contentReady = false;
   private userStateInitializer: UserStateInitializer;
-  private currentUserContext?: { userType: 'authenticated' | 'anonymous'; userId?: string; userName?: string; email?: string };
+  private currentUserContext?: UserContext;
 
   constructor() {
     this.userStateInitializer = new UserStateInitializer();
@@ -157,7 +142,8 @@ class AuthToPlayerEventBus {
       throw new Error('No user context available for state initialization');
     }
 
-    const userId = this.currentUserContext.userId || 'anonymous-user';
+    // Use APML-compliant method to get proper user ID
+    const userId = this.getUserStateId(this.currentUserContext);
     const userType = this.currentUserContext.userType;
     
     try {
@@ -241,9 +227,35 @@ class AuthToPlayerEventBus {
   }
 
   // Public API for components
-  startFlow(userData: { userType: 'authenticated' | 'anonymous'; userId?: string; userName?: string; email?: string }): void {
-    this.currentUserContext = userData;
-    this.emit('auth:success', userData);
+  /**
+   * Start the Auth-to-Player flow with user context
+   * APML-compliant implementation with proper type validation
+   */
+  startFlow(userContext: UserContext): void {
+    // Validate context based on user type
+    if (userContext.userType === 'authenticated') {
+      const authContext = userContext as AuthenticatedUserContext;
+      if (!authContext.userId || !authContext.email) {
+        throw new Error('Authenticated users must have userId and email');
+      }
+    }
+    
+    this.currentUserContext = userContext;
+    this.emit('auth:success', userContext);
+  }
+
+  /**
+   * Extract appropriate user ID for state initialization
+   * APML-compliant implementation following interface contract
+   */
+  getUserStateId(userContext: UserContext): string {
+    if (userContext.userType === 'authenticated') {
+      const authContext = userContext as AuthenticatedUserContext;
+      return authContext.userId; // Always present for authenticated users
+    } else {
+      const anonContext = userContext as AnonymousUserContext;
+      return anonContext.userId || `anonymous-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
   }
 
   playButtonClicked(): void {

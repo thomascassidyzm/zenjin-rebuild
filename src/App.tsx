@@ -7,6 +7,7 @@ import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
 import UnifiedAuthForm, { AuthMode } from './components/UnifiedAuthForm';
+import { AuthenticatedUserContext, AnonymousUserContext } from './interfaces/AuthToPlayerInterface';
 import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
@@ -500,13 +501,14 @@ const AppContent: React.FC = () => {
           await createAnonymousUser();
           
           // Initialize Auth-to-Player flow for anonymous user
-          const anonymousUserContext = {
-            userType: 'anonymous' as const,
-            userId: undefined,
-            userName: undefined,
-            email: undefined
+          const anonymousUserContext: AnonymousUserContext = {
+            userType: 'anonymous',
+            userId: sessionState.user?.anonymousId, // Use the anonymous ID if available
+            userName: sessionState.user?.displayName
+            // email is not set for anonymous users
           };
           
+          console.log('✅ Starting Auth-to-Player flow for anonymous user:', anonymousUserContext);
           authToPlayerEventBus.startFlow(anonymousUserContext);
           break;
         case UserAuthChoice.SIGN_IN:
@@ -573,13 +575,22 @@ const AppContent: React.FC = () => {
     const handleAuthSuccess = () => {
       console.log('Authentication successful, initializing Auth-to-Player flow');
       
-      // Create user context for the flow
-      const userContext = {
-        userType: 'authenticated' as const,
-        userId: sessionState.user?.id,
-        userName: sessionState.user?.displayName,
-        email: sessionState.user?.email
+      // Validate session state has required data
+      if (!sessionState.user?.id || !sessionState.user?.email) {
+        console.error('❌ Invalid session state for authenticated user:', sessionState.user);
+        setAuthError('Authentication failed: missing user data');
+        return;
+      }
+      
+      // Create APML-compliant authenticated user context
+      const userContext: AuthenticatedUserContext = {
+        userType: 'authenticated',
+        userId: sessionState.user.id,
+        userName: sessionState.user.displayName,
+        email: sessionState.user.email
       };
+      
+      console.log('✅ Starting Auth-to-Player flow with context:', userContext);
       
       // Initialize the Auth-to-Player flow
       authToPlayerEventBus.startFlow(userContext);
@@ -628,12 +639,17 @@ const AppContent: React.FC = () => {
 
   // Phase 4: Auth-to-Player Flow (after authentication success)
   if (sessionState.isAuthenticated && authToPlayerState !== 'ACTIVE_LEARNING') {
-    const userContext = {
+    // Determine user context type based on user data
+    const userContext = sessionState.user?.userType === 'anonymous' ? {
+      userType: 'anonymous' as const,
+      userId: sessionState.user?.anonymousId,
+      userName: sessionState.user?.displayName
+    } as AnonymousUserContext : {
       userType: 'authenticated' as const,
-      userId: sessionState.user?.id,
+      userId: sessionState.user?.id || '',
       userName: sessionState.user?.displayName,
-      email: sessionState.user?.email
-    };
+      email: sessionState.user?.email || ''
+    } as AuthenticatedUserContext;
 
     switch (authToPlayerState) {
       case 'PRE_ENGAGEMENT':
