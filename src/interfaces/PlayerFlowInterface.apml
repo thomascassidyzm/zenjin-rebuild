@@ -1,0 +1,181 @@
+# Player Flow Interface Specification
+# APML Framework v1.4.0
+# Created: 2025-05-26
+# Purpose: Interface-first design for post-authentication player experience
+
+## Interface Contract
+
+### PlayerFlowState
+```typescript
+type PlayerState = 'PRE_ENGAGEMENT' | 'LOADING_CONTENT' | 'ACTIVE_LEARNING' | 'SESSION_COMPLETE';
+
+interface PlayerFlowInterface {
+  // State Management
+  currentState: PlayerState;
+  userType: 'authenticated' | 'anonymous';
+  currentStitch: Stitch | null;
+  sessionProgress: SessionProgress;
+  
+  // Pre-Engagement State (YouTube-style landing)
+  showBigPlayButton: () => boolean;          // currentState === 'PRE_ENGAGEMENT'
+  getPreEngagementContent: () => PreEngagementCard;
+  
+  // State Transitions
+  onPlayButtonClicked: () => Promise<void>;  // PRE_ENGAGEMENT → LOADING_CONTENT
+  onContentLoaded: (stitch: Stitch) => void; // LOADING_CONTENT → ACTIVE_LEARNING
+  onStitchCompleted: () => Promise<void>;    // Progress within ACTIVE_LEARNING
+  onSessionComplete: () => void;             // ACTIVE_LEARNING → SESSION_COMPLETE
+  
+  // Content Loading
+  loadFirstStitch: () => Promise<Stitch>;
+  loadNextStitch: () => Promise<Stitch>;
+  
+  // User Experience
+  showLoadingState: () => boolean;           // currentState === 'LOADING_CONTENT'
+  showActivePlayer: () => boolean;           // currentState === 'ACTIVE_LEARNING'
+  showSessionSummary: () => boolean;         // currentState === 'SESSION_COMPLETE'
+}
+```
+
+## State Machine Definition
+
+### States
+1. **PRE_ENGAGEMENT**: Landing state with big play button (YouTube-style)
+2. **LOADING_CONTENT**: Loading first stitch and initializing player
+3. **ACTIVE_LEARNING**: Player active, stitches being presented
+4. **SESSION_COMPLETE**: Learning session finished, summary shown
+
+### Transitions
+```
+PRE_ENGAGEMENT --[onPlayButtonClicked]--> LOADING_CONTENT
+LOADING_CONTENT --[onContentLoaded]--> ACTIVE_LEARNING
+ACTIVE_LEARNING --[onStitchCompleted]--> ACTIVE_LEARNING (loop)
+ACTIVE_LEARNING --[onSessionComplete]--> SESSION_COMPLETE
+SESSION_COMPLETE --[onNewSession]--> PRE_ENGAGEMENT
+```
+
+## UI Component Interface
+
+### PreEngagementCard
+```typescript
+interface PreEngagementCardProps {
+  userType: 'authenticated' | 'anonymous';
+  userName?: string;                    // For authenticated users
+  currentLearningPath: string;          // e.g., "Addition"
+  estimatedDuration: string;            // e.g., "5-10 minutes"
+  onPlayClicked: () => Promise<void>;
+  isLoading: boolean;
+}
+```
+
+### BigPlayButton
+```typescript
+interface BigPlayButtonProps {
+  size: 'large' | 'medium';           // YouTube-style sizing
+  isLoading: boolean;
+  onClick: () => void;
+  disabled: boolean;
+}
+```
+
+### PlayerCard (Active State)
+```typescript
+interface ActivePlayerCardProps {
+  currentStitch: Stitch;
+  sessionProgress: SessionProgress;
+  onAnswerSelected: (answer: Answer) => void;
+  onStitchComplete: () => void;
+}
+```
+
+## Content Loading Interface
+
+### StitchLoader
+```typescript
+interface StitchLoaderInterface {
+  loadUserProgress: () => Promise<UserProgress>;
+  determineStartingStitch: (progress: UserProgress) => Promise<Stitch>;
+  preloadNextStitches: (count: number) => Promise<Stitch[]>;
+  
+  // User-specific loading
+  loadForAuthenticated: (userId: string) => Promise<Stitch>;
+  loadForAnonymous: () => Promise<Stitch>;           // Default starting point
+}
+```
+
+## Authentication Integration
+
+### AuthenticationToPlayerBridge
+```typescript
+interface AuthToPlayerBridgeInterface {
+  // Called after successful authentication
+  onAuthenticationComplete: (userType: 'authenticated' | 'anonymous', userInfo?: UserInfo) => void;
+  
+  // Transition management
+  showPlayerFlow: () => void;
+  hideAuthenticationFlow: () => void;
+  
+  // User context passing
+  setUserContext: (context: UserContext) => void;
+  getUserLearningPath: () => string;
+}
+```
+
+## User Experience Requirements
+
+### Pre-Engagement Experience
+- **Visual Impact**: Large, centered play button (YouTube-style)
+- **Context Setting**: Show learning path, estimated time, welcome message
+- **Immediate Feedback**: Loading state on button click
+- **User Differentiation**: Different messaging for authenticated vs anonymous
+
+### Loading Experience  
+- **Progress Indication**: Clear loading state with progress feedback
+- **Content Preparation**: Stitch loading, user progress calculation
+- **Smooth Transition**: No jarring jumps between states
+
+### Active Learning Experience
+- **Seamless Integration**: Existing PlayerCard functionality
+- **Progress Tracking**: Clear session progress indication
+- **Performance**: Smooth stitching transitions
+
+## Success Criteria
+1. ✅ Clear visual hierarchy with big play button as primary CTA
+2. ✅ Smooth state transitions with appropriate loading states
+3. ✅ User context preserved from authentication through to learning
+4. ✅ Both authenticated and anonymous users have optimal experience
+5. ✅ Learning content loads efficiently and displays correctly
+6. ✅ Session progress is tracked and displayed appropriately
+
+## Anti-Patterns to Avoid
+- ❌ Immediate jump to active learning without engagement moment
+- ❌ Missing loading states during content preparation
+- ❌ Inconsistent user context between authentication and learning
+- ❌ Complex pre-engagement UI that delays learning start
+- ❌ No differentiation between user types in experience
+
+## Testing Interface
+```typescript
+interface PlayerFlowTester {
+  // State verification
+  expectPreEngagementState(): boolean;
+  expectBigPlayButtonVisible(): boolean;
+  expectLoadingState(): boolean;
+  expectActiveLearningState(): boolean;
+  
+  // Transition testing
+  simulatePlayButtonClick(): Promise<void>;
+  simulateContentLoaded(): void;
+  simulateStitchComplete(): void;
+  
+  // User type testing
+  testAuthenticatedUserFlow(): Promise<void>;
+  testAnonymousUserFlow(): Promise<void>;
+  
+  // Integration testing
+  validateAuthToPlayerTransition(): boolean;
+  validateContentLoadingPerformance(): boolean;
+}
+```
+
+This interface defines a complete post-authentication player experience with clear state management, smooth transitions, and optimal user engagement patterns.

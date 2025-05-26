@@ -1,13 +1,14 @@
-# APML Framework v1.4.0
+# APML Framework v1.4.1
 
 ## Version Information
 
-**Version:** 1.4.0  
-**Release Date:** May 25, 2025  
+**Version:** 1.4.1  
+**Release Date:** May 26, 2025  
 **Status:** Stable Release  
 **Authors:** Original concept by Zenjin, developed with Claude, Manus & Gemini
 
 ### Change Log
+- **v1.4.1 (2025-05-26):** Added Specification Type Taxonomy to distinguish between Interface Specifications (component contracts), Behavioral Specifications (state machine logic), and Experience Specifications (user journey choreography). Eliminates conceptual confusion between different specification types. Provides systematic approach to different system aspects. Critical enhancement based on real framework usage patterns.
 - **v1.4.0 (2025-05-25):** Added mandatory External Service Integration Protocol as core framework requirement. Eliminates debugging cycles through interface-first external service integration. Requires comprehensive service documentation capture before implementation. Proven to resolve complex integrations (Supabase Auth) on first attempt with zero debugging. Transforms APML from framework to comprehensive methodology for any external service integration.
 - **v1.3.3 (2025-05-24):** Added Continuing Chat Protocol as integral part of the APML Framework. Provides complete standardized handoff system for seamless multi-session AI development with zero context loss. Includes handoff document template, session startup protocol, quality assurance checklists, and integration with main framework phases. Framework is now fully self-contained for all AI-assisted development scenarios.
 - **v1.3.2 (2025-05-23):** Added formal Six-Phase Implementation Status Tracking System to the APML Framework. Introduced comprehensive status levels (not-started, scaffolded, functional, integrated, tested, optimized) with clear criteria, next steps, and registry integration. Enhanced project progress visibility and quality assurance through systematic status tracking. Added visual indicators and completion percentage tracking for modules and components.
@@ -2300,3 +2301,225 @@ class ExternalServiceAdapter implements APMLExternalService {
 **APML Protocol Approach**: First-attempt success, predictable behavior, clean interface implementations
 
 This protocol transforms external service integration from a debugging exercise into a structured interface implementation process, eliminating the most common source of technical debt in modern applications.
+
+## Specification Type Taxonomy
+
+### Purpose
+
+APML development involves multiple types of specifications that serve different purposes and require different approaches. Clear distinction between specification types prevents conceptual confusion and enables systematic thinking about different system aspects.
+
+### The Three Specification Types
+
+APML v1.4.1 formally distinguishes between three fundamental specification categories:
+
+#### 1. Interface Specifications
+**Purpose**: Define component contracts and integration boundaries  
+**Focus**: What components can do, how they communicate, what they expose  
+**Audience**: Developers implementing component interactions  
+
+```xml
+<InterfaceSpecification name="ComponentName" version="1.0.0">
+  <Purpose>Brief description of what this component does</Purpose>
+  
+  <Methods>
+    <Method name="methodName" returns="ReturnType">
+      <Parameter name="paramName" type="Type" required="true">Parameter description</Parameter>
+      <Description>What this method does</Description>
+      <SideEffects>Any side effects or state changes</SideEffects>
+    </Method>
+  </Methods>
+  
+  <Props>
+    <Prop name="propName" type="Type" required="true">
+      <Description>What this prop controls</Description>
+      <DefaultValue>Default value if optional</DefaultValue>
+    </Prop>
+  </Props>
+  
+  <Events>
+    <Event name="eventName" payload="PayloadType">
+      <Description>When this event is triggered</Description>
+      <Usage>How consumers should handle this event</Usage>
+    </Event>
+  </Events>
+  
+  <StateContract>
+    <StateProperty name="stateName" type="Type">
+      <Description>What this state represents</Description>
+      <Mutations>How this state can change</Mutations>
+    </StateProperty>
+  </StateContract>
+</InterfaceSpecification>
+```
+
+#### 2. Behavioral Specifications
+**Purpose**: Define state machine logic, business rules, and system behavior  
+**Focus**: How systems behave over time, what triggers changes, when things happen  
+**Audience**: Developers implementing business logic and state management  
+
+```xml
+<BehavioralSpecification name="SystemBehaviorName" version="1.0.0">
+  <Purpose>Description of the behavioral system being specified</Purpose>
+  
+  <StateMachine>
+    <States>
+      <State name="STATE_NAME">
+        <Description>What this state represents</Description>
+        <EntryConditions>When system enters this state</EntryConditions>
+        <ExitConditions>When system leaves this state</ExitConditions>
+        <AllowedActions>What can happen in this state</AllowedActions>
+      </State>
+    </States>
+    
+    <Transitions>
+      <Transition from="SOURCE_STATE" to="TARGET_STATE">
+        <Trigger>What causes this transition</Trigger>
+        <Conditions>Any conditions that must be met</Conditions>
+        <Actions>What happens during transition</Actions>
+        <Duration>How long transition takes</Duration>
+      </Trigger>
+    </Transitions>
+  </StateMachine>
+  
+  <BusinessRules>
+    <Rule name="RuleName">
+      <Condition>When this rule applies</Condition>
+      <Action>What happens when rule is triggered</Action>
+      <Priority>Rule priority if conflicts arise</Priority>
+    </Rule>
+  </BusinessRules>
+  
+  <TimingRequirements>
+    <Requirement type="Performance" name="ResponseTime">
+      <Description>Maximum acceptable response time</Description>
+      <Value>100ms</Value>
+    </Requirement>
+  </TimingRequirements>
+</BehavioralSpecification>
+```
+
+#### 3. Experience Specifications
+**Purpose**: Define user journey choreography, interaction flows, and experience design  
+**Focus**: How users interact with systems, what they see, when they see it  
+**Audience**: UX designers, developers implementing user interactions  
+
+```xml
+<ExperienceSpecification name="UserJourneyName" version="1.0.0">
+  <Purpose>Description of the user experience being designed</Purpose>
+  
+  <UserJourney>
+    <Step number="1" name="StepName">
+      <UserState>What the user sees/feels at this point</UserState>
+      <SystemState>What the system is doing behind the scenes</SystemState>
+      <Interactions>What the user can do</Interactions>
+      <Feedback>How system responds to user actions</Feedback>
+      <Duration>How long this step typically takes</Duration>
+    </Step>
+  </UserJourney>
+  
+  <InteractionPatterns>
+    <Pattern name="PatternName">
+      <Trigger>User action that starts this pattern</Trigger>
+      <Sequence>Step-by-step interaction sequence</Sequence>
+      <VisualFeedback>What user sees during interaction</VisualFeedback>
+      <CompletionCriteria>How user knows interaction is complete</CompletionCriteria>
+    </Pattern>
+  </InteractionPatterns>
+  
+  <AnimationChoreography>
+    <Animation name="AnimationName">
+      <Purpose>Why this animation exists</Purpose>
+      <Trigger>What starts the animation</Trigger>
+      <Duration>How long animation takes</Duration>
+      <EasingFunction>Animation timing curve</EasingFunction>
+      <VisualElements>What elements are animated</VisualElements>
+    </Animation>
+  </AnimationChoreography>
+  
+  <AccessibilityRequirements>
+    <Requirement type="ScreenReader">
+      <Description>Screen reader compatibility requirements</Description>
+    </Requirement>
+    <Requirement type="KeyboardNavigation">
+      <Description>Keyboard-only navigation requirements</Description>
+    </Requirement>
+  </AccessibilityRequirements>
+</ExperienceSpecification>
+```
+
+### Specification Type Selection Guide
+
+**Use Interface Specifications When:**
+- Defining component APIs
+- Specifying service contracts
+- Creating reusable component libraries
+- Establishing integration boundaries
+- Documenting external service adapters
+
+**Use Behavioral Specifications When:**
+- Designing state machines
+- Implementing business logic
+- Creating workflow systems
+- Defining system behaviors over time
+- Specifying conditional logic and rules
+
+**Use Experience Specifications When:**
+- Designing user flows
+- Planning interaction sequences
+- Choreographing animations
+- Optimizing user experience
+- Creating accessibility requirements
+
+### Integration Between Specification Types
+
+**Specifications work together but remain distinct:**
+
+1. **Experience Specifications** define what users need
+2. **Behavioral Specifications** define how systems respond
+3. **Interface Specifications** define how components interact
+
+**Example Integration:**
+- Experience Spec: "User clicks play button and sees loading animation"
+- Behavioral Spec: "System transitions from PRE_ENGAGEMENT to LOADING_WITH_ANIMATION state"
+- Interface Spec: "PlayButton component exposes onClick event and isLoading prop"
+
+### Validation Requirements
+
+**Each specification type has different validation criteria:**
+
+**Interface Specifications:**
+- [ ] All methods have clear return types
+- [ ] All props have defined types and descriptions
+- [ ] Events specify payload structures
+- [ ] Side effects are documented
+
+**Behavioral Specifications:**
+- [ ] All states have clear entry/exit conditions
+- [ ] All transitions have defined triggers
+- [ ] Business rules don't conflict
+- [ ] Timing requirements are measurable
+
+**Experience Specifications:**
+- [ ] User journey is complete and logical
+- [ ] Interactions have clear feedback
+- [ ] Animations serve functional purposes
+- [ ] Accessibility requirements are specified
+
+### Anti-Patterns to Avoid
+
+**❌ Specification Type Mixing**
+- Putting user interaction details in interface specs
+- Including technical API details in experience specs
+- Mixing state machine logic with component contracts
+
+**❌ Wrong Specification Type Selection**
+- Using interface specs for user experience design
+- Using experience specs for technical integration
+- Using behavioral specs for component APIs
+
+**✅ Clear Separation of Concerns**
+- Each specification type addresses its specific domain
+- Cross-references between specs without duplication
+- Appropriate level of detail for each audience
+
+This taxonomy provides systematic thinking about different system aspects while maintaining clear boundaries between technical implementation, system behavior, and user experience design.
