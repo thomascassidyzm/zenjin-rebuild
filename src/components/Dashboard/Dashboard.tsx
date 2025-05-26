@@ -240,7 +240,7 @@ const RecentAchievements: React.FC<{
                   className="h-8 w-8"
                   onError={(e) => {
                     // Fallback in case image fails to load
-                    (e.target as HTMLImageElement).src = '/icons/default-achievement.svg';
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="gold"><circle cx="12" cy="12" r="10"/></svg>';
                   }} 
                 />
               </div>
@@ -285,7 +285,7 @@ const AchievementNotification: React.FC<{
               alt={achievement.name} 
               className="h-8 w-8" 
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/icons/default-achievement.svg';
+                (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="gold"><circle cx="12" cy="12" r="10"/></svg>';
               }}
             />
           </div>
