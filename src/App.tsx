@@ -668,11 +668,13 @@ const AppContent: React.FC = () => {
         );
       
       default:
-        // AUTH_SUCCESS state - should transition quickly to PRE_ENGAGEMENT
+        // AUTH_SUCCESS state - immediately show PRE_ENGAGEMENT (no loading screen)
         return (
-          <LoadingInterface
-            context={LoadingContext.SESSION_INITIALIZATION}
-            onLoadingComplete={() => {}}
+          <PreEngagementCard
+            userContext={userContext}
+            onPlayClicked={() => authToPlayerEventBus.playButtonClicked()}
+            isLoading={false}
+            loadingProgress={0}
           />
         );
     }

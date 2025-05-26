@@ -343,8 +343,8 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
         backendStatus: backendServiceOrchestrator.getServiceStatus()
       });
 
-      // Load user state from backend
-      await this.refreshUserState();
+      // Ensure user exists in database, create if needed
+      await this.ensureUserInitialized(result.user.id, result.user.email);
 
       console.log('✅ OTP verified successfully, user authenticated:', result.user);
       return true;
@@ -402,6 +402,51 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
 
     } catch (error) {
       console.error('Failed to refresh user state:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Ensure user is initialized in database, create if needed
+   * APML-compliant user initialization following External Service Integration Protocol
+   */
+  async ensureUserInitialized(userId: string, email: string): Promise<boolean> {
+    try {
+      // Import UserInitializationService to avoid circular dependencies  
+      const { userInitializationService } = await import('./UserInitializationService');
+      
+      // Check if user exists and initialize if needed
+      const result = await userInitializationService.ensureUserExists(
+        userId, 
+        this._state.session?.accessToken || ''
+      );
+      
+      if (result.exists) {
+        console.log('✅ User exists in database, proceeding with state refresh');
+        await this.refreshUserState();
+        return true;
+      } else if (result.requiresInitialization) {
+        console.log('🆕 User needs initialization, creating database records');
+        const initResult = await userInitializationService.initializeNewUser(
+          userId, 
+          email
+        );
+        
+        if (initResult.success) {
+          console.log('✅ User initialized successfully');
+          await this.refreshUserState();
+          return true;
+        } else {
+          console.error('❌ User initialization failed:', initResult.error);
+          return false;
+        }
+      } else {
+        console.error('❌ User existence check failed:', result.error);
+        return false;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error ensuring user initialization:', error);
       return false;
     }
   }

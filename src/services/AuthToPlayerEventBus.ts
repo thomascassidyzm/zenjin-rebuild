@@ -80,13 +80,16 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     // AUTH_SUCCESS → PRE_ENGAGEMENT transition
     this.on('auth:success', (data) => {
       this.setState('PRE_ENGAGEMENT');
-      this.startBackgroundProcesses();
+      // No background processes - wait for user to click play
     });
 
     // PRE_ENGAGEMENT → LOADING_WITH_ANIMATION transition
     this.on('preengagement:play-clicked', () => {
       this.setState('LOADING_WITH_ANIMATION');
       this.emit('loading:animation-started', {});
+      
+      // Start background processes when user actually clicks play
+      this.startBackgroundProcesses();
       this.loadFirstStitchContent();
     });
 
