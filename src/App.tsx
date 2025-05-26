@@ -7,6 +7,8 @@ import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
 import OTPAuthentication from './components/OTPAuthentication';
+import PreEngagementCard from './components/PreEngagementCard';
+import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
@@ -14,6 +16,7 @@ import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
+import { useAuthToPlayerFlow } from './hooks/useAuthToPlayerFlow';
 import BuildBadge from './components/BuildBadge';
 import './App.css';
 
@@ -417,6 +420,18 @@ const AppContent: React.FC = () => {
     verifyEmailOTP
   } = useUserSession();
 
+  // Auth-to-Player Flow State Machine
+  const [authToPlayerState, authToPlayerActions] = useAuthToPlayerFlow();
+
+  // Handle Auth-to-Player flow completion
+  useEffect(() => {
+    if (authToPlayerState.currentState === 'ACTIVE_LEARNING') {
+      console.log('🎮 Auth-to-Player flow complete, transitioning to player');
+      setCurrentPage('session');
+      setLaunchComplete(true);
+    }
+  }, [authToPlayerState.currentState]);
+
   // Initialize connectivity monitoring
   useEffect(() => {
     const connectivityManager = new ConnectivityManager();
@@ -472,6 +487,16 @@ const AppContent: React.FC = () => {
         case UserAuthChoice.ANONYMOUS:
           // Create anonymous user session
           await createAnonymousUser();
+          
+          // Initialize Auth-to-Player flow for anonymous user
+          const anonymousUserContext = {
+            userType: 'anonymous' as const,
+            userId: undefined,
+            userName: undefined,
+            email: undefined
+          };
+          
+          authToPlayerActions.initializeFlow(anonymousUserContext);
           break;
         case UserAuthChoice.SIGN_IN:
           // Sign in flow will be handled by dedicated form component
@@ -513,8 +538,18 @@ const AppContent: React.FC = () => {
     };
 
     const handleAuthSuccess = () => {
-      console.log('Authentication successful, proceeding to loading phase');
-      // The UserSession context will automatically update and trigger the loading phase
+      console.log('Authentication successful, initializing Auth-to-Player flow');
+      
+      // Create user context for the flow
+      const userContext = {
+        userType: 'authenticated' as const,
+        userId: sessionState.user?.id,
+        userName: sessionState.user?.display_name,
+        email: sessionState.user?.email
+      };
+      
+      // Initialize the Auth-to-Player flow
+      authToPlayerActions.initializeFlow(userContext);
     };
 
     return (
@@ -542,6 +577,39 @@ const AppContent: React.FC = () => {
     );
   }
 
+  // Phase 4: Auth-to-Player Flow (after authentication success)
+  if (authToPlayerState.currentState !== 'ACTIVE_LEARNING' && authToPlayerState.userContext) {
+    switch (authToPlayerState.currentState) {
+      case 'PRE_ENGAGEMENT':
+        return (
+          <PreEngagementCard
+            userContext={authToPlayerState.userContext}
+            onPlayClicked={authToPlayerActions.onPlayButtonClicked}
+            isLoading={authToPlayerState.isContentLoading}
+            loadingProgress={authToPlayerState.loadingProgress}
+          />
+        );
+      
+      case 'LOADING_WITH_ANIMATION':
+        return (
+          <MathLoadingAnimation
+            onAnimationComplete={authToPlayerActions.onAnimationComplete}
+            loadingProgress={authToPlayerState.loadingProgress}
+            duration={3000}
+          />
+        );
+      
+      default:
+        // AUTH_SUCCESS state - should transition quickly to PRE_ENGAGEMENT
+        return (
+          <LoadingInterface
+            context={LoadingContext.SESSION_INITIALIZATION}
+            onLoadingComplete={() => {}}
+          />
+        );
+    }
+  }
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
@@ -553,7 +621,32 @@ const AppContent: React.FC = () => {
         );
       
       case 'session':
-        return <LearningSession learningPathId={selectedLearningPath} />;
+        // If we have a first stitch from Auth-to-Player flow, use it
+        if (authToPlayerState.firstStitch) {
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+              <div className="w-full max-w-md">
+                <PlayerCard
+                  key={authToPlayerState.firstStitch.id}
+                  initialQuestion={authToPlayerState.firstStitch}
+                  onAnswerSelected={(answer) => {
+                    console.log('Answer selected:', answer);
+                    // Handle answer selection here
+                  }}
+                />
+              </div>
+            </div>
+          );
+        }
+        // Fallback for when accessed directly without Auth-to-Player flow
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+            <div className="text-white text-center">
+              <h2 className="text-2xl font-bold mb-4">Learning Session</h2>
+              <p>Loading learning content...</p>
+            </div>
+          </div>
+        );
       
       case 'project-status':
         return <ProjectStatusDashboard />;

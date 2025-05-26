@@ -1,0 +1,261 @@
+# Auth Success to Player Behavioral Specification
+# APML Framework v1.4.1 - Behavioral Specification
+# Created: 2025-05-26
+# Purpose: Define state machine logic for post-authentication player flow
+
+```xml
+<BehavioralSpecification name="AuthToPlayerFlow" version="1.0.0">
+  <Purpose>
+    Define the behavioral logic for transitioning users from successful authentication 
+    to active learning engagement through optimized user experience states.
+  </Purpose>
+  
+  <StateMachine>
+    <States>
+      <State name="AUTH_SUCCESS">
+        <Description>Authentication completed successfully (OTP verified or Anonymous selected)</Description>
+        <EntryConditions>User has valid authentication session</EntryConditions>
+        <ExitConditions>Player flow initialization triggered</ExitConditions>
+        <AllowedActions>
+          <Action>Initialize user context</Action>
+          <Action>Start dashboard background loading</Action>
+          <Action>Transition to player landing</Action>
+        </AllowedActions>
+        <Duration>Immediate (0-100ms)</Duration>
+      </State>
+      
+      <State name="PRE_ENGAGEMENT">
+        <Description>Player landing state with big play button (YouTube-style)</Description>
+        <EntryConditions>User context established, player interface loaded</EntryConditions>
+        <ExitConditions>User clicks play button or timeout occurs</ExitConditions>
+        <AllowedActions>
+          <Action>Display big play button</Action>
+          <Action>Show user welcome context</Action>
+          <Action>Load first stitch in background</Action>
+          <Action>Continue dashboard data loading</Action>
+        </AllowedActions>
+        <Duration>User-controlled (until play button clicked)</Duration>
+        <BackgroundProcesses>
+          <Process>Dashboard data loading</Process>
+          <Process>First stitch content preparation</Process>
+          <Process>User progress calculation</Process>
+        </BackgroundProcesses>
+      </State>
+      
+      <State name="LOADING_WITH_ANIMATION">
+        <Description>Math symbols animation while finalizing content preparation</Description>
+        <EntryConditions>User clicked play button, content loading initiated</EntryConditions>
+        <ExitConditions>First stitch fully loaded and animation complete</ExitConditions>
+        <AllowedActions>
+          <Action>Display math symbols animation</Action>
+          <Action>Finalize stitch content loading</Action>
+          <Action>Prepare learning session state</Action>
+          <Action>Initialize progress tracking</Action>
+        </AllowedActions>
+        <Duration>2-4 seconds (animation timing + content loading)</Duration>
+        <AnimationRequirements>
+          <Requirement>Math symbols (±×÷=) floating/morphing animation</Requirement>
+          <Requirement>Engaging but not distracting visual design</Requirement>
+          <Requirement>Smooth transition preparation</Requirement>
+        </AnimationRequirements>
+      </State>
+      
+      <State name="ACTIVE_LEARNING">
+        <Description>First stitch loaded and presented to user</Description>
+        <EntryConditions>Content fully loaded, animation complete</EntryConditions>
+        <ExitConditions>User begins interaction with learning content</ExitConditions>
+        <AllowedActions>
+          <Action>Display first learning stitch</Action>
+          <Action>Enable user interaction</Action>
+          <Action>Start session tracking</Action>
+          <Action>Preload next stitches</Action>
+        </AllowedActions>
+        <Duration>Ongoing (user-controlled learning session)</Duration>
+      </State>
+    </States>
+    
+    <Transitions>
+      <Transition from="AUTH_SUCCESS" to="PRE_ENGAGEMENT">
+        <Trigger>Authentication session established</Trigger>
+        <Conditions>
+          <Condition>Valid user session exists</Condition>
+          <Condition>User context data available</Condition>
+        </Conditions>
+        <Actions>
+          <Action>Hide authentication interface</Action>
+          <Action>Initialize player interface</Action>
+          <Action>Start background data loading</Action>
+          <Action>Determine user's learning path</Action>
+        </Actions>
+        <Duration>Immediate (0-100ms)</Duration>
+      </Transition>
+      
+      <Transition from="PRE_ENGAGEMENT" to="LOADING_WITH_ANIMATION">
+        <Trigger>User clicks big play button</Trigger>
+        <Conditions>
+          <Condition>Play button enabled and clickable</Condition>
+          <Condition>User interaction detected</Condition>
+        </Conditions>
+        <Actions>
+          <Action>Hide play button interface</Action>
+          <Action>Start math symbols animation</Action>
+          <Action>Finalize content loading</Action>
+          <Action>Prepare learning session</Action>
+        </Actions>
+        <Duration>Immediate transition to animation</Duration>
+      </Transition>
+      
+      <Transition from="LOADING_WITH_ANIMATION" to="ACTIVE_LEARNING">
+        <Trigger>Content loaded AND animation complete</Trigger>
+        <Conditions>
+          <Condition>First stitch data fully available</Condition>
+          <Condition>Animation sequence finished</Condition>
+          <Condition>Learning session state initialized</Condition>
+        </Conditions>
+        <Actions>
+          <Action>Hide animation interface</Action>
+          <Action>Display first learning stitch</Action>
+          <Action>Enable user interactions</Action>
+          <Action>Start session metrics tracking</Action>
+        </Actions>
+        <Duration>Smooth fade transition (200-500ms)</Duration>
+      </Transition>
+    </Transitions>
+  </StateMachine>
+  
+  <BusinessRules>
+    <Rule name="BackgroundLoadingOptimization">
+      <Condition>User is in PRE_ENGAGEMENT state</Condition>
+      <Action>Continue dashboard and content loading in background</Action>
+      <Priority>High</Priority>
+      <Purpose>Optimize perceived performance by using pre-engagement time</Purpose>
+    </Rule>
+    
+    <Rule name="AnimationDurationFlexibility">
+      <Condition>Content loads faster than animation duration</Condition>
+      <Action>Allow animation to complete naturally, don't rush</Action>
+      <Priority>Medium</Priority>
+      <Purpose>Maintain smooth user experience over raw performance</Purpose>
+    </Rule>
+    
+    <Rule name="ContentLoadingTimeout">
+      <Condition>Content loading exceeds 5 seconds</Condition>
+      <Action>Show loading error state with retry option</Action>
+      <Priority>High</Priority>
+      <Purpose>Prevent indefinite loading states</Purpose>
+    </Rule>
+    
+    <Rule name="UserTypeContextPreservation">
+      <Condition>Throughout all state transitions</Condition>
+      <Action>Maintain authenticated vs anonymous user context</Action>
+      <Priority>Critical</Priority>
+      <Purpose>Ensure appropriate user experience and data handling</Purpose>
+    </Rule>
+  </BusinessRules>
+  
+  <TimingRequirements>
+    <Requirement type="Performance" name="AuthToPreEngagement">
+      <Description>Time from auth success to pre-engagement display</Description>
+      <Value>Under 200ms</Value>
+      <Measurement>User perceives immediate transition</Measurement>
+    </Requirement>
+    
+    <Requirement type="Performance" name="PlayButtonResponse">
+      <Description>Time from play button click to animation start</Description>
+      <Value>Under 100ms</Value>
+      <Measurement>Immediate visual feedback to user action</Measurement>
+    </Requirement>
+    
+    <Requirement type="Experience" name="AnimationDuration">
+      <Description>Total animation sequence timing</Description>
+      <Value>2-4 seconds</Value>
+      <Measurement>Engaging but not tedious duration</Measurement>
+    </Requirement>
+    
+    <Requirement type="Performance" name="ContentLoadingMax">
+      <Description>Maximum acceptable content loading time</Description>
+      <Value>5 seconds</Value>
+      <Measurement>From play button to content ready</Measurement>
+    </Requirement>
+  </TimingRequirements>
+  
+  <DataFlow>
+    <DataRequirement name="UserContext">
+      <States>AUTH_SUCCESS, PRE_ENGAGEMENT, LOADING_WITH_ANIMATION, ACTIVE_LEARNING</States>
+      <Description>User authentication info, type (authenticated/anonymous), preferences</Description>
+      <Source>Authentication system</Source>
+      <Usage>Personalization and progress tracking</Usage>
+    </DataRequirement>
+    
+    <DataRequirement name="LearningPathData">
+      <States>PRE_ENGAGEMENT, LOADING_WITH_ANIMATION, ACTIVE_LEARNING</States>
+      <Description>User's current learning path, progress, next stitches</Description>
+      <Source>Learning progress system</Source>
+      <Usage>Content selection and progress display</Usage>
+    </DataRequirement>
+    
+    <DataRequirement name="FirstStitchContent">
+      <States>LOADING_WITH_ANIMATION, ACTIVE_LEARNING</States>
+      <Description>Complete first stitch data including question, answers, media</Description>
+      <Source>Content management system</Source>
+      <Usage>Learning session initialization</Usage>
+    </DataRequirement>
+    
+    <DataRequirement name="DashboardData">
+      <States>PRE_ENGAGEMENT (background), ACTIVE_LEARNING</States>
+      <Description>User statistics, achievements, progress summaries</Description>
+      <Source>Analytics and progress tracking systems</Source>
+      <Usage>User interface context and motivation</Usage>
+    </DataRequirement>
+  </DataFlow>
+  
+  <ErrorHandling>
+    <ErrorState name="ContentLoadingFailure">
+      <Trigger>First stitch content fails to load</Trigger>
+      <RecoveryAction>Show error message with retry button</RecoveryAction>
+      <FallbackState>PRE_ENGAGEMENT</FallbackState>
+      <UserFeedback>Clear error message explaining the issue</UserFeedback>
+    </ErrorState>
+    
+    <ErrorState name="AuthenticationSessionLoss">
+      <Trigger>User session becomes invalid during flow</Trigger>
+      <RecoveryAction>Redirect to authentication with context preservation</RecoveryAction>
+      <FallbackState>AUTH_SUCCESS</FallbackState>
+      <UserFeedback>Seamless re-authentication request</UserFeedback>
+    </ErrorState>
+    
+    <ErrorState name="AnimationRenderingFailure">
+      <Trigger>Animation system fails or unsupported</Trigger>
+      <RecoveryAction>Skip animation, proceed directly to content</RecoveryAction>
+      <FallbackState>ACTIVE_LEARNING</FallbackState>
+      <UserFeedback>No user notification needed (graceful degradation)</UserFeedback>
+    </ErrorState>
+  </ErrorHandling>
+  
+  <IntegrationPoints>
+    <Integration name="AuthenticationSystem">
+      <Description>Receives authentication completion events</Description>
+      <Interface>onAuthenticationSuccess(userType, userInfo)</Interface>
+      <DataExchange>User context and session information</DataExchange>
+    </Integration>
+    
+    <Integration name="ContentManagementSystem">
+      <Description>Loads learning content and user progress</Description>
+      <Interface>loadFirstStitch(userId), getUserProgress(userId)</Interface>
+      <DataExchange>Stitch content, user progress, learning path data</DataExchange>
+    </Integration>
+    
+    <Integration name="PlayerSystem">
+      <Description>Initializes active learning session</Description>
+      <Interface>initializePlayer(stitch, userContext, progressTracker)</Interface>
+      <DataExchange>Complete learning session state</DataExchange>
+    </Integration>
+    
+    <Integration name="AnalyticsSystem">
+      <Description>Tracks user journey and performance metrics</Description>
+      <Interface>trackStateTransition(from, to, duration, userContext)</Interface>
+      <DataExchange>User behavior and performance analytics</DataExchange>
+    </Integration>
+  </IntegrationPoints>
+</BehavioralSpecification>
+```
