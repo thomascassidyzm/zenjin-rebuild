@@ -3,7 +3,10 @@
  * 
  * Event-driven implementation of the Auth-to-Player behavioral specification.
  * Replaces useAuthToPlayerFlow hook with explicit event dispatching and handling.
+ * Integrates with UserStateInitializer for proper learning state setup.
  */
+
+import { UserStateInitializer, UserLearningState } from './UserStateInitializer';
 
 export type AuthToPlayerState = 
   | 'AUTH_SUCCESS'
@@ -18,7 +21,7 @@ export interface AuthToPlayerEvents {
   'loading:animation-started': {};
   'loading:animation-completed': {};
   'loading:content-ready': { content: any };
-  'player:ready': { content: any };
+  'player:ready': { content: any; userLearningState: UserLearningState };
   
   // Background process events
   'background:dashboard-loaded': { dashboardData: any };
@@ -33,14 +36,17 @@ type EventCallback<T = any> = (data: T) => void;
 class AuthToPlayerEventBus {
   private listeners: Map<keyof AuthToPlayerEvents, EventCallback[]> = new Map();
   private currentState: AuthToPlayerState = 'AUTH_SUCCESS';
-  private backgroundData: { dashboardLoaded: boolean; contentPrepared: boolean; firstStitch?: any } = {
+  private backgroundData: { dashboardLoaded: boolean; contentPrepared: boolean; firstStitch?: any; userLearningState?: UserLearningState } = {
     dashboardLoaded: false,
     contentPrepared: false
   };
-  private animationCompleted = false;
+  private isAnimationCompleted = false;
   private contentReady = false;
+  private userStateInitializer: UserStateInitializer;
+  private currentUserContext?: { userType: 'authenticated' | 'anonymous'; userId?: string; userName?: string; email?: string };
 
   constructor() {
+    this.userStateInitializer = new UserStateInitializer();
     this.setupEventHandlers();
   }
 
@@ -101,7 +107,7 @@ class AuthToPlayerEventBus {
 
     // Track animation completion
     this.on('loading:animation-completed', () => {
-      this.animationCompleted = true;
+      this.isAnimationCompleted = true;
       this.checkTransitionToPlayer();
     });
 
@@ -116,19 +122,23 @@ class AuthToPlayerEventBus {
   }
 
   private checkTransitionToPlayer(): void {
-    if (this.animationCompleted && this.contentReady) {
+    if (this.isAnimationCompleted && this.contentReady && this.backgroundData.userLearningState) {
       this.setState('ACTIVE_LEARNING');
-      this.emit('player:ready', { content: this.backgroundData.firstStitch });
+      this.emit('player:ready', { 
+        content: this.backgroundData.firstStitch,
+        userLearningState: this.backgroundData.userLearningState
+      });
     } else {
-      console.log('⏳ Waiting for both animation and content...', {
-        animationCompleted: this.animationCompleted,
-        contentReady: this.contentReady
+      console.log('⏳ Waiting for animation, content, and user state...', {
+        animationCompleted: this.isAnimationCompleted,
+        contentReady: this.contentReady,
+        userStateReady: !!this.backgroundData.userLearningState
       });
     }
   }
 
   // Background processes (start immediately on auth success)
-  private startBackgroundProcesses(): void {
+  private async startBackgroundProcesses(): Promise<void> {
     console.log('🔄 Starting background loading processes');
     
     // Simulate dashboard loading
@@ -138,19 +148,69 @@ class AuthToPlayerEventBus {
       this.emit('background:dashboard-loaded', { dashboardData: { /* mock data */ } });
     }, 100);
 
-    // Simulate content preparation
-    setTimeout(() => {
-      this.backgroundData.contentPrepared = true;
+    // Initialize user learning state
+    this.initializeUserLearningState();
+  }
+
+  private async initializeUserLearningState(): Promise<void> {
+    if (!this.currentUserContext) {
+      throw new Error('No user context available for state initialization');
+    }
+
+    const userId = this.currentUserContext.userId || 'anonymous-user';
+    const userType = this.currentUserContext.userType;
+    
+    try {
+      console.log('🎓 Initializing user learning state...');
+      const userLearningState = await this.userStateInitializer.initializeUserLearningState(userId, userType);
+      
+      this.backgroundData.userLearningState = userLearningState;
+      
+      // Use the actual stitch from user state instead of mock data
       this.backgroundData.firstStitch = {
-        id: 'first-stitch',
+        id: userLearningState.currentStitch.id,
+        text: this.generateQuestionFromStitch(userLearningState.currentStitch),
+        answers: this.generateAnswersFromStitch(userLearningState.currentStitch),
+        correctAnswer: 1, // This would be determined by the question generator
+        learningPath: userLearningState.currentStitch.learningPathId,
+        metadata: userLearningState.currentStitch.metadata
+      };
+      
+      this.backgroundData.contentPrepared = true;
+      
+      console.log('✅ User learning state initialized:', {
+        tube: userLearningState.currentTube,
+        stitch: userLearningState.currentStitch.name,
+        userType: userLearningState.userType
+      });
+      
+      this.emit('background:content-prepared', { firstStitch: this.backgroundData.firstStitch });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize user learning state:', error);
+      
+      // Fallback to default content
+      this.backgroundData.firstStitch = {
+        id: 'fallback-stitch',
         text: '2 + 3 = ?',
         answers: ['4', '5', '6', '7'],
         correctAnswer: 1,
         learningPath: 'addition'
       };
-      console.log('✅ First stitch content prepared');
+      this.backgroundData.contentPrepared = true;
       this.emit('background:content-prepared', { firstStitch: this.backgroundData.firstStitch });
-    }, 150);
+    }
+  }
+
+  // Helper methods for content generation
+  private generateQuestionFromStitch(stitch: any): string {
+    // This is a simplified version - would integrate with QuestionGenerator
+    return `${stitch.name}: 2 + 3 = ?`;
+  }
+
+  private generateAnswersFromStitch(stitch: any): string[] {
+    // This is a simplified version - would integrate with DistractorGenerator
+    return ['4', '5', '6', '7'];
   }
 
   // Load first stitch (called when play button clicked)
@@ -181,6 +241,7 @@ class AuthToPlayerEventBus {
 
   // Public API for components
   startFlow(userData: { userType: 'authenticated' | 'anonymous'; userId?: string; userName?: string; email?: string }): void {
+    this.currentUserContext = userData;
     this.emit('auth:success', userData);
   }
 
@@ -196,7 +257,7 @@ class AuthToPlayerEventBus {
   reset(): void {
     this.currentState = 'AUTH_SUCCESS';
     this.backgroundData = { dashboardLoaded: false, contentPrepared: false };
-    this.animationCompleted = false;
+    this.isAnimationCompleted = false;
     this.contentReady = false;
   }
 }

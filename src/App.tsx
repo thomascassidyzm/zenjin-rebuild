@@ -555,7 +555,7 @@ const AppContent: React.FC = () => {
       const userContext = {
         userType: 'authenticated' as const,
         userId: sessionState.user?.id,
-        userName: sessionState.user?.display_name,
+        userName: sessionState.user?.displayName,
         email: sessionState.user?.email
       };
       
@@ -593,7 +593,7 @@ const AppContent: React.FC = () => {
     const userContext = {
       userType: 'authenticated' as const,
       userId: sessionState.user?.id,
-      userName: sessionState.user?.display_name,
+      userName: sessionState.user?.displayName,
       email: sessionState.user?.email
     };
 
