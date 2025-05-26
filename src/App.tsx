@@ -8,6 +8,7 @@ import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
 import UnifiedAuthForm, { AuthMode } from './components/UnifiedAuthForm';
 import { AuthenticatedUserContext, AnonymousUserContext } from './interfaces/AuthToPlayerInterface';
+import { authenticationFlowService } from './services/AuthenticationFlowService';
 import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
@@ -545,55 +546,50 @@ const AppContent: React.FC = () => {
 
     const handleVerifyOTP = async (email: string, otp: string): Promise<boolean> => {
       setAuthError(null);
-      return await verifyEmailOTP(email, otp);
+      try {
+        // Use APML-compliant authentication service
+        const result = await authenticationFlowService.handleOTPAuthentication(email, otp);
+        
+        if (result.success && result.user) {
+          // Handle authentication completion with guaranteed user data
+          authenticationFlowService.onAuthenticationComplete(result, 'OTP');
+          return true;
+        } else {
+          setAuthError(result.error || 'OTP verification failed');
+          return false;
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'OTP verification failed';
+        setAuthError(errorMessage);
+        return false;
+      }
     };
 
     const handlePasswordLogin = async (email: string, password: string): Promise<boolean> => {
       setAuthError(null);
       try {
-        // First try to sign in with existing account
-        const signInSuccess = await signInUser(email, password);
-        if (signInSuccess) {
-          return true;
-        }
+        // Use APML-compliant authentication service
+        const result = await authenticationFlowService.handlePasswordAuthentication(email, password);
         
-        // If sign in fails, try to register new account (auto-registration flow)
-        console.log('Sign in failed, attempting auto-registration for new user');
-        const registerSuccess = await registerUser(email, password, email.split('@')[0]);
-        if (registerSuccess) {
+        if (result.success && result.user) {
+          // Handle authentication completion with guaranteed user data
+          authenticationFlowService.onAuthenticationComplete(result, 'PASSWORD');
           return true;
+        } else {
+          setAuthError(result.error || 'Password authentication failed');
+          return false;
         }
-        
-        return false;
       } catch (error) {
-        console.error('Password authentication failed:', error);
-        setAuthError(error instanceof Error ? error.message : 'Authentication failed');
+        const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+        setAuthError(errorMessage);
         return false;
       }
     };
 
     const handleAuthSuccess = () => {
-      console.log('Authentication successful, initializing Auth-to-Player flow');
-      
-      // Validate session state has required data
-      if (!sessionState.user?.id || !sessionState.user?.email) {
-        console.error('❌ Invalid session state for authenticated user:', sessionState.user);
-        setAuthError('Authentication failed: missing user data');
-        return;
-      }
-      
-      // Create APML-compliant authenticated user context
-      const userContext: AuthenticatedUserContext = {
-        userType: 'authenticated',
-        userId: sessionState.user.id,
-        userName: sessionState.user.displayName,
-        email: sessionState.user.email
-      };
-      
-      console.log('✅ Starting Auth-to-Player flow with context:', userContext);
-      
-      // Initialize the Auth-to-Player flow
-      authToPlayerEventBus.startFlow(userContext);
+      // Auth success is now handled by the APML-compliant service adapter
+      // This callback is triggered by UnifiedAuthForm when authentication succeeds
+      console.log('✅ Authentication completed via UnifiedAuthForm');
     };
 
     const handleCancel = () => {
