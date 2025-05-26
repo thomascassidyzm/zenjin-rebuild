@@ -14,6 +14,8 @@
         <Interface name="FeedbackSystemInterface" implementationStatus="integrated" />
         <Interface name="ThemeManagerInterface" implementationStatus="integrated" />
         <Interface name="SessionSummaryInterface" implementationStatus="integrated" />
+        <Interface name="PreEngagementInterface" implementationStatus="integrated" />
+        <Interface name="AuthToPlayerFlowInterface" implementationStatus="integrated" />
       </CriticalInterfaces>
       <Components>
         <Component name="PlayerCard" implementationStatus="integrated">
@@ -94,6 +96,30 @@
           </ValidationStatus>
           <ImplementationDate>2025-05-20</ImplementationDate>
           <LLM>Claude 3.7 Sonnet</LLM>
+        </Component>
+        <Component name="PreEngagementCard" implementationStatus="integrated">
+          <Files>
+            <File path="src/components/PreEngagementCard.tsx" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-009" status="passed" />
+            <Criterion id="UI-010" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-26</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+          <Notes>YouTube-style engagement component with big play button for Auth-to-Player flow</Notes>
+        </Component>
+        <Component name="MathLoadingAnimation" implementationStatus="integrated">
+          <Files>
+            <File path="src/components/MathLoadingAnimation.tsx" />
+          </Files>
+          <ValidationStatus>
+            <Criterion id="UI-011" status="passed" />
+            <Criterion id="UI-012" status="passed" />
+          </ValidationStatus>
+          <ImplementationDate>2025-05-26</ImplementationDate>
+          <LLM>Claude 3.7 Sonnet</LLM>
+          <Notes>3-second loading animation with floating math symbols for learning session preparation</Notes>
         </Component>
       </Components>
     </Module>
@@ -607,7 +633,7 @@
           <ImplementationDate>2025-05-24</ImplementationDate>
           <LastUpdated>2025-05-24</LastUpdated>
           <LLM>Claude 3.7 Sonnet</LLM>
-          <Notes>ADVANCED: Complete APML validation testing confirms functional status. Authentication interface compliance, workflow validation, error handling, state management, and integration points all validated.</Notes>
+          <Notes>ADVANCED: Complete APML validation testing confirms functional status. Authentication interface compliance, workflow validation, error handling, state management, and integration points all validated. OTP signup issue resolved by changing shouldCreateUser configuration.</Notes>
         </Component>
         <Component name="BackendServiceOrchestrator" implementationStatus="functional">
           <Files>
@@ -821,7 +847,7 @@
     </StatusLevels>
     
     <ModuleStatus>
-      <Module name="UserInterface" interfaces="5/5" components="5/5" status="integrated" completion="95%" />
+      <Module name="UserInterface" interfaces="6/6" components="7/7" status="integrated" completion="98%" />
       <Module name="LearningEngine" interfaces="5/5" components="5/5" status="functional" completion="95%" />
       <Module name="ProgressionSystem" interfaces="4/4" components="4/4" status="functional" completion="85%" />
       <Module name="MetricsSystem" interfaces="4/4" components="4/4" status="functional" completion="90%" />
@@ -837,6 +863,8 @@
       <Component module="UserInterface" name="ThemeManager" date="2025-05-19" status="functional" />
       <Component module="UserInterface" name="SessionSummary" date="2025-05-19" status="functional" />
       <Component module="UserInterface" name="Dashboard" date="2025-05-20" status="functional" />
+      <Component module="UserInterface" name="PreEngagementCard" date="2025-05-26" status="integrated" />
+      <Component module="UserInterface" name="MathLoadingAnimation" date="2025-05-26" status="integrated" />
       <Component module="LearningEngine" name="FactRepository" date="2025-05-22" status="functional" />
       <Component module="LearningEngine" name="ContentManager" date="2025-05-22" status="functional" />
       <Component module="LearningEngine" name="DistinctionManager" date="2025-05-21" status="functional" />
@@ -879,7 +907,10 @@
     </ResolvedGaps>
   </ImplementationProgress>
   
-  <LastUpdated>2025-05-24</LastUpdated>
+  <LastUpdated>2025-05-26</LastUpdated>
+  <!-- 2025-05-26: Added Auth-to-Player flow implementation with APML v1.4.1 framework -->
+  <!-- 2025-05-26: Completed PreEngagementCard, MathLoadingAnimation, and useAuthToPlayerFlow hook -->
+  <!-- 2025-05-26: Fixed Supabase OTP authentication with shouldCreateUser configuration -->
   <!-- 2025-05-24: REGISTRY STATUS ALIGNMENT - Replaced all 'complete' status with proper APML 6-phase system alignment -->
   <!-- 2025-05-24: UserInterface components advanced to 'integrated' status (components work together as cohesive system) -->
   <!-- 2025-05-24: All other components aligned to 'functional' status (basic functionality works, not yet fully integrated/tested) -->

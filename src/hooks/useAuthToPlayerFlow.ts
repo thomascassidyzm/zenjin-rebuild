@@ -118,7 +118,7 @@ export const useAuthToPlayerFlow = (): [AuthToPlayerFlowState, AuthToPlayerFlowA
           // Simulate first stitch data
           const mockStitch = {
             id: 'first-stitch',
-            question: '2 + 3 = ?',
+            text: '2 + 3 = ?',
             answers: ['4', '5', '6', '7'],
             correctAnswer: 1,
             learningPath: 'addition'

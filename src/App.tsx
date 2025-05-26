@@ -16,7 +16,7 @@ import { Question } from './interfaces/PlayerCardInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
-import { useAuthToPlayerFlow } from './hooks/useAuthToPlayerFlow';
+import { authToPlayerEventBus, AuthToPlayerState } from './services/AuthToPlayerEventBus';
 import BuildBadge from './components/BuildBadge';
 import './App.css';
 
@@ -420,17 +420,28 @@ const AppContent: React.FC = () => {
     verifyEmailOTP
   } = useUserSession();
 
-  // Auth-to-Player Flow State Machine
-  const [authToPlayerState, authToPlayerActions] = useAuthToPlayerFlow();
+  // Auth-to-Player Flow Event Bus
+  const [authToPlayerState, setAuthToPlayerState] = useState<AuthToPlayerState>('AUTH_SUCCESS');
 
-  // Handle Auth-to-Player flow completion
+  // Handle Auth-to-Player flow events
   useEffect(() => {
-    if (authToPlayerState.currentState === 'ACTIVE_LEARNING') {
+    // Listen for state changes
+    const unsubscribeState = authToPlayerEventBus.on('state:changed', ({ to }) => {
+      setAuthToPlayerState(to);
+    });
+
+    // Listen for player ready event
+    const unsubscribePlayer = authToPlayerEventBus.on('player:ready', (data) => {
       console.log('🎮 Auth-to-Player flow complete, transitioning to player');
       setCurrentPage('session');
       setLaunchComplete(true);
-    }
-  }, [authToPlayerState.currentState]);
+    });
+
+    return () => {
+      unsubscribeState();
+      unsubscribePlayer();
+    };
+  }, []);
 
   // Initialize connectivity monitoring
   useEffect(() => {
@@ -549,7 +560,7 @@ const AppContent: React.FC = () => {
       };
       
       // Initialize the Auth-to-Player flow
-      authToPlayerActions.initializeFlow(userContext);
+      authToPlayerEventBus.startFlow(userContext);
     };
 
     return (
@@ -578,23 +589,30 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 4: Auth-to-Player Flow (after authentication success)
-  if (authToPlayerState.currentState !== 'ACTIVE_LEARNING' && authToPlayerState.userContext) {
-    switch (authToPlayerState.currentState) {
+  if (sessionState.isAuthenticated && authToPlayerState !== 'ACTIVE_LEARNING') {
+    const userContext = {
+      userType: 'authenticated' as const,
+      userId: sessionState.user?.id,
+      userName: sessionState.user?.display_name,
+      email: sessionState.user?.email
+    };
+
+    switch (authToPlayerState) {
       case 'PRE_ENGAGEMENT':
         return (
           <PreEngagementCard
-            userContext={authToPlayerState.userContext}
-            onPlayClicked={authToPlayerActions.onPlayButtonClicked}
-            isLoading={authToPlayerState.isContentLoading}
-            loadingProgress={authToPlayerState.loadingProgress}
+            userContext={userContext}
+            onPlayClicked={() => authToPlayerEventBus.playButtonClicked()}
+            isLoading={false}
+            loadingProgress={0}
           />
         );
       
       case 'LOADING_WITH_ANIMATION':
         return (
           <MathLoadingAnimation
-            onAnimationComplete={authToPlayerActions.onAnimationComplete}
-            loadingProgress={authToPlayerState.loadingProgress}
+            onAnimationComplete={() => authToPlayerEventBus.animationCompleted()}
+            loadingProgress={0}
             duration={3000}
           />
         );

@@ -2,7 +2,9 @@
 
 ## Project Overview
 
-This project is a rebuild of the Zenjin Maths App using the APML Framework v1.3.0. The rebuild preserves the effective theoretical foundation and user experience while improving component separation, interface clarity, and testability to support ongoing adaptation and enhancement.
+This project is a rebuild of the Zenjin Maths App using the APML Framework v1.4.1. The rebuild preserves the effective theoretical foundation and user experience while improving component separation, interface clarity, and testability to support ongoing adaptation and enhancement.
+
+**Current Status**: Authentication complete, Auth-to-Player flow implemented following APML v1.4.1 Behavioral Specifications.
 
 ## Key Project Files
 
