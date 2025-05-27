@@ -498,16 +498,28 @@ const AppContent: React.FC = () => {
     try {
       switch (choice) {
         case UserAuthChoice.ANONYMOUS:
-          // Skip user creation - go directly to PreEngagement
-          // User will be created when play button is clicked
-          const pendingAnonymousContext: AnonymousUserContext = {
+          // APML-compliant transition management
+          const { sessionStateTransitionService } = await import('./services/SessionStateTransitionService');
+          
+          // Mark transition in progress to prevent UI flashing
+          sessionStateTransitionService.markTransitionInProgress('anonymous_creation');
+          
+          // Create anonymous user session
+          await createAnonymousUser();
+          
+          // Initialize Auth-to-Player flow for anonymous user
+          const anonymousUserContext: AnonymousUserContext = {
             userType: 'anonymous',
-            userId: 'pending', // Will be set when user actually created
-            userName: 'Guest'
+            userId: sessionState.user?.anonymousId, // Use the anonymous ID if available
+            userName: sessionState.user?.displayName
+            // email is not set for anonymous users
           };
           
-          console.log('✅ Starting Auth-to-Player flow for anonymous user (pending creation)');
-          authToPlayerEventBus.startFlow(pendingAnonymousContext);
+          console.log('✅ Starting Auth-to-Player flow for anonymous user:', anonymousUserContext);
+          authToPlayerEventBus.startFlow(anonymousUserContext);
+          
+          // Mark transition complete
+          sessionStateTransitionService.completeTransition('anonymous_creation', true);
           break;
         case UserAuthChoice.SIGN_IN:
           // Sign in flow will be handled by dedicated form component
@@ -629,7 +641,11 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 4: Auth-to-Player Flow (after authentication success)
-  if (sessionState.isAuthenticated && authToPlayerState !== 'ACTIVE_LEARNING') {
+  // APML-compliant: Check for both authenticated users AND users in transition
+  const { sessionStateTransitionService } = require('./services/SessionStateTransitionService');
+  const isInTransition = sessionStateTransitionService.isInTransition();
+  
+  if ((sessionState.isAuthenticated || isInTransition) && authToPlayerState !== 'ACTIVE_LEARNING') {
     // Determine user context type based on user data
     const userContext = sessionState.user?.userType === 'anonymous' ? {
       userType: 'anonymous' as const,

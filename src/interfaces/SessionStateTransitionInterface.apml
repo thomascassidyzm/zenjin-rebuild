@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<InterfaceSpecification name="SessionStateTransitionInterface" version="1.0.0">
+  <Purpose>
+    Define interface contracts for managing session state transitions to prevent UI flashing
+    between authentication completion and Auth-to-Player flow initialization
+  </Purpose>
+
+  <StateTransitionContract>
+    <TransitionType name="AnonymousUserCreation">
+      <Description>User selects "Try Without Signing Up" and anonymous session is created</Description>
+      <StateSequence>
+        <State name="anonymous_creation_started" order="1">
+          <Properties>
+            <Property name="isAuthenticated">false</Property>
+            <Property name="isLoading">true</Property>
+            <Property name="transitionType">anonymous_creation</Property>
+          </Properties>
+        </State>
+        <State name="anonymous_creation_complete" order="2">
+          <Properties>
+            <Property name="isAuthenticated">true</Property>
+            <Property name="isLoading">false</Property>
+            <Property name="transitionType">auth_to_player_ready</Property>
+          </Properties>
+        </State>
+      </StateSequence>
+      <TransitionGuarantee>UI must not render main app until Auth-to-Player flow is initialized</TransitionGuarantee>
+    </TransitionType>
+
+    <TransitionType name="AuthenticatedUserSignIn">
+      <Description>User completes OTP authentication</Description>
+      <StateSequence>
+        <State name="authentication_complete" order="1">
+          <Properties>
+            <Property name="isAuthenticated">true</Property>
+            <Property name="isLoading">false</Property>
+            <Property name="transitionType">auth_to_player_ready</Property>
+          </Properties>
+        </State>
+      </StateSequence>
+      <TransitionGuarantee>Auth-to-Player flow starts immediately after authentication</TransitionGuarantee>
+    </TransitionType>
+  </StateTransitionContract>
+
+  <Methods>
+    <Method name="markTransitionInProgress" returns="void">
+      <Parameter name="transitionType" type="'anonymous_creation' | 'authenticated_signin'" required="true">Type of transition starting</Parameter>
+      <Description>Mark that a state transition is in progress to prevent UI flashing</Description>
+      <SideEffects>Sets transition flag to prevent premature UI rendering</SideEffects>
+    </Method>
+
+    <Method name="completeTransition" returns="void">
+      <Parameter name="transitionType" type="'anonymous_creation' | 'authenticated_signin'" required="true">Type of transition completing</Parameter>
+      <Parameter name="authToPlayerReady" type="boolean" required="true">Whether Auth-to-Player flow is ready</Parameter>
+      <Description>Mark transition as complete and ready for Auth-to-Player flow</Description>
+      <SideEffects>Clears transition flag and enables normal UI rendering</SideEffects>
+    </Method>
+
+    <Method name="isInTransition" returns="boolean">
+      <Description>Check if any state transition is currently in progress</Description>
+      <SideEffects>None - read-only operation</SideEffects>
+    </Method>
+  </Methods>
+
+  <ValidationCriteria>
+    <Criterion id="ST-001" test="tests/session-transition/anonymous_no_flash_test.ts">
+      Anonymous user creation must not show Dashboard before Auth-to-Player flow
+    </Criterion>
+    <Criterion id="ST-002" test="tests/session-transition/authenticated_no_flash_test.ts">
+      Authenticated users must transition directly to Auth-to-Player flow
+    </Criterion>
+    <Criterion id="ST-003" test="tests/session-transition/transition_timing_test.ts">
+      State transitions must complete within 100ms to prevent UI flashing
+    </Criterion>
+  </ValidationCriteria>
+
+  <IntegrationRequirements>
+    <Integration with="UserSessionManager">
+      Must call markTransitionInProgress before createAnonymousUser
+    </Integration>
+    <Integration with="AuthToPlayerEventBus">
+      Must call completeTransition when Auth-to-Player flow starts
+    </Integration>
+    <Integration with="App.tsx">
+      Must check isInTransition before rendering main app content
+    </Integration>
+  </IntegrationRequirements>
+</InterfaceSpecification>
