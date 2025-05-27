@@ -17,6 +17,7 @@ import { ContentManager } from '../engines/ContentManager/ContentManager';
 import { QuestionGenerator } from '../engines/QuestionGenerator/QuestionGenerator';
 import { DistractorGenerator } from '../engines/DistractorGenerator/DistractorGenerator';
 import { DistinctionManager } from '../engines/DistinctionManager/DistinctionManager';
+import { EngineOrchestrator } from '../engines/EngineOrchestrator';
 
 // Import component types
 import type { 
@@ -132,6 +133,7 @@ export class LearningEngineService {
   private questionGenerator: QuestionGenerator;
   private distractorGenerator: DistractorGenerator;
   private distinctionManager: DistinctionManager;
+  private engineOrchestrator: EngineOrchestrator;
   
   // Active learning sessions
   private activeSessions: Map<string, LearningSession> = new Map();
@@ -168,6 +170,9 @@ export class LearningEngineService {
         } as any,
         this.distractorGenerator
       );
+      
+      // Initialize EngineOrchestrator with all components
+      this.engineOrchestrator = new EngineOrchestrator();
       
       this.isInitialized = true;
       this.log('LearningEngine service initialized successfully');
@@ -621,44 +626,43 @@ export class LearningEngineService {
     learningPathId: string,
     config: SessionConfiguration
   ): Promise<Question[]> {
-    const maxQuestions = config.maxQuestions || 10;
-    const questions: Question[] = [];
-    
-    // Generate initial set of questions directly using QuestionGenerator
-    // This avoids the circular dependency of session validation
-    for (let i = 0; i < Math.min(5, maxQuestions); i++) {
-      try {
-        // Create question request without session validation
-        const request: QuestionRequest = {
-          userId,
-          learningPathId,
-          difficultyLevel: 1, // Start with basic difficulty for new sessions
-          questionCount: 1
-        };
-        
-        // Generate question directly using QuestionGenerator (no session required)
-        const generatorQuestion = this.questionGenerator.generateQuestion(request);
-        
-        // Convert to unified Question format (same as generateQuestion method)
-        const question: Question = {
-          id: generatorQuestion.id,
-          factId: generatorQuestion.factId,
-          questionText: generatorQuestion.text,
-          correctAnswer: generatorQuestion.correctAnswer,
-          distractors: generatorQuestion.distractors || [],
-          boundaryLevel: generatorQuestion.boundaryLevel,
-          difficulty: generatorQuestion.difficulty || 1,
-          metadata: generatorQuestion.metadata || {}
-        };
-        
-        questions.push(question);
-      } catch (error) {
-        this.log(`Failed to generate question ${i + 1}: ${error}`);
-        break;
+    try {
+      // Use EngineOrchestrator to get the next stitch for this learning path
+      const nextStitch = this.engineOrchestrator.getNextStitch(userId, learningPathId);
+      
+      if (!nextStitch) {
+        this.log(`No stitch available for learning path: ${learningPathId}`);
+        return [];
       }
+      
+      this.log(`Generating 20-question stitch: ${nextStitch.name} (${nextStitch.id})`);
+      
+      // Generate exactly 20 questions for the stitch with URN randomization
+      const stitchQuestions = this.engineOrchestrator.generateQuestionsForStitch(nextStitch);
+      
+      // Convert from PlayerCardQuestion format to unified Question format
+      const questions: Question[] = stitchQuestions.map(playerQuestion => ({
+        id: playerQuestion.id,
+        factId: playerQuestion.factId || 'unknown',
+        questionText: playerQuestion.text,
+        correctAnswer: playerQuestion.correctAnswer,
+        distractors: playerQuestion.distractor ? [playerQuestion.distractor] : [],
+        boundaryLevel: 1, // Default boundary level
+        difficulty: nextStitch.difficulty,
+        metadata: {
+          stitchId: nextStitch.id,
+          stitchName: nextStitch.name,
+          learningPathId: learningPathId
+        }
+      }));
+      
+      this.log(`Generated ${questions.length} questions for stitch ${nextStitch.id}`);
+      return questions;
+      
+    } catch (error) {
+      this.log(`Failed to generate stitch questions: ${error}`);
+      return [];
     }
-    
-    return questions;
   }
   
   /**
