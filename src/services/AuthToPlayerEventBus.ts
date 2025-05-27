@@ -171,8 +171,10 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
           this.backgroundData.firstStitch = {
             id: firstQuestion.id,
             text: firstQuestion.questionText,
-            answers: [firstQuestion.correctAnswer, ...firstQuestion.distractors].sort(() => Math.random() - 0.5),
-            correctAnswer: this.findCorrectAnswerIndex(firstQuestion.correctAnswer, [firstQuestion.correctAnswer, ...firstQuestion.distractors]),
+            correctAnswer: firstQuestion.correctAnswer,
+            distractor: firstQuestion.distractors && firstQuestion.distractors.length > 0 
+              ? firstQuestion.distractors[0] 
+              : this.generateSimpleDistractor(firstQuestion.correctAnswer),
             learningPath: learningPathId,
             metadata: {
               ...firstQuestion.metadata,
@@ -218,36 +220,44 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   }
 
   // Helper methods for LearningEngine integration
-  private findCorrectAnswerIndex(correctAnswer: string, shuffledAnswers: string[]): number {
-    return shuffledAnswers.findIndex(answer => answer === correctAnswer);
-  }
 
   private createFallbackQuestion(learningPath: string): any {
     const fallbackQuestions: Record<string, any> = {
       'addition': {
         id: 'fallback-add',
         text: '2 + 3 = ?',
-        answers: ['4', '5', '6', '7'],
-        correctAnswer: 1,
+        correctAnswer: '5',
+        distractor: '4',
         learningPath: 'addition'
       },
       'subtraction': {
         id: 'fallback-sub',
         text: '8 - 3 = ?',
-        answers: ['4', '5', '6', '7'],
-        correctAnswer: 1,
+        correctAnswer: '5',
+        distractor: '6',
         learningPath: 'subtraction'
       },
       'multiplication': {
         id: 'fallback-mult',
         text: '3 × 4 = ?',
-        answers: ['10', '12', '14', '16'],
-        correctAnswer: 1,
+        correctAnswer: '12',
+        distractor: '14',
         learningPath: 'multiplication'
       }
     };
     
     return fallbackQuestions[learningPath] || fallbackQuestions['addition'];
+  }
+
+  private generateSimpleDistractor(correctAnswer: string): string {
+    const num = parseInt(correctAnswer);
+    if (!isNaN(num)) {
+      // For numbers, add or subtract 1-3
+      const adjustment = Math.floor(Math.random() * 3) + 1;
+      const newNum = Math.random() > 0.5 ? num + adjustment : Math.max(0, num - adjustment);
+      return newNum.toString();
+    }
+    return correctAnswer + '?'; // Fallback for non-numeric answers
   }
 
   // Load first stitch (called when play button clicked)
@@ -283,18 +293,14 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
       
       if (sessionData.initialQuestions && sessionData.initialQuestions.length > 0) {
         const firstQuestion = sessionData.initialQuestions[0];
-        const shuffledAnswers = [firstQuestion.correctAnswer, ...firstQuestion.distractors];
-        // Shuffle answers
-        for (let i = shuffledAnswers.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffledAnswers[i], shuffledAnswers[j]] = [shuffledAnswers[j], shuffledAnswers[i]];
-        }
         
         const content = {
           id: firstQuestion.id,
           text: firstQuestion.questionText,
-          answers: shuffledAnswers,
-          correctAnswer: this.findCorrectAnswerIndex(firstQuestion.correctAnswer, shuffledAnswers),
+          correctAnswer: firstQuestion.correctAnswer,
+          distractor: firstQuestion.distractors && firstQuestion.distractors.length > 0 
+            ? firstQuestion.distractors[0] 
+            : this.generateSimpleDistractor(firstQuestion.correctAnswer),
           learningPath: learningPath,
           metadata: {
             ...firstQuestion.metadata,
