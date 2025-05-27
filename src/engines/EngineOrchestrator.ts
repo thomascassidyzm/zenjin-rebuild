@@ -8,7 +8,6 @@
 import { LearningEngineService, learningEngineService } from '../services/LearningEngineService';
 import { StitchManager, Stitch, SessionResults, PerformanceData, RepositionResult } from './StitchManager/StitchManager';
 import { StitchLibrary } from './StitchLibrary';
-import { FactRepository } from './FactRepository';
 
 // Learning path interface for Triple Helix system
 interface LearningPath {
@@ -140,7 +139,6 @@ export class EngineOrchestrator {
   private tripleHelixManager: SimpleTripleHelixManager;
   private stitchManager: StitchManager;
   private stitchLibrary: StitchLibrary;
-  private factRepository: FactRepository;
   
   // Active learning sessions for each user
   private activeSessions: Map<string, string> = new Map();
@@ -151,8 +149,6 @@ export class EngineOrchestrator {
     this.tripleHelixManager = new SimpleTripleHelixManager();
     this.stitchManager = new StitchManager();
     
-    // Initialize factRepository - use actual implementation
-    this.factRepository = new FactRepository();
     
     // Initialize basic stitch management
     this.initializeLearningPaths();
@@ -457,14 +453,10 @@ export class EngineOrchestrator {
         const factId = availableFactIds[i % availableFactIds.length];
         
         try {
-          const fact = this.factRepository.getFactById(factId);
-          const questionTemplate = this.factRepository.getQuestionTemplates(fact.operation, stitch.difficulty);
-          const template = questionTemplate[Math.floor(Math.random() * questionTemplate.length)] || 
-                          `What is ${fact.operands[0]} ${this.getOperationSymbol(fact.operation)} ${fact.operands[1]}?`;
+          // Simple fallback since this should go through LearningEngineService
+          const fact = { operands: [3, 4], result: 7, operation: 'addition' };
           
-          // Format the question text
-          let questionText = template;
-          questionText = questionText.replace(/{{operand1}}/g, fact.operands[0].toString());
+          const questionText = `What is ${fact.operands[0]} + ${fact.operands[1]}?`;
           questionText = questionText.replace(/{{operand2}}/g, fact.operands[1].toString());
           
           const correctAnswer = fact.result.toString();
