@@ -453,7 +453,7 @@ export class EngineOrchestrator {
           // Simple fallback since this should go through LearningEngineService
           const fact = { operands: [3, 4], result: 7, operation: 'addition' };
           
-          const questionText = `What is ${fact.operands[0]} + ${fact.operands[1]}?`;
+          let questionText = `What is ${fact.operands[0]} + ${fact.operands[1]}?`;
           questionText = questionText.replace(/{{operand2}}/g, fact.operands[1].toString());
           
           const correctAnswer = fact.result.toString();

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NamingIndex version="1.0" project="{PROJECT_NAME}" framework="APML Framework v1.4.2">
+  <Purpose>
+    Single source of truth for all naming conventions, patterns, and validated examples used throughout the {PROJECT_NAME} project. Created to prevent naming errors and maintain consistency across the codebase.
+  </Purpose>
+
+  <Classes>
+    <Convention>PascalCase</Convention>
+    <Pattern>{Purpose}{Type} or {Domain}{Component}</Pattern>
+    <ValidatedExamples>
+      <Class name="{CLASS_NAME}" component="{MODULE}" pattern="{PATTERN_TYPE}" verified="true" />
+      <!-- Add more validated class examples as they are implemented -->
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="{WRONG_NAME}" correct="{CORRECT_NAME}" issue="{ISSUE_TYPE}" verified="false" />
+      <!-- Document actual mistakes encountered during development -->
+    </CommonMistakes>
+  </Classes>
+
+  <Methods>
+    <Convention>camelCase</Convention>
+    <Patterns>
+      <Pattern type="getter">get{Entity}()</Pattern>
+      <Pattern type="setter">set{Entity}()</Pattern>
+      <Pattern type="calculation">calculate{Metric}()</Pattern>
+      <Pattern type="initialization">initialize{Component}()</Pattern>
+      <Pattern type="validation">validate{Data}()</Pattern>
+      <Pattern type="action">{verb}{Object}()</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Method name="{METHOD_NAME}" component="{COMPONENT}" pattern="{PATTERN_TYPE}" verified="true" />
+      <!-- Add verified method names as they are implemented -->
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="{WRONG_METHOD}" correct="{CORRECT_METHOD}" component="{COMPONENT}" issue="{ISSUE_TYPE}" verified="false" />
+      <!-- Document actual method naming errors encountered -->
+    </CommonMistakes>
+  </Methods>
+
+  <Files>
+    <Conventions>
+      <FileType type="component" convention="PascalCase.tsx" example="{COMPONENT_NAME}.tsx" />
+      <FileType type="service" convention="PascalCase.ts" example="{SERVICE_NAME}.ts" />
+      <FileType type="interface" convention="PascalCaseInterface.ts" example="{COMPONENT}Interface.ts" />
+      <FileType type="types" convention="PascalCaseTypes.ts" example="{COMPONENT}Types.ts" />
+      <FileType type="example" convention="PascalCaseExample.ts" example="{COMPONENT}Example.ts" />
+      <FileType type="test" convention="PascalCase.test.ts" example="{COMPONENT}.test.ts" />
+      <FileType type="css" convention="camelCase.css" example="{componentName}.css" />
+    </Conventions>
+    <ValidatedExamples>
+      <File name="{FILE_NAME}.ts" type="{FILE_TYPE}" path="{RELATIVE_PATH}" verified="true" />
+      <!-- Add actual file names as they are created -->
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="{WRONG_FILENAME}" correct="{CORRECT_FILENAME}" type="{FILE_TYPE}" issue="{ISSUE_TYPE}" verified="false" />
+      <!-- Document file naming errors encountered -->
+    </CommonMistakes>
+  </Files>
+
+  <ImportPaths>
+    <Conventions>
+      <PathType type="relative-component" pattern="./ComponentName" example="./PlayerCard" />
+      <PathType type="relative-service" pattern="../services/ServiceName" example="../services/ConfigurationService" />
+      <PathType type="relative-engine" pattern="../engines/EngineName" example="../engines/MetricsCalculator" />
+      <PathType type="relative-interface" pattern="../interfaces/InterfaceName" example="../interfaces/ThemeManagerInterface" />
+    </Conventions>
+    <ValidatedExamples>
+      <Import path="{IMPORT_PATH}" from="{SOURCE_FILE}" verified="true" />
+      <!-- Add verified import paths as they are used -->
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="{WRONG_PATH}" correct="{CORRECT_PATH}" issue="{ISSUE_TYPE}" verified="false" />
+      <!-- Document import path errors encountered -->
+    </CommonMistakes>
+  </ImportPaths>
+
+  <Interfaces>
+    <Convention>PascalCase + Interface suffix</Convention>
+    <Pattern>{Component}Interface</Pattern>
+    <ValidatedExamples>
+      <Interface name="{INTERFACE_NAME}" component="{COMPONENT}" verified="true" />
+      <!-- Add interface names as they are defined -->
+    </ValidatedExamples>
+  </Interfaces>
+
+  <Components>
+    <Convention>PascalCase</Convention>
+    <Patterns>
+      <Pattern type="card">{Purpose}Card</Pattern>
+      <Pattern type="manager">{Purpose}Manager</Pattern>
+      <Pattern type="system">{Domain}System</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Component name="{COMPONENT_NAME}" type="{COMPONENT_TYPE}" module="{MODULE}" verified="true" />
+      <!-- Add component names as they are implemented -->
+    </ValidatedExamples>
+  </Components>
+
+  <Services>
+    <Convention>PascalCase + Service suffix</Convention>
+    <Pattern>{Domain}Service</Pattern>
+    <ValidatedExamples>
+      <Service name="{SERVICE_NAME}" domain="{DOMAIN}" verified="true" />
+      <!-- Add service names as they are implemented -->
+    </ValidatedExamples>
+  </Services>
+
+  <Properties>
+    <Convention>camelCase</Convention>
+    <ValidatedExamples>
+      <Property name="{PROPERTY_NAME}" type="{TYPE}" component="{COMPONENT}" verified="true" />
+      <!-- Add property names as they are used -->
+    </ValidatedExamples>
+  </Properties>
+
+  <Variables>
+    <Convention>camelCase</Convention>
+    <Patterns>
+      <Pattern type="current">current{Entity}</Pattern>
+      <Pattern type="default">default{Entity}</Pattern>
+      <Pattern type="boolean">is{State}</Pattern>
+      <Pattern type="identifier">{entity}Id</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Variable name="{VARIABLE_NAME}" pattern="{PATTERN_TYPE}" verified="true" />
+      <!-- Add variable names as they are used -->
+    </ValidatedExamples>
+  </Variables>
+
+  <Events>
+    <Convention>kebab-case strings</Convention>
+    <ValidatedExamples>
+      <Event name="{EVENT_NAME}" component="{COMPONENT}" verified="true" />
+      <!-- Add event names as they are defined -->
+    </ValidatedExamples>
+  </Events>
+
+  <APIEndpoints>
+    <Convention>kebab-case with REST patterns</Convention>
+    <ValidatedExamples>
+      <Endpoint path="{API_PATH}" method="{HTTP_METHOD}" component="{COMPONENT}" verified="true" />
+      <!-- Add API endpoints as they are implemented -->
+    </ValidatedExamples>
+  </APIEndpoints>
+
+  <DatabaseFields>
+    <Convention>snake_case</Convention>
+    <ValidatedExamples>
+      <Field name="{FIELD_NAME}" type="{DATA_TYPE}" table="{TABLE_NAME}" verified="true" />
+      <!-- Add database fields as they are defined -->
+    </ValidatedExamples>
+  </DatabaseFields>
+
+  <ConfigurationKeys>
+    <Convention>camelCase</Convention>
+    <ValidatedExamples>
+      <Key name="{CONFIG_KEY}" type="{DATA_TYPE}" component="{COMPONENT}" verified="true" />
+      <!-- Add configuration keys as they are used -->
+    </ValidatedExamples>
+  </ConfigurationKeys>
+
+  <APMLSpecific>
+    <StatusLevels>
+      <Level name="not-started" symbol="🔴" verified="true" />
+      <Level name="scaffolded" symbol="🟡" verified="true" />
+      <Level name="functional" symbol="🟠" verified="true" />
+      <Level name="integrated" symbol="🟢" verified="true" />
+      <Level name="tested" symbol="🔵" verified="true" />
+      <Level name="optimized" symbol="⭐" verified="true" />
+    </StatusLevels>
+    
+    <UserTypes>
+      <Type name="anonymous" verified="true" />
+      <Type name="registered" verified="true" />
+      <!-- Add project-specific user types -->
+    </UserTypes>
+    
+    <ValidationCriteria>
+      <Pattern type="module-interface">{MODULE_PREFIX}-INT-{number}</Pattern>
+      <Pattern type="ui-component">UI-{number}</Pattern>
+      <Pattern type="backend-service">BS-{number}</Pattern>
+      <!-- Add validation criteria patterns as they are defined -->
+    </ValidationCriteria>
+  </APMLSpecific>
+
+  <CSSClasses>
+    <Convention>kebab-case with BEM-like patterns</Convention>
+    <ValidatedExamples>
+      <Class name="{CSS_CLASS}" component="{COMPONENT}" verified="true" />
+      <!-- Add CSS class names as they are defined -->
+    </ValidatedExamples>
+  </CSSClasses>
+
+  <Contexts>
+    <Convention>PascalCase + Context suffix</Convention>
+    <ValidatedExamples>
+      <Context name="{CONTEXT_NAME}" domain="{DOMAIN}" verified="true" />
+      <!-- Add React context names as they are implemented -->
+    </ValidatedExamples>
+  </Contexts>
+
+  <Hooks>
+    <Convention>camelCase with use prefix</Convention>
+    <Pattern>use{Purpose}</Pattern>
+    <ValidatedExamples>
+      <Hook name="{HOOK_NAME}" purpose="{PURPOSE}" verified="true" />
+      <!-- Add custom hook names as they are implemented -->
+    </ValidatedExamples>
+  </Hooks>
+
+  <ErrorPatterns>
+    <NamingErrors>
+      <Error type="method-name-mismatch" description="Calling non-existent method variant" frequency="high" />
+      <Error type="import-path-case" description="Incorrect case in import paths" frequency="medium" />
+      <Error type="class-case-mismatch" description="Using wrong case for class names" frequency="low" />
+      <!-- Add error patterns as they are encountered -->
+    </NamingErrors>
+  </ErrorPatterns>
+
+  <UpdateInstructions>
+    <Guideline>When encountering naming errors, immediately document them in the CommonMistakes section</Guideline>
+    <Guideline>Mark examples as verified="true" only after confirming they exist and work in the codebase</Guideline>
+    <Guideline>Update the naming index when implementing new components or patterns</Guideline>
+    <Guideline>Reference this naming index before creating new files, methods, or imports</Guideline>
+  </UpdateInstructions>
+
+  <LastUpdated>{YYYY-MM-DD}</LastUpdated>
+  <Notes>
+    This naming index template provides the structure for documenting all naming conventions in an APML project. Replace template placeholders with actual project values and update regularly throughout development.
+  </Notes>
+</NamingIndex>

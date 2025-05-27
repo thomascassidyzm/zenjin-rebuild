@@ -1,13 +1,14 @@
-# APML Framework v1.4.1
+# APML Framework v1.4.2
 
 ## Version Information
 
-**Version:** 1.4.1  
-**Release Date:** May 26, 2025  
+**Version:** 1.4.2  
+**Release Date:** May 27, 2025  
 **Status:** Stable Release  
 **Authors:** Original concept by Zenjin, developed with Claude, Manus & Gemini
 
 ### Change Log
+- **v1.4.2 (2025-05-27):** Added comprehensive Naming Index System as mandatory APML framework practice. Addresses the 80% problem where development errors stem from naming inconsistencies (method typos, import path mismatches, variable reference errors). Introduces naming.apml as mandatory project artifact alongside registry.apml. Provides template structure, integration workflow, and validation requirements. Transforms naming errors into permanent project knowledge through systematic documentation of conventions, patterns, and common mistakes.
 - **v1.4.1 (2025-05-26):** Added Specification Type Taxonomy to distinguish between Interface Specifications (component contracts), Behavioral Specifications (state machine logic), and Experience Specifications (user journey choreography). Eliminates conceptual confusion between different specification types. Provides systematic approach to different system aspects. Critical enhancement based on real framework usage patterns.
 - **v1.4.0 (2025-05-25):** Added mandatory External Service Integration Protocol as core framework requirement. Eliminates debugging cycles through interface-first external service integration. Requires comprehensive service documentation capture before implementation. Proven to resolve complex integrations (Supabase Auth) on first attempt with zero debugging. Transforms APML from framework to comprehensive methodology for any external service integration.
 - **v1.3.3 (2025-05-24):** Added Continuing Chat Protocol as integral part of the APML Framework. Provides complete standardized handoff system for seamless multi-session AI development with zero context loss. Includes handoff document template, session startup protocol, quality assurance checklists, and integration with main framework phases. Framework is now fully self-contained for all AI-assisted development scenarios.
@@ -168,12 +169,13 @@ Provides a structured process for capturing expert knowledge from previous proje
 Establish project goals, scope, and structure.
 
 1. Create ProjectRegistry.apml file
-2. Define project purpose (max 200 tokens) (informed by Phase 0N/0R outputs)
-3. Identify core modules (3-7 recommended) (informed by Phase 0N/0R outputs)
-4. Document critical interfaces between modules
-5. Set up project directories and documentation structure
-6. Initialize version control (if desired)
-7. Validate registry with token-check tool
+2. Create naming.apml file (see Naming Index System below)
+3. Define project purpose (max 200 tokens) (informed by Phase 0N/0R outputs)
+4. Identify core modules (3-7 recommended) (informed by Phase 0N/0R outputs)
+5. Document critical interfaces between modules
+6. Set up project directories and documentation structure
+7. Initialize version control (if desired)
+8. Validate registry with token-check tool
 
 ## Phase 2: Interface Definition & Module Definition
 
@@ -228,6 +230,120 @@ Reflect on the implementation and refine as needed.
 4. Update project practices
 5. Plan next development cycle
 6. Consider deployment options
+
+## Naming Index System
+
+### Purpose and Motivation
+
+Research and field experience demonstrate that approximately 80% of development errors in AI-assisted projects stem from naming inconsistencies: method name typos, import path mismatches, variable reference errors, and case convention violations. The Naming Index System provides a systematic approach to prevent these errors through explicit documentation of project naming conventions.
+
+### Core Principle
+
+**Every APML project maintains a living naming index** that captures all naming conventions, patterns, validated examples, and common mistakes encountered during development. This transforms naming errors from recurring problems into permanent project knowledge.
+
+### Mandatory Project Artifact: naming.apml
+
+The `naming.apml` file is a mandatory project artifact alongside `registry.apml` and `README.md`. It serves as the single source of truth for all naming conventions used throughout the project.
+
+#### Template Structure
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<NamingIndex version="1.0" project="{PROJECT_NAME}" framework="APML Framework v1.4.1">
+  <Purpose>
+    Single source of truth for all naming conventions, patterns, and validated examples used throughout the {PROJECT_NAME} project.
+  </Purpose>
+
+  <Classes>
+    <Convention>PascalCase</Convention>
+    <Pattern>{Purpose}{Type} or {Domain}{Component}</Pattern>
+    <ValidatedExamples>
+      <Class name="ComponentName" component="module" pattern="purpose-type" verified="true" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="componentname" correct="ComponentName" issue="case-mismatch" />
+    </CommonMistakes>
+  </Classes>
+
+  <Methods>
+    <Convention>camelCase</Convention>
+    <Patterns>
+      <Pattern type="getter">get{Entity}()</Pattern>
+      <Pattern type="setter">set{Entity}()</Pattern>
+      <Pattern type="action">{verb}{Object}()</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Method name="methodName" component="ComponentName" pattern="action" verified="true" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="wrongMethodName" correct="correctMethodName" component="ComponentName" issue="method-name-mismatch" verified="true" />
+    </CommonMistakes>
+  </Methods>
+
+  <Files>
+    <Conventions>
+      <FileType type="component" convention="PascalCase.tsx" example="ComponentName.tsx" />
+      <FileType type="service" convention="PascalCase.ts" example="ServiceName.ts" />
+      <FileType type="interface" convention="PascalCaseInterface.ts" example="ComponentInterface.ts" />
+    </Conventions>
+    <CommonMistakes>
+      <Mistake wrong="component-name" correct="ComponentName" type="import-path" issue="case-kebab-vs-pascal" verified="true" />
+    </CommonMistakes>
+  </Files>
+
+  <ImportPaths>
+    <Conventions>
+      <PathType type="relative-component" pattern="./ComponentName" />
+      <PathType type="relative-service" pattern="../services/ServiceName" />
+    </Conventions>
+    <CommonMistakes>
+      <Mistake wrong="./component-name" correct="./ComponentName" issue="filename-case-mismatch" verified="true" />
+    </CommonMistakes>
+  </ImportPaths>
+
+  <ErrorPatterns>
+    <NamingErrors>
+      <Error type="method-name-mismatch" description="Calling non-existent method variant" frequency="high" />
+      <Error type="import-path-case" description="Incorrect case in import paths" frequency="medium" />
+    </NamingErrors>
+  </ErrorPatterns>
+</NamingIndex>
+```
+
+#### Naming Categories
+
+The naming index should document conventions for all project naming entities:
+
+1. **Code Structure**: Classes, methods, properties, variables, functions
+2. **Files & Imports**: File names, directory names, import paths, export names
+3. **Interfaces & Types**: Interface names, type definitions, enum values
+4. **Data & State**: Database fields, API endpoints, environment variables, configuration keys
+5. **Components**: React components, services, modules, events
+6. **Framework-Specific**: APML status levels, validation criteria, module completion states
+
+#### Integration with Development Workflow
+
+1. **Mandatory Reading**: Include `naming.apml` in development constraints as required reading
+2. **Error Documentation**: When encountering naming errors, immediately document them in the `<CommonMistakes>` section
+3. **Validation Reference**: Use naming index to verify method names, import paths, and conventions before implementation
+4. **Living Document**: Update naming index throughout project development as new patterns emerge
+
+#### Validation Requirements
+
+- All examples marked as `verified="true"` must exist and function correctly in the codebase
+- Common mistakes must include actual errors encountered during development
+- Naming patterns must be consistent across all project modules
+- Import paths must match exact file names and directory structures
+
+### Framework Integration
+
+The Naming Index System integrates with other APML framework components:
+
+- **Phase 1**: Create initial naming.apml structure during project setup
+- **Phase 3**: Update naming index during component implementation
+- **Phase 4**: Validate naming consistency during integration testing
+- **Registry Integration**: Reference naming conventions in component documentation
+- **Handoff Documents**: Include naming index updates in change documentation
 
 ## Implementation Status Tracking System
 

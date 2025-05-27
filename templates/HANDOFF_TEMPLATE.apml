@@ -40,9 +40,14 @@
       <MandatoryReads>
         - /README.md for project overview and development workflow
         - /registry.apml for single source of truth on component status and architecture
-        - /apml_framework_v1.4.1.md for framework principles and constraints
+        - /naming.apml for naming conventions, patterns, and common mistakes
+        - /apml_framework_v1.4.2.md for framework principles and constraints
         - This handoff document for current context and priorities
       </MandatoryReads>
+      <UpdateRequirements>
+        - Update /naming.apml when encountering naming errors or defining new conventions
+        - Mark all naming examples as verified="true" only after confirming they work in the codebase
+      </UpdateRequirements>
     </DocumentationRequirements>
   </DevelopmentConstraints>
   

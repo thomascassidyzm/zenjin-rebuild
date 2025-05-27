@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NamingIndex version="1.0" project="zenjin-rebuild" framework="APML Framework v1.4.1">
+  <Purpose>
+    Single source of truth for all naming conventions, patterns, and validated examples used throughout the Zenjin Maths App rebuild project. Created to prevent naming errors and maintain consistency across the codebase.
+  </Purpose>
+
+  <Classes>
+    <Convention>PascalCase</Convention>
+    <Pattern>{Purpose}{Type} or {Domain}{Component}</Pattern>
+    <ValidatedExamples>
+      <Class name="EngineOrchestrator" component="orchestration" pattern="purpose-type" />
+      <Class name="QuestionGenerator" component="learning-engine" pattern="purpose-type" />
+      <Class name="MetricsCalculator" component="metrics" pattern="purpose-type" />
+      <Class name="ConnectivityManager" component="offline-support" pattern="purpose-type" />
+      <Class name="SubscriptionManager" component="subscription" pattern="purpose-type" />
+      <Class name="AnonymousUserManager" component="user-management" pattern="domain-component" />
+      <Class name="PaymentProcessorAdapter" component="subscription" pattern="component-adapter" />
+      <Class name="ConfigurationService" component="backend-services" pattern="domain-service" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="engineOrchestrator" correct="EngineOrchestrator" issue="case-mismatch" />
+    </CommonMistakes>
+  </Classes>
+
+  <Methods>
+    <Convention>camelCase</Convention>
+    <Patterns>
+      <Pattern type="getter">get{Entity}()</Pattern>
+      <Pattern type="setter">set{Entity}()</Pattern>
+      <Pattern type="calculation">calculate{Metric}()</Pattern>
+      <Pattern type="initialization">initialize{Component}()</Pattern>
+      <Pattern type="validation">validate{Data}()</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Method name="getCurrentStitch" component="EngineOrchestrator" pattern="getter" verified="true" />
+      <Method name="getFactById" component="FactRepository" pattern="getter" verified="true" />
+      <Method name="generateQuestion" component="QuestionGenerator" pattern="action" verified="true" />
+      <Method name="initializeLearningSession" component="LearningEngineService" pattern="initialization" verified="true" />
+      <Method name="calculateAccuracy" component="MetricsCalculator" pattern="calculation" verified="true" />
+      <Method name="processUserResponse" component="EngineOrchestrator" pattern="action" verified="true" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="getNextStitch" correct="getCurrentStitch" component="EngineOrchestrator" issue="method-name-mismatch" verified="true" />
+    </CommonMistakes>
+  </Methods>
+
+  <Files>
+    <Conventions>
+      <FileType type="component" convention="PascalCase.tsx" example="PlayerCard.tsx" />
+      <FileType type="service" convention="PascalCase.ts" example="ConfigurationService.ts" />
+      <FileType type="interface" convention="PascalCaseInterface.ts" example="ThemeManagerInterface.ts" />
+      <FileType type="types" convention="PascalCaseTypes.ts" example="SynchronizationTypes.ts" />
+      <FileType type="example" convention="PascalCaseExample.ts" example="AnonymousUserExample.ts" />
+      <FileType type="test" convention="PascalCase.test.ts" example="MetricsCalculator.test.ts" />
+      <FileType type="css" convention="camelCase.css" example="feedbackSystem.css" />
+    </Conventions>
+    <ValidatedExamples>
+      <File name="EngineOrchestrator.ts" type="orchestrator" path="src/engines/" verified="true" />
+      <File name="LearningEngineService.ts" type="service" path="src/services/" verified="true" />
+      <File name="PlayerCard.tsx" type="component" path="src/components/PlayerCard/" verified="true" />
+      <File name="FactRepositoryTypes.ts" type="types" path="src/engines/FactRepository/" verified="true" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="fact-repository-types" correct="FactRepositoryTypes" type="import-path" issue="case-kebab-vs-pascal" verified="true" />
+    </CommonMistakes>
+  </Files>
+
+  <ImportPaths>
+    <Conventions>
+      <PathType type="relative-component" pattern="./ComponentName" example="./PlayerCard" />
+      <PathType type="relative-service" pattern="../services/ServiceName" example="../services/ConfigurationService" />
+      <PathType type="relative-engine" pattern="../engines/EngineName" example="../engines/MetricsCalculator" />
+      <PathType type="relative-interface" pattern="../interfaces/InterfaceName" example="../interfaces/ThemeManagerInterface" />
+    </Conventions>
+    <ValidatedExamples>
+      <Import path="./FactRepository" from="FactRepositoryUtils.ts" verified="true" />
+      <Import path="../services/LearningEngineService" from="EngineOrchestrator.ts" verified="true" />
+      <Import path="./StitchManager/StitchManager" from="EngineOrchestrator.ts" verified="true" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="./fact-repository-types" correct="./FactRepositoryTypes" issue="filename-case-mismatch" verified="true" />
+    </CommonMistakes>
+  </ImportPaths>
+
+  <Interfaces>
+    <Convention>PascalCase + Interface suffix</Convention>
+    <Pattern>{Component}Interface</Pattern>
+    <ValidatedExamples>
+      <Interface name="FactRepositoryInterface" component="FactRepository" verified="true" />
+      <Interface name="ThemeManagerInterface" component="ThemeManager" verified="true" />
+      <Interface name="APMLTestingInterface" component="testing" verified="true" />
+      <Interface name="PlayerCardInterface" component="PlayerCard" verified="true" />
+    </ValidatedExamples>
+  </Interfaces>
+
+  <Components>
+    <Convention>PascalCase</Convention>
+    <Patterns>
+      <Pattern type="card">{Purpose}Card</Pattern>
+      <Pattern type="manager">{Purpose}Manager</Pattern>
+      <Pattern type="system">{Domain}System</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Component name="PlayerCard" type="card" module="UserInterface" verified="true" />
+      <Component name="ThemeManager" type="manager" module="UserInterface" verified="true" />
+      <Component name="FeedbackSystem" type="system" module="UserInterface" verified="true" />
+      <Component name="PreEngagementCard" type="card" module="UserInterface" verified="true" />
+      <Component name="APMLValidationSuite" type="suite" module="testing" verified="true" />
+    </ValidatedExamples>
+  </Components>
+
+  <Services>
+    <Convention>PascalCase + Service suffix</Convention>
+    <Pattern>{Domain}Service</Pattern>
+    <ValidatedExamples>
+      <Service name="ConfigurationService" domain="backend" verified="true" />
+      <Service name="LearningEngineService" domain="learning" verified="true" />
+      <Service name="AnonymousUserService" domain="user-management" verified="true" />
+      <Service name="AuthenticationFlowService" domain="authentication" verified="true" />
+    </ValidatedExamples>
+  </Services>
+
+  <Properties>
+    <Convention>camelCase</Convention>
+    <ValidatedExamples>
+      <Property name="subscriptionTier" type="string" component="user" verified="true" />
+      <Property name="connectionType" type="string" component="connectivity" verified="true" />
+      <Property name="isOnline" type="boolean" component="connectivity" verified="true" />
+      <Property name="stitchPositions" type="object" component="stitch" verified="true" />
+      <Property name="engineOrchestrator" type="instance" component="LearningEngineService" verified="true" />
+    </ValidatedExamples>
+  </Properties>
+
+  <Variables>
+    <Convention>camelCase</Convention>
+    <Patterns>
+      <Pattern type="current">current{Entity}</Pattern>
+      <Pattern type="default">default{Entity}</Pattern>
+      <Pattern type="boolean">is{State}</Pattern>
+    </Patterns>
+    <ValidatedExamples>
+      <Variable name="currentTheme" pattern="current" verified="true" />
+      <Variable name="defaultConfig" pattern="default" verified="true" />
+      <Variable name="isAuthenticated" pattern="boolean" verified="true" />
+      <Variable name="userId" pattern="identifier" verified="true" />
+      <Variable name="sessionId" pattern="identifier" verified="true" />
+    </ValidatedExamples>
+  </Variables>
+
+  <Events>
+    <Convention>kebab-case strings</Convention>
+    <ValidatedExamples>
+      <Event name="auth:success" component="AuthToPlayerEventBus" verified="true" />
+      <Event name="preengagement:play-clicked" component="AuthToPlayerEventBus" verified="true" />
+      <Event name="loading:animation-started" component="AuthToPlayerEventBus" verified="true" />
+      <Event name="state:changed" component="AuthToPlayerEventBus" verified="true" />
+      <Event name="connectivity-change" component="ConnectivityManager" verified="true" />
+    </ValidatedExamples>
+  </Events>
+
+  <APIEndpoints>
+    <Convention>kebab-case with REST patterns</Convention>
+    <ValidatedExamples>
+      <Endpoint path="/api/config" method="GET" component="ConfigurationService" verified="true" />
+      <Endpoint path="/api/users/[id]" method="GET" component="UserAPI" verified="true" />
+      <Endpoint path="/api/auth/anonymous" method="POST" component="AuthAPI" verified="true" />
+      <Endpoint path="/api/users/initialize" method="POST" component="UserAPI" verified="true" />
+    </ValidatedExamples>
+  </APIEndpoints>
+
+  <DatabaseFields>
+    <Convention>snake_case</Convention>
+    <ValidatedExamples>
+      <Field name="user_id" type="uuid" table="users" verified="true" />
+      <Field name="created_at" type="timestamp" table="users" verified="true" />
+      <Field name="subscription_tier" type="text" table="users" verified="true" />
+      <Field name="anonymous_id" type="text" table="users" verified="true" />
+      <Field name="stitch_positions" type="jsonb" table="user_state" verified="true" />
+      <Field name="triple_helix_state" type="jsonb" table="user_state" verified="true" />
+    </ValidatedExamples>
+  </DatabaseFields>
+
+  <ConfigurationKeys>
+    <Convention>camelCase</Convention>
+    <ValidatedExamples>
+      <Key name="supabaseUrl" type="string" component="configuration" verified="true" />
+      <Key name="supabaseAnonKey" type="string" component="configuration" verified="true" />
+      <Key name="connectionType" type="string" component="connectivity" verified="true" />
+      <Key name="bubblesDensity" type="number" component="loading-animation" verified="true" />
+    </ValidatedExamples>
+  </ConfigurationKeys>
+
+  <APMLSpecific>
+    <StatusLevels>
+      <Level name="not-started" symbol="🔴" verified="true" />
+      <Level name="scaffolded" symbol="🟡" verified="true" />
+      <Level name="functional" symbol="🟠" verified="true" />
+      <Level name="integrated" symbol="🟢" verified="true" />
+      <Level name="tested" symbol="🔵" verified="true" />
+      <Level name="optimized" symbol="⭐" verified="true" />
+    </StatusLevels>
+    
+    <UserTypes>
+      <Type name="anonymous" verified="true" />
+      <Type name="registered" verified="true" />
+    </UserTypes>
+    
+    <SubscriptionTiers>
+      <Tier name="Free" verified="true" />
+      <Tier name="Premium" verified="true" />
+      <Tier name="Pro" verified="true" />
+    </SubscriptionTiers>
+    
+    <ValidationCriteria>
+      <Pattern type="module-interface">LE-INT-{number}</Pattern>
+      <Pattern type="ui-component">UI-{number}</Pattern>
+      <Pattern type="backend-service">BS-{number}</Pattern>
+      <Example criteria="LE-INT-001" module="LearningEngine" verified="true" />
+      <Example criteria="UI-006" module="UserInterface" verified="true" />
+      <Example criteria="BS-001" module="BackendServices" verified="true" />
+    </ValidationCriteria>
+  </APMLSpecific>
+
+  <CSSClasses>
+    <Convention>kebab-case with BEM-like patterns</Convention>
+    <ValidatedExamples>
+      <Class name="navigation-gradient" component="theme" verified="true" />
+      <Class name="feedback-correct" component="feedback" verified="true" />
+      <Class name="feedback-incorrect" component="feedback" verified="true" />
+      <Class name="card-gradient" component="theme" verified="true" />
+    </ValidatedExamples>
+  </CSSClasses>
+
+  <Contexts>
+    <Convention>PascalCase + Context suffix</Convention>
+    <ValidatedExamples>
+      <Context name="UserSessionContext" domain="user-management" verified="true" />
+      <Context name="ThemeContextType" domain="theming" verified="true" />
+    </ValidatedExamples>
+  </Contexts>
+
+  <Hooks>
+    <Convention>camelCase with use prefix</Convention>
+    <Pattern>use{Purpose}</Pattern>
+    <ValidatedExamples>
+      <Hook name="useTheme" purpose="theming" implied="true" />
+      <Hook name="useUserSession" purpose="user-management" implied="true" />
+      <Hook name="useAPMLValidation" purpose="testing" implied="true" />
+    </ValidatedExamples>
+  </Hooks>
+
+  <ErrorPatterns>
+    <NamingErrors>
+      <Error type="method-name-mismatch" description="Calling non-existent method variant">
+        <Example wrong="getNextStitch" correct="getCurrentStitch" frequency="high" />
+      </Error>
+      <Error type="import-path-case" description="Incorrect case in import paths">
+        <Example wrong="./fact-repository-types" correct="./FactRepositoryTypes" frequency="medium" />
+      </Error>
+      <Error type="class-case-mismatch" description="Using wrong case for class names">
+        <Example wrong="engineOrchestrator" correct="EngineOrchestrator" frequency="low" />
+      </Error>
+    </NamingErrors>
+  </ErrorPatterns>
+
+  <LastUpdated>2025-05-27</LastUpdated>
+  <Notes>
+    This naming index was created after encountering multiple naming-related errors in the project. It serves as both a reference guide and error prevention system. All examples marked as "verified" have been confirmed to exist and work correctly in the current codebase.
+  </Notes>
+</NamingIndex>
