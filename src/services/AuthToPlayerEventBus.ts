@@ -184,12 +184,12 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
             }
           };
         } else {
-          // Fallback if no questions generated
-          this.backgroundData.firstStitch = this.createFallbackQuestion(learningPathId);
+          // APML Protocol: Service must provide content, no fallbacks allowed
+          throw new Error('LearningEngine must provide questions - fallbacks violate APML compliance');
         }
       } catch (error) {
-        console.warn('Failed to generate question from LearningEngine, using fallback:', error);
-        this.backgroundData.firstStitch = this.createFallbackQuestion(userLearningState.currentStitch.learningPathId || 'addition');
+        console.error('APML Violation: LearningEngine failed to provide content:', error);
+        throw new Error('LearningEngine service failure violates APML External Service Integration Protocol');
       }
       
       this.backgroundData.contentPrepared = true;
@@ -206,48 +206,14 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     } catch (error) {
       console.error('❌ Failed to initialize user learning state:', error);
       
-      // Fallback to default content
-      this.backgroundData.firstStitch = {
-        id: 'fallback-stitch',
-        text: '2 + 3 = ?',
-        answers: ['4', '5', '6', '7'],
-        correctAnswer: 1,
-        learningPath: 'addition'
-      };
-      this.backgroundData.contentPrepared = true;
-      this.emit('background:content-prepared', { firstStitch: this.backgroundData.firstStitch });
+      // APML Protocol: No fallback content allowed
+      throw new Error('User learning state initialization failed - APML compliance requires service reliability');
     }
   }
 
   // Helper methods for LearningEngine integration
 
-  private createFallbackQuestion(learningPath: string): any {
-    const fallbackQuestions: Record<string, any> = {
-      'addition': {
-        id: 'fallback-add',
-        text: '2 + 3 = ?',
-        correctAnswer: '5',
-        distractor: '4',
-        learningPath: 'addition'
-      },
-      'subtraction': {
-        id: 'fallback-sub',
-        text: '8 - 3 = ?',
-        correctAnswer: '5',
-        distractor: '6',
-        learningPath: 'subtraction'
-      },
-      'multiplication': {
-        id: 'fallback-mult',
-        text: '3 × 4 = ?',
-        correctAnswer: '12',
-        distractor: '14',
-        learningPath: 'multiplication'
-      }
-    };
-    
-    return fallbackQuestions[learningPath] || fallbackQuestions['addition'];
-  }
+  // APML Protocol: Fallback questions removed for External Service Integration Protocol compliance
 
   private generateSimpleDistractor(correctAnswer: string): string {
     const num = parseInt(correctAnswer);
@@ -313,12 +279,12 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
         console.log('✅ Content loaded from LearningEngine:', content);
         this.emit('loading:content-ready', { content });
       } else {
-        console.warn('No questions generated, using fallback');
-        this.emit('loading:content-ready', { content: this.createFallbackQuestion(learningPath) });
+        console.error('APML Violation: LearningEngine generated no questions');
+        throw new Error('LearningEngine must generate questions - empty result violates APML compliance');
       }
     } catch (error) {
-      console.error('Failed to load from LearningEngine:', error);
-      this.emit('loading:content-ready', { content: this.createFallbackQuestion('addition') });
+      console.error('APML Violation: LearningEngine service failed:', error);
+      throw new Error('LearningEngine service failure violates APML External Service Integration Protocol');
     }
   }
 

@@ -202,37 +202,41 @@ export class LearningEngineService {
         );
       }
       
-      // Create session
+      // APML Protocol: Create session ID and store EMPTY session FIRST
       const sessionId = uuidv4();
       const startTime = new Date().toISOString();
       
-      // Generate initial questions
-      const initialQuestions = await this.generateSessionQuestions(
-        userId, 
-        learningPathId, 
-        sessionConfig
-      );
-      
-      // Store session
+      // Store session IMMEDIATELY with empty questions to establish session contract
       const session: LearningSession = {
         id: sessionId,
         userId,
         learningPathId,
         startTime,
         currentQuestionIndex: 0,
-        questions: initialQuestions,
+        questions: [], // APML: Start empty to prevent race conditions
         responses: [],
         configuration: sessionConfig,
         isActive: true
       };
       
       this.activeSessions.set(sessionId, session);
+      this.log(`Session created and stored: ${sessionId}`);
+      
+      // APML Protocol: Now generate questions AFTER session exists
+      const initialQuestions = await this.generateSessionQuestions(
+        userId, 
+        learningPathId, 
+        sessionConfig
+      );
+      
+      // Update session with questions atomically
+      session.questions = initialQuestions;
       
       this.log(`Learning session initialized: ${sessionId} for user: ${userId}`);
       
       return {
         sessionId,
-        initialQuestions: initialQuestions.slice(0, 3) // Return first 3 questions
+        initialQuestions: initialQuestions.slice(0, 3)
       };
     } catch (error) {
       if (error instanceof LearningEngineError) {
@@ -261,9 +265,15 @@ export class LearningEngineService {
     this.ensureInitialized();
     
     try {
+      // APML Protocol: Validate session existence with interface contract
       const session = this.activeSessions.get(sessionId);
       if (!session) {
         throw new LearningEngineError('LE-004', 'Session not found');
+      }
+      
+      // APML Protocol: Validate session is properly initialized
+      if (!session.isActive) {
+        throw new LearningEngineError('LE-004', 'Session is not active');
       }
       
       // Get user's current mastery level for question targeting
