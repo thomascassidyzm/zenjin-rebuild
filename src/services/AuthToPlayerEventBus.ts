@@ -84,9 +84,14 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     });
 
     // PRE_ENGAGEMENT → LOADING_WITH_ANIMATION transition
-    this.on('preengagement:play-clicked', () => {
+    this.on('preengagement:play-clicked', async () => {
       this.setState('LOADING_WITH_ANIMATION');
       this.emit('loading:animation-started', {});
+      
+      // Create anonymous user if pending
+      if (this.currentUserContext?.userType === 'anonymous' && this.currentUserContext.userId === 'pending-creation') {
+        await this.createPendingAnonymousUser();
+      }
       
       // Start background processes when user actually clicks play
       this.startBackgroundProcesses();
@@ -269,6 +274,36 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     this.emit('loading:animation-completed', {});
   }
 
+  /**
+   * Create anonymous user during loading animation
+   * Simple approach - only called when needed
+   */
+  private async createPendingAnonymousUser(): Promise<void> {
+    try {
+      console.log('🔄 Creating anonymous user during loading...');
+      
+      // Import UserSessionManager to avoid circular dependencies
+      const { userSessionManager } = await import('./UserSessionManager');
+      
+      // Create the anonymous user
+      await userSessionManager.createAnonymousUser();
+      
+      // Update user context with real user data
+      const sessionState = userSessionManager.state;
+      if (sessionState.user && this.currentUserContext) {
+        this.currentUserContext = {
+          userType: 'anonymous',
+          userId: sessionState.user.anonymousId,
+          userName: sessionState.user.displayName
+        };
+        
+        console.log('✅ Anonymous user created during loading:', this.currentUserContext);
+      }
+    } catch (error) {
+      console.error('❌ Failed to create anonymous user during loading:', error);
+      // Continue with pending context - learning will work with offline fallback
+    }
+  }
 
   // Reset for testing/cleanup
   reset(): void {
