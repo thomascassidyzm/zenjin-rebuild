@@ -424,6 +424,7 @@ const AppContent: React.FC = () => {
 
   // Auth-to-Player Flow Event Bus
   const [authToPlayerState, setAuthToPlayerState] = useState<AuthToPlayerState>('AUTH_SUCCESS');
+  const [playerContent, setPlayerContent] = useState<any>(null);
 
   // Handle Auth-to-Player flow events
   useEffect(() => {
@@ -435,6 +436,7 @@ const AppContent: React.FC = () => {
     // Listen for player ready event
     const unsubscribePlayer = authToPlayerEventBus.on('player:ready', (data) => {
       console.log('🎮 Auth-to-Player flow complete, transitioning to player');
+      setPlayerContent(data.content); // Capture content from event
       setCurrentPage('session');
       setLaunchComplete(true);
     });
@@ -685,14 +687,14 @@ const AppContent: React.FC = () => {
         );
       
       case 'session':
-        // If we have a first stitch from Auth-to-Player flow, use it
-        if (authToPlayerState.firstStitch) {
+        // If we have content from Auth-to-Player flow, use it
+        if (playerContent) {
           return (
             <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
               <div className="w-full max-w-md">
                 <PlayerCard
-                  key={authToPlayerState.firstStitch.id}
-                  initialQuestion={authToPlayerState.firstStitch}
+                  key={playerContent.id}
+                  initialQuestion={playerContent}
                   onAnswerSelected={(answer) => {
                     console.log('Answer selected:', answer);
                     // Handle answer selection here
