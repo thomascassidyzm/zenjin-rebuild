@@ -135,7 +135,6 @@ class SimpleTripleHelixManager {
  * Updated to use LearningEngineService for proper integration
  */
 export class EngineOrchestrator {
-  private learningEngineService: LearningEngineService;
   private tripleHelixManager: SimpleTripleHelixManager;
   private stitchManager: StitchManager;
   private stitchLibrary: StitchLibrary;
@@ -144,11 +143,9 @@ export class EngineOrchestrator {
   private activeSessions: Map<string, string> = new Map();
   
   constructor() {
-    // Use the singleton LearningEngineService
-    this.learningEngineService = learningEngineService;
+    // Initialize components without circular dependency
     this.tripleHelixManager = new SimpleTripleHelixManager();
     this.stitchManager = new StitchManager();
-    
     
     // Initialize basic stitch management
     this.initializeLearningPaths();
