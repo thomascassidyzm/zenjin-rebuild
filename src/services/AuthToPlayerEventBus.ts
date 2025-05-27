@@ -7,6 +7,7 @@
  */
 
 import { UserStateInitializer, UserLearningState } from './UserStateInitializer';
+import { learningEngineService } from './LearningEngineService';
 import { 
   AuthToPlayerInterface,
   AuthToPlayerEvents,
@@ -160,15 +161,34 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
       
       this.backgroundData.userLearningState = userLearningState;
       
-      // Use the actual stitch from user state instead of mock data
-      this.backgroundData.firstStitch = {
-        id: userLearningState.currentStitch.id,
-        text: this.generateQuestionFromStitch(userLearningState.currentStitch),
-        answers: this.generateAnswersFromStitch(userLearningState.currentStitch),
-        correctAnswer: 1, // This would be determined by the question generator
-        learningPath: userLearningState.currentStitch.learningPathId,
-        metadata: userLearningState.currentStitch.metadata
-      };
+      // Use LearningEngineService to generate real question content
+      try {
+        const learningPathId = userLearningState.currentStitch.learningPathId || 'addition';
+        const sessionData = await learningEngineService.initializeLearningSession(userId, learningPathId);
+        
+        if (sessionData.initialQuestions && sessionData.initialQuestions.length > 0) {
+          const firstQuestion = sessionData.initialQuestions[0];
+          this.backgroundData.firstStitch = {
+            id: firstQuestion.id,
+            text: firstQuestion.questionText,
+            answers: [firstQuestion.correctAnswer, ...firstQuestion.distractors].sort(() => Math.random() - 0.5),
+            correctAnswer: this.findCorrectAnswerIndex(firstQuestion.correctAnswer, [firstQuestion.correctAnswer, ...firstQuestion.distractors]),
+            learningPath: learningPathId,
+            metadata: {
+              ...firstQuestion.metadata,
+              sessionId: sessionData.sessionId,
+              factId: firstQuestion.factId,
+              boundaryLevel: firstQuestion.boundaryLevel
+            }
+          };
+        } else {
+          // Fallback if no questions generated
+          this.backgroundData.firstStitch = this.createFallbackQuestion(learningPathId);
+        }
+      } catch (error) {
+        console.warn('Failed to generate question from LearningEngine, using fallback:', error);
+        this.backgroundData.firstStitch = this.createFallbackQuestion(userLearningState.currentStitch.learningPathId || 'addition');
+      }
       
       this.backgroundData.contentPrepared = true;
       
@@ -197,15 +217,37 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     }
   }
 
-  // Helper methods for content generation
-  private generateQuestionFromStitch(stitch: any): string {
-    // This is a simplified version - would integrate with QuestionGenerator
-    return `${stitch.name}: 2 + 3 = ?`;
+  // Helper methods for LearningEngine integration
+  private findCorrectAnswerIndex(correctAnswer: string, shuffledAnswers: string[]): number {
+    return shuffledAnswers.findIndex(answer => answer === correctAnswer);
   }
 
-  private generateAnswersFromStitch(stitch: any): string[] {
-    // This is a simplified version - would integrate with DistractorGenerator
-    return ['4', '5', '6', '7'];
+  private createFallbackQuestion(learningPath: string): any {
+    const fallbackQuestions: Record<string, any> = {
+      'addition': {
+        id: 'fallback-add',
+        text: '2 + 3 = ?',
+        answers: ['4', '5', '6', '7'],
+        correctAnswer: 1,
+        learningPath: 'addition'
+      },
+      'subtraction': {
+        id: 'fallback-sub',
+        text: '8 - 3 = ?',
+        answers: ['4', '5', '6', '7'],
+        correctAnswer: 1,
+        learningPath: 'subtraction'
+      },
+      'multiplication': {
+        id: 'fallback-mult',
+        text: '3 × 4 = ?',
+        answers: ['10', '12', '14', '16'],
+        correctAnswer: 1,
+        learningPath: 'multiplication'
+      }
+    };
+    
+    return fallbackQuestions[learningPath] || fallbackQuestions['addition'];
   }
 
   // Load first stitch (called when play button clicked)
@@ -219,19 +261,59 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
       return;
     }
 
-    // Otherwise load it now (fallback)
-    setTimeout(() => {
-      const mockStitch = {
-        id: 'first-stitch',
-        text: '2 + 3 = ?',
-        answers: ['4', '5', '6', '7'],
-        correctAnswer: 1,
-        learningPath: 'addition'
-      };
+    // Otherwise load it now using LearningEngine
+    this.loadContentFromLearningEngine();
+  }
+
+  // Load content directly from LearningEngine (used as fallback)
+  private async loadContentFromLearningEngine(): Promise<void> {
+    if (!this.currentUserContext) {
+      console.warn('No user context available, using hard fallback');
+      this.emit('loading:content-ready', { content: this.createFallbackQuestion('addition') });
+      return;
+    }
+
+    try {
+      const userId = this.getUserStateId(this.currentUserContext);
+      const learningPath = 'addition'; // Default learning path
       
-      console.log('✅ First stitch loaded (fallback):', mockStitch);
-      this.emit('loading:content-ready', { content: mockStitch });
-    }, 200);
+      console.log('🔄 Loading content from LearningEngine for user:', userId);
+      
+      const sessionData = await learningEngineService.initializeLearningSession(userId, learningPath);
+      
+      if (sessionData.initialQuestions && sessionData.initialQuestions.length > 0) {
+        const firstQuestion = sessionData.initialQuestions[0];
+        const shuffledAnswers = [firstQuestion.correctAnswer, ...firstQuestion.distractors];
+        // Shuffle answers
+        for (let i = shuffledAnswers.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledAnswers[i], shuffledAnswers[j]] = [shuffledAnswers[j], shuffledAnswers[i]];
+        }
+        
+        const content = {
+          id: firstQuestion.id,
+          text: firstQuestion.questionText,
+          answers: shuffledAnswers,
+          correctAnswer: this.findCorrectAnswerIndex(firstQuestion.correctAnswer, shuffledAnswers),
+          learningPath: learningPath,
+          metadata: {
+            ...firstQuestion.metadata,
+            sessionId: sessionData.sessionId,
+            factId: firstQuestion.factId,
+            boundaryLevel: firstQuestion.boundaryLevel
+          }
+        };
+        
+        console.log('✅ Content loaded from LearningEngine:', content);
+        this.emit('loading:content-ready', { content });
+      } else {
+        console.warn('No questions generated, using fallback');
+        this.emit('loading:content-ready', { content: this.createFallbackQuestion(learningPath) });
+      }
+    } catch (error) {
+      console.error('Failed to load from LearningEngine:', error);
+      this.emit('loading:content-ready', { content: this.createFallbackQuestion('addition') });
+    }
   }
 
   // Public API for components
