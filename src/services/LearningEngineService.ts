@@ -628,7 +628,7 @@ export class LearningEngineService {
   ): Promise<Question[]> {
     try {
       // Use EngineOrchestrator to get the next stitch for this learning path
-      const nextStitch = this.engineOrchestrator.getNextStitch(userId, learningPathId);
+      const nextStitch = this.engineOrchestrator.getCurrentStitch(userId, learningPathId);
       
       if (!nextStitch) {
         this.log(`No stitch available for learning path: ${learningPathId}`);
