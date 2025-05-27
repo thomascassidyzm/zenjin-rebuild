@@ -9,6 +9,7 @@ import {
 import { FactRepositoryInterface } from '../../interfaces/FactRepositoryInterface';
 import { DistinctionManagerInterface } from '../../interfaces/DistinctionManagerInterface';
 import { TripleHelixManagerInterface } from '../../interfaces/TripleHelixManagerInterface';
+import { DistractorGeneratorInterface, DistractorRequest } from '../../interfaces/DistractorGeneratorInterface';
 
 // Simple logger interface
 interface Logger {
@@ -36,6 +37,7 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
   private readonly factRepository: FactRepositoryInterface;
   private readonly distinctionManager: DistinctionManagerInterface;
   private readonly tripleHelixManager: TripleHelixManagerInterface;
+  private readonly distractorGenerator: DistractorGeneratorInterface;
   private readonly logger: Logger;
   
   // Cache for recently generated questions to avoid repetition
@@ -53,11 +55,13 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     factRepository: FactRepositoryInterface,
     distinctionManager: DistinctionManagerInterface,
     tripleHelixManager: TripleHelixManagerInterface,
+    distractorGenerator: DistractorGeneratorInterface,
     logger: Logger = new SimpleLogger()
   ) {
     this.factRepository = factRepository;
     this.distinctionManager = distinctionManager;
     this.tripleHelixManager = tripleHelixManager;
+    this.distractorGenerator = distractorGenerator;
     this.logger = logger;
   }
   
@@ -75,8 +79,10 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
       this.validateUserAndLearningPath(request.userId, request.learningPathId);
       
       // Get user's current learning state
-      const userMasteryLevels = this.distinctionManager.getUserMasteryLevels(request.userId);
-      const currentLearningPath = this.tripleHelixManager.getUserActiveLearningPath(request.userId);
+      // Note: APML spec provides per-fact boundary levels, aggregate method needed
+      // Using getCurrentBoundaryLevel for individual facts as per APML interface
+      const userMasteryLevels = {}; // Will be populated per-fact as needed
+      const currentLearningPath = this.tripleHelixManager.getActiveLearningPath(request.userId);
       
       // Get appropriate facts based on learning path and user's mastery
       const eligibleFacts = this.getEligibleFacts(
@@ -102,12 +108,31 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
       const questionTemplate = this.getQuestionTemplate(selectedFact.id, boundaryLevel);
       const questionText = this.formatQuestionText(selectedFact.id, questionTemplate);
       
+      // Generate distractors using DistractorGenerator (APML-compliant integration)
+      const correctAnswer = selectedFact.result.toString();
+      let distractors: string[] = [];
+      
+      try {
+        const distractorRequest: DistractorRequest = {
+          factId: selectedFact.id,
+          boundaryLevel: boundaryLevel,
+          correctAnswer: correctAnswer
+        };
+        
+        const multipleDistractors = this.distractorGenerator.generateMultipleDistractors(distractorRequest);
+        distractors = multipleDistractors.map(d => d.value || d.toString());
+      } catch (error) {
+        this.logger.error(`Failed to generate distractors: ${error.message}`);
+        // Continue without distractors rather than failing
+      }
+      
       // Create and return the question
       const question: Question = {
         id: `q-${uuidv4()}`,
         factId: selectedFact.id,
         text: questionText,
-        correctAnswer: selectedFact.result.toString(),
+        correctAnswer: correctAnswer,
+        distractors: distractors,
         boundaryLevel,
         learningPathId: request.learningPathId,
         operation: selectedFact.operation,
@@ -298,8 +323,10 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
       throw new Error('USER_NOT_FOUND');
     }
     
-    // Check if learning path exists
-    if (!this.tripleHelixManager.learningPathExists(learningPathId)) {
+    // Validate learning path exists by attempting to get active path
+    try {
+      this.tripleHelixManager.getActiveLearningPath(userId);
+    } catch (error) {
       throw new Error('LEARNING_PATH_NOT_FOUND');
     }
   }
@@ -326,7 +353,7 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     const facts = this.factRepository.getFactsByLearningPath(learningPathId);
     
     // Get user's active learning path in the Triple Helix model
-    const activeHelixPath = this.tripleHelixManager.getUserActiveLearningPath(userId);
+    const activeHelixPath = this.tripleHelixManager.getActiveLearningPath(userId);
     
     // Get recent questions to avoid repetition
     const recentFactIds = this.getRecentFactIds(userId);

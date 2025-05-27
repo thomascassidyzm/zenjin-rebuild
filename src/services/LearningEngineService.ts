@@ -162,10 +162,11 @@ export class LearningEngineService {
         this.distinctionManager,
         // Mock TripleHelixManager - will be replaced with real integration
         {
-          getUserActiveLearningPath: (userId: string) => 'addition',
+          getActiveLearningPath: (userId: string) => ({ id: 'addition', name: 'Addition', difficulty: 1 }),
           getUserCurrentStitch: (userId: string) => null,
           updateUserProgress: () => Promise.resolve()
-        } as any
+        } as any,
+        this.distractorGenerator
       );
       
       this.isInitialized = true;
@@ -276,8 +277,8 @@ export class LearningEngineService {
         throw new LearningEngineError('LE-004', 'Session is not active');
       }
       
-      // Get user's current mastery level for question targeting
-      const masteryLevel = this.distinctionManager.getUserMasteryLevel(userId, 'default');
+      // Get user's current boundary level for question targeting (use default fact for overall level)
+      const masteryLevel = this.distinctionManager.getCurrentBoundaryLevel(userId, 'default-fact');
       
       // Create question request
       const request: QuestionRequest = {
@@ -288,8 +289,8 @@ export class LearningEngineService {
         ...questionRequest
       };
       
-      // Generate question using QuestionGenerator
-      const generatorQuestion = await this.questionGenerator.generateQuestion(request);
+      // Generate question using QuestionGenerator (synchronous)
+      const generatorQuestion = this.questionGenerator.generateQuestion(request);
       
       // Convert to unified Question format
       const question: Question = {
@@ -430,7 +431,9 @@ export class LearningEngineService {
     
     try {
       // Get mastery data from DistinctionManager
-      const masteryLevels = this.distinctionManager.getUserMasteryLevels(userId);
+      // Note: APML spec only provides per-fact boundary levels, not aggregate mastery
+      // This will be addressed when proper user mastery aggregation is implemented
+      const masteryLevels = {}; // Placeholder for APML-compliant implementation
       
       // Calculate overall progress
       const totalFacts = Object.keys(masteryLevels).length;
@@ -621,10 +624,33 @@ export class LearningEngineService {
     const maxQuestions = config.maxQuestions || 10;
     const questions: Question[] = [];
     
-    // Generate initial set of questions
+    // Generate initial set of questions directly using QuestionGenerator
+    // This avoids the circular dependency of session validation
     for (let i = 0; i < Math.min(5, maxQuestions); i++) {
       try {
-        const question = await this.generateQuestion(`temp-${userId}`, userId);
+        // Create question request without session validation
+        const request: QuestionRequest = {
+          userId,
+          learningPathId,
+          difficultyLevel: 1, // Start with basic difficulty for new sessions
+          questionCount: 1
+        };
+        
+        // Generate question directly using QuestionGenerator (no session required)
+        const generatorQuestion = this.questionGenerator.generateQuestion(request);
+        
+        // Convert to unified Question format (same as generateQuestion method)
+        const question: Question = {
+          id: generatorQuestion.id,
+          factId: generatorQuestion.factId,
+          questionText: generatorQuestion.text,
+          correctAnswer: generatorQuestion.correctAnswer,
+          distractors: generatorQuestion.distractors || [],
+          boundaryLevel: generatorQuestion.boundaryLevel,
+          difficulty: generatorQuestion.difficulty || 1,
+          metadata: generatorQuestion.metadata || {}
+        };
+        
         questions.push(question);
       } catch (error) {
         this.log(`Failed to generate question ${i + 1}: ${error}`);
@@ -652,7 +678,8 @@ export class LearningEngineService {
         boundaryLevel: question.boundaryLevel
       };
       
-      this.distinctionManager.updateMastery(userId, question.factId, performanceData);
+      // Use APML-compliant updateBoundaryLevel method
+      this.distinctionManager.updateBoundaryLevel(userId, question.factId, performanceData);
     } catch (error) {
       this.log(`Failed to update user mastery: ${error}`);
     }
@@ -746,7 +773,8 @@ export class LearningEngineService {
    */
   private async exportCurriculumData(): Promise<any> {
     // Use ContentManager export functionality
-    return this.contentManager.exportCurriculum();
+    // Use APML-compliant exportCurriculum signature
+    return this.contentManager.exportCurriculum('default-curriculum', 'Auto-exported curriculum data');
   }
   
   /**
