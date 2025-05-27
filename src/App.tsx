@@ -498,19 +498,16 @@ const AppContent: React.FC = () => {
     try {
       switch (choice) {
         case UserAuthChoice.ANONYMOUS:
-          // Create anonymous user session
-          await createAnonymousUser();
-          
-          // Initialize Auth-to-Player flow for anonymous user
-          const anonymousUserContext: AnonymousUserContext = {
+          // Skip user creation - go directly to PreEngagement
+          // User will be created when play button is clicked
+          const pendingAnonymousContext: AnonymousUserContext = {
             userType: 'anonymous',
-            userId: sessionState.user?.anonymousId, // Use the anonymous ID if available
-            userName: sessionState.user?.displayName
-            // email is not set for anonymous users
+            userId: 'pending', // Will be set when user actually created
+            userName: 'Guest'
           };
           
-          console.log('✅ Starting Auth-to-Player flow for anonymous user:', anonymousUserContext);
-          authToPlayerEventBus.startFlow(anonymousUserContext);
+          console.log('✅ Starting Auth-to-Player flow for anonymous user (pending creation)');
+          authToPlayerEventBus.startFlow(pendingAnonymousContext);
           break;
         case UserAuthChoice.SIGN_IN:
           // Sign in flow will be handled by dedicated form component

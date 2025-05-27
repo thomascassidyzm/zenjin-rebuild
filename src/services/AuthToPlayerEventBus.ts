@@ -84,9 +84,14 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     });
 
     // PRE_ENGAGEMENT → LOADING_WITH_ANIMATION transition
-    this.on('preengagement:play-clicked', () => {
+    this.on('preengagement:play-clicked', async () => {
       this.setState('LOADING_WITH_ANIMATION');
       this.emit('loading:animation-started', {});
+      
+      // Create anonymous user if needed (when userId is 'pending')
+      if (this.currentUserContext?.userType === 'anonymous' && this.currentUserContext.userId === 'pending') {
+        await this.createAnonymousUserOnDemand();
+      }
       
       // Start background processes when user actually clicks play
       this.startBackgroundProcesses();
@@ -267,6 +272,35 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
 
   animationCompleted(): void {
     this.emit('loading:animation-completed', {});
+  }
+
+  /**
+   * Create anonymous user on-demand when play button is clicked
+   * APML-compliant lazy initialization
+   */
+  private async createAnonymousUserOnDemand(): Promise<void> {
+    try {
+      // Import UserSessionManager to avoid circular dependencies
+      const { userSessionManager } = await import('./UserSessionManager');
+      
+      // Create the anonymous user
+      await userSessionManager.createAnonymousUser();
+      
+      // Update user context with real user data
+      const sessionState = userSessionManager.state;
+      if (sessionState.user && this.currentUserContext) {
+        this.currentUserContext = {
+          userType: 'anonymous',
+          userId: sessionState.user.anonymousId,
+          userName: sessionState.user.displayName
+        };
+        
+        console.log('✅ Anonymous user created on-demand:', this.currentUserContext);
+      }
+    } catch (error) {
+      console.error('❌ Failed to create anonymous user on-demand:', error);
+      // Continue with pending context - user initialization will handle fallback
+    }
   }
 
   // Reset for testing/cleanup
