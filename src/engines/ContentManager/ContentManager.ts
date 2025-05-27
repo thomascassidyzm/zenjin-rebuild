@@ -3,7 +3,7 @@
  * This file defines the ContentManager class that manages curriculum content
  */
 
-import { FactRepositoryInterface, MathematicalFact, FactQuery } from '../FactRepository';
+import { FactRepositoryInterface, MathematicalFact, FactQuery } from '../FactRepository/FactRepositoryTypes';
 import { 
   ContentManagerInterface, 
   MathematicalFactInput, 

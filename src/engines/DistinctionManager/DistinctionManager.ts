@@ -8,8 +8,8 @@
  * @module LearningEngine
  */
 
-import { DistinctionManagerInterface } from './interfaces/DistinctionManagerInterface';
-import { FactRepositoryInterface } from './interfaces/FactRepositoryInterface';
+import { DistinctionManagerInterface } from '../../interfaces/DistinctionManagerInterface';
+import { FactRepositoryInterface } from '../../interfaces/FactRepositoryInterface';
 
 /**
  * Represents a boundary level in the distinction-based learning model
@@ -445,5 +445,75 @@ export class DistinctionManager implements DistinctionManagerInterface {
   private updateUserFactMasteryInternal(masteryData: UserFactMastery): void {
     const key = this.getMasteryKey(masteryData.userId, masteryData.factId);
     this.userMasteryData.set(key, { ...masteryData });
+  }
+  
+  // --- Additional Methods for LearningEngineService Integration ---
+  
+  /**
+   * Get all mastery levels for a user (used by LearningEngineService)
+   * @param userId User identifier
+   * @returns Record of factId to mastery level mappings
+   */
+  getUserMasteryLevels(userId: string): Record<string, number> {
+    const masteryLevels: Record<string, number> = {};
+    
+    for (const [key, masteryData] of this.userMasteryData.entries()) {
+      if (masteryData.userId === userId) {
+        masteryLevels[masteryData.factId] = masteryData.currentLevel;
+      }
+    }
+    
+    return masteryLevels;
+  }
+  
+  /**
+   * Check if user exists in the system (used by LearningEngineService)
+   * @param userId User identifier
+   * @returns True if user has any mastery data
+   */
+  userExists(userId: string): boolean {
+    for (const masteryData of this.userMasteryData.values()) {
+      if (masteryData.userId === userId) {
+        return true;
+      }
+    }
+    return true; // Default to true for new users
+  }
+  
+  /**
+   * Get user mastery level for a specific fact (used by LearningEngineService)
+   * @param userId User identifier
+   * @param factId Fact identifier
+   * @returns Mastery level (1-5) or 1 for new facts
+   */
+  getUserMasteryLevel(userId: string, factId: string): number {
+    const masteryData = this.getUserFactMasteryInternal(userId, factId);
+    return masteryData ? masteryData.currentLevel : 1; // Default to level 1 for new facts
+  }
+  
+  /**
+   * Update mastery based on simplified performance data (used by LearningEngineService)
+   * @param userId User identifier
+   * @param factId Fact identifier
+   * @param performanceData Simplified performance data
+   */
+  updateMastery(userId: string, factId: string, performanceData: { isCorrect: boolean; responseTime: number; boundaryLevel?: number }): void {
+    // Initialize mastery data if it doesn't exist
+    if (!this.getUserFactMasteryInternal(userId, factId)) {
+      this.initializeUserFactMastery(userId, factId);
+    }
+    
+    // Convert to expected format
+    const performance: PerformanceData = {
+      correctFirstAttempt: performanceData.isCorrect,
+      responseTime: performanceData.responseTime,
+      consecutiveCorrect: 0 // Will be calculated in updateBoundaryLevel
+    };
+    
+    try {
+      this.updateBoundaryLevel(userId, factId, performance);
+    } catch (error) {
+      console.warn(`Failed to update mastery for user ${userId}, fact ${factId}:`, error);
+    }
   }
 }

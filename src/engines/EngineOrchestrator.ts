@@ -1,13 +1,15 @@
 /**
  * Engine Orchestrator
  * Coordinates between different engines to provide a unified learning experience
+ * 
+ * Updated to use real LearningEngine integration instead of mock implementations
  */
 
-import { FactRepository } from './FactRepository/FactRepository';
-import { QuestionGenerator } from './QuestionGenerator/QuestionGenerator';
+import { LearningEngineService, learningEngineService } from '../services/LearningEngineService';
 import { StitchManager, Stitch, SessionResults, PerformanceData, RepositionResult } from './StitchManager/StitchManager';
 import { StitchLibrary } from './StitchLibrary';
-// Temporarily define the types here to avoid import issues
+
+// Learning path interface for Triple Helix system
 interface LearningPath {
   id: string;
   name: string;
@@ -18,31 +20,10 @@ interface LearningPath {
   status: string;
   metadata?: Record<string, any>;
 }
+
+// Import question types
 import { Question as QuestionGeneratorQuestion } from '../interfaces/QuestionGeneratorInterface';
 import { Question as PlayerCardQuestion } from '../interfaces/PlayerCardInterface';
-
-// Simple mock implementations for engines we don't have yet
-class MockDistinctionManager {
-  getUserMasteryLevels(userId: string): Record<string, number> {
-    return {}; // No mastery data yet - all facts are new
-  }
-  
-  userExists(userId: string): boolean {
-    return true; // All users exist for now
-  }
-  
-  getUserMasteryLevel(userId: string, factId: string): number {
-    return 0; // All facts start at level 0 (new)
-  }
-  
-  getUserCompletedFacts(userId: string, learningPathId: string): any[] {
-    return []; // No completed facts yet
-  }
-  
-  getTimeSinceLastPractice(userId: string, factId: string): number {
-    return Date.now(); // All facts are "new" - never practiced
-  }
-}
 
 // Simplified TripleHelixManager for tube assignment and rotation
 class SimpleTripleHelixManager {
@@ -151,44 +132,54 @@ class SimpleTripleHelixManager {
 
 /**
  * Main orchestrator class that coordinates all engines
+ * Updated to use LearningEngineService for proper integration
  */
 export class EngineOrchestrator {
-  private factRepository: FactRepository;
-  private questionGenerator: QuestionGenerator;
-  private distinctionManager: MockDistinctionManager;
+  private learningEngineService: LearningEngineService;
   private tripleHelixManager: SimpleTripleHelixManager;
   private stitchManager: StitchManager;
   private stitchLibrary: StitchLibrary;
   
+  // Active learning sessions for each user
+  private activeSessions: Map<string, string> = new Map();
+  
   constructor() {
-    // Initialize engines
-    this.factRepository = new FactRepository();
-    this.distinctionManager = new MockDistinctionManager();
+    // Use the singleton LearningEngineService
+    this.learningEngineService = learningEngineService;
     this.tripleHelixManager = new SimpleTripleHelixManager();
     this.stitchManager = new StitchManager();
-    this.stitchLibrary = new StitchLibrary(this.factRepository);
     
-    // Initialize question generator with dependencies
-    this.questionGenerator = new QuestionGenerator(
-      this.factRepository,
-      this.distinctionManager,
-      this.tripleHelixManager
-    );
-    
-    // Initialize stitches
-    this.initializeStitches();
+    // Initialize basic stitch management
+    this.initializeLearningPaths();
   }
   
   /**
    * Generate a question for a user and learning path
    */
-  generateQuestion(userId: string = 'default-user', learningPathId: string = 'addition'): PlayerCardQuestion {
+  async generateQuestion(userId: string = 'default-user', learningPathId: string = 'addition'): Promise<PlayerCardQuestion> {
     try {
-      const generatedQuestion = this.questionGenerator.generateQuestion({
-        userId,
-        learningPathId
-      });
-      return this.addDistractorToQuestion(generatedQuestion);
+      // Ensure user has an active learning session
+      let sessionId = this.activeSessions.get(userId);
+      
+      if (!sessionId) {
+        // Initialize new learning session
+        const sessionData = await this.learningEngineService.initializeLearningSession(
+          userId, 
+          learningPathId
+        );
+        sessionId = sessionData.sessionId;
+        this.activeSessions.set(userId, sessionId);
+        
+        // Return first question from initial questions
+        if (sessionData.initialQuestions.length > 0) {
+          return this.convertToPlayerCardQuestion(sessionData.initialQuestions[0]);
+        }
+      }
+      
+      // Generate new question using LearningEngine service
+      const question = await this.learningEngineService.generateQuestion(sessionId, userId);
+      return this.convertToPlayerCardQuestion(question);
+      
     } catch (error) {
       console.error('Failed to generate question:', error);
       // Fallback to a simple question
@@ -199,22 +190,102 @@ export class EngineOrchestrator {
   /**
    * Generate multiple questions
    */
-  generateMultipleQuestions(count: number, userId: string = 'default-user', learningPathId: string = 'addition'): PlayerCardQuestion[] {
+  async generateMultipleQuestions(count: number, userId: string = 'default-user', learningPathId: string = 'addition'): Promise<PlayerCardQuestion[]> {
     try {
-      const generatedQuestions = this.questionGenerator.generateMultipleQuestions({
-        userId,
-        learningPathId,
-        count
-      });
-      return generatedQuestions.map(q => this.addDistractorToQuestion(q));
+      const questions: PlayerCardQuestion[] = [];
+      
+      for (let i = 0; i < count; i++) {
+        try {
+          const question = await this.generateQuestion(userId, learningPathId);
+          questions.push(question);
+        } catch (error) {
+          console.warn(`Failed to generate question ${i + 1}/${count}:`, error);
+          // Add fallback question
+          questions.push(this.createFallbackQuestion(learningPathId));
+        }
+      }
+      
+      return questions;
     } catch (error) {
       console.error('Failed to generate multiple questions:', error);
-      // Fallback to generating questions one by one
+      // Fallback to generating fallback questions
       const questions: PlayerCardQuestion[] = [];
       for (let i = 0; i < count; i++) {
         questions.push(this.createFallbackQuestion(learningPathId));
       }
       return questions;
+    }
+  }
+  
+  /**
+   * Convert LearningEngine Question to PlayerCard Question format
+   */
+  private convertToPlayerCardQuestion(question: any): PlayerCardQuestion {
+    return {
+      id: question.id,
+      factId: question.factId,
+      text: question.questionText,
+      correctAnswer: question.correctAnswer,
+      distractor: question.distractors && question.distractors.length > 0 
+        ? question.distractors[0] 
+        : this.generateSimpleDistractor(question.correctAnswer),
+      boundaryLevel: question.boundaryLevel || 1
+    };
+  }
+  
+  /**
+   * Generate a simple distractor if none provided
+   */
+  private generateSimpleDistractor(correctAnswer: string): string {
+    const num = parseInt(correctAnswer);
+    if (!isNaN(num)) {
+      // For numbers, add or subtract 1-3
+      const adjustment = Math.floor(Math.random() * 3) + 1;
+      const newNum = Math.random() > 0.5 ? num + adjustment : Math.max(0, num - adjustment);
+      return newNum.toString();
+    }
+    return correctAnswer + '?'; // Fallback for non-numeric answers
+  }
+  
+  /**
+   * Process user response and update learning state
+   */
+  async processUserResponse(
+    userId: string, 
+    questionId: string, 
+    selectedAnswer: string, 
+    responseTime: number
+  ): Promise<{ isCorrect: boolean; nextQuestion?: PlayerCardQuestion }> {
+    try {
+      const sessionId = this.activeSessions.get(userId);
+      if (!sessionId) {
+        throw new Error('No active session for user');
+      }
+      
+      // Create response data
+      const userResponse = {
+        questionId,
+        selectedAnswer,
+        responseTime,
+        isCorrect: false, // Will be determined by service
+        timestamp: new Date().toISOString()
+      };
+      
+      // Process response with LearningEngine service
+      const result = await this.learningEngineService.processUserResponse(
+        sessionId,
+        questionId,
+        userResponse
+      );
+      
+      return {
+        isCorrect: result.feedback.isCorrect,
+        nextQuestion: result.nextQuestion ? this.convertToPlayerCardQuestion(result.nextQuestion) : undefined
+      };
+      
+    } catch (error) {
+      console.error('Failed to process user response:', error);
+      return { isCorrect: false };
     }
   }
   
@@ -331,9 +402,9 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Initialize all stitches in the system
+   * Initialize learning paths in the system
    */
-  private initializeStitches(): void {
+  private initializeLearningPaths(): void {
     try {
       // Initialize learning paths
       const learningPaths = ['addition', 'multiplication', 'subtraction', 'division'];
@@ -341,21 +412,9 @@ export class EngineOrchestrator {
         this.stitchManager.initializeLearningPath(pathId);
       });
       
-      // Get all stitches from the library
-      const allStitches = this.stitchLibrary.getAllStitches();
-      
-      // Add stitches to the stitch manager
-      allStitches.forEach(stitch => {
-        try {
-          this.stitchManager.addStitch(stitch);
-        } catch (error) {
-          console.warn(`Failed to add stitch ${stitch.id}:`, error);
-        }
-      });
-      
-      console.log(`Initialized ${allStitches.length} stitches across ${learningPaths.length} learning paths`);
+      console.log(`Initialized ${learningPaths.length} learning paths`);
     } catch (error) {
-      console.error('Failed to initialize stitches:', error);
+      console.error('Failed to initialize learning paths:', error);
     }
   }
   
