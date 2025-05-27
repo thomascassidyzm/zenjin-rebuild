@@ -2,168 +2,207 @@
  * Engine Orchestrator
  * Coordinates between different engines to provide a unified learning experience
  * 
- * Updated to use real LearningEngine integration instead of mock implementations
+ * UPDATED: Tube-based architecture following APML Framework v1.4.2
  */
 
 import { LearningEngineService, learningEngineService } from '../services/LearningEngineService';
-import { StitchManager, Stitch, SessionResults, PerformanceData, RepositionResult } from './StitchManager/StitchManager';
-import { StitchLibrary } from './StitchLibrary';
 
-// Learning path interface for Triple Helix system
-interface LearningPath {
-  id: string;
-  name: string;
-  description?: string;
-  currentStitchId?: string;
-  nextStitchId?: string;
-  difficulty: number;
-  status: string;
-  metadata?: Record<string, any>;
-}
-
-// Import question types
-import { Question as QuestionGeneratorQuestion } from '../interfaces/QuestionGeneratorInterface';
+// Import updated tube-based interfaces
+import { StitchManagerInterface, StitchId, TubeId } from '../interfaces/StitchManagerInterface';
+import { TripleHelixManagerInterface, Tube, TripleHelixState, TubeStatus } from '../interfaces/TripleHelixManagerInterface';
+import { QuestionGeneratorInterface, StitchContent, StitchContentRequest } from '../interfaces/QuestionGeneratorInterface';
 import { Question as PlayerCardQuestion } from '../interfaces/PlayerCardInterface';
 
-// Simplified TripleHelixManager for tube assignment and rotation
-class SimpleTripleHelixManager {
-  private userStates: Map<string, { activePath: LearningPath; preparingPaths: LearningPath[]; rotationCount: number }> = new Map();
-  
-  // Three tubes: each learning path is assigned to a specific tube
-  private tubeAssignments: Record<string, number> = {
-    'addition': 1,
-    'multiplication': 2, 
-    'subtraction': 3,
-    'division': 1 // Cycle back to tube 1
-  };
+// Temporary implementation until proper components are injected
+class TempTripleHelixManager implements TripleHelixManagerInterface {
+  private userStates: Map<string, TripleHelixState> = new Map();
   
   constructor() {
-    // Initialize default user with three tubes
-    this.initializeUser('default-user');
+    // Initialize default user with tube-based state
+    this.initializeTripleHelix('default-user');
   }
   
-  private initializeUser(userId: string) {
-    const activePath: LearningPath = {
-      id: 'addition',
-      name: 'Addition',
-      difficulty: 2,
-      status: 'active',
-      metadata: { tube: 1 }
-    };
-    
-    const preparingPaths: LearningPath[] = [
-      {
-        id: 'multiplication',
-        name: 'Multiplication', 
-        difficulty: 2,
-        status: 'preparing',
-        metadata: { tube: 2 }
-      },
-      {
-        id: 'subtraction',
-        name: 'Subtraction',
-        difficulty: 2, 
-        status: 'preparing',
-        metadata: { tube: 3 }
-      }
-    ];
-    
-    this.userStates.set(userId, {
-      activePath,
-      preparingPaths,
-      rotationCount: 0
-    });
-  }
-  
-  getUserActiveLearningPath(userId: string): string {
+  getActiveTube(userId: string): Tube {
     const state = this.userStates.get(userId);
-    return state?.activePath.id || 'addition';
+    if (!state) throw new Error('USER_NOT_FOUND');
+    
+    const activeTubeId = state.activeTube;
+    return state.tubes[activeTubeId];
   }
   
-  getActiveLearningPath(userId: string): LearningPath {
+  getAllTubes(userId: string): { tube1: Tube; tube2: Tube; tube3: Tube } {
     const state = this.userStates.get(userId);
-    return state?.activePath || { id: 'addition', name: 'Addition', difficulty: 2, status: 'active' };
+    if (!state) throw new Error('USER_NOT_FOUND');
+    return state.tubes;
   }
   
-  learningPathExists(learningPathId: string): boolean {
-    return ['addition', 'subtraction', 'multiplication', 'division'].includes(learningPathId);
+  getTubesByStatus(userId: string, status: TubeStatus): Tube[] {
+    const tubes = this.getAllTubes(userId);
+    return Object.values(tubes).filter(tube => tube.status === status);
   }
   
-  rotateLearningPaths(userId: string) {
+  rotateTubes(userId: string) {
     const state = this.userStates.get(userId);
-    if (!state) return null;
+    if (!state) throw new Error('USER_NOT_FOUND');
     
-    // Move active path to end of preparing paths
-    const newPreparingPaths = [...state.preparingPaths];
-    const previousActivePath = { ...state.activePath };
+    const currentActive = state.activeTube;
+    const tubes = state.tubes;
     
-    // Move current active to preparing
-    previousActivePath.status = 'preparing';
-    newPreparingPaths.push(previousActivePath);
+    // Live Aid rotation: LIVE → PREPARING, READY → LIVE, PREPARING → READY
+    const tubeIds: TubeId[] = ['tube1', 'tube2', 'tube3'];
+    const currentActiveIndex = tubeIds.indexOf(currentActive);
+    const newActiveIndex = (currentActiveIndex + 1) % 3;
+    const newActiveTubeId = tubeIds[newActiveIndex];
     
-    // Make first preparing path active
-    const newActivePath = newPreparingPaths.shift()!;
-    newActivePath.status = 'active';
+    // Update statuses
+    tubes[currentActive].status = 'preparing';
+    tubes[newActiveTubeId].status = 'live';
     
-    // Update preparing paths status
-    newPreparingPaths.forEach(path => path.status = 'preparing');
+    // Find the remaining tube and set it to ready
+    const remainingTubeId = tubeIds.find(id => id !== currentActive && id !== newActiveTubeId)!;
+    tubes[remainingTubeId].status = 'ready';
     
-    const newState = {
-      activePath: newActivePath,
-      preparingPaths: newPreparingPaths,
-      rotationCount: state.rotationCount + 1
-    };
+    state.activeTube = newActiveTubeId;
+    state.rotationCount++;
+    state.lastRotationTime = new Date().toISOString();
     
-    this.userStates.set(userId, newState);
-    
-    console.log(`Tube rotation ${state.rotationCount + 1}: ${previousActivePath.id} → ${newActivePath.id}`);
+    console.log(`Tube rotation ${state.rotationCount}: ${currentActive} → ${newActiveTubeId}`);
     
     return {
-      previousActivePath: previousActivePath,
-      newActivePath: newActivePath,
-      rotationCount: newState.rotationCount
+      previousActiveTube: currentActive,
+      newActiveTube: newActiveTubeId,
+      rotationCount: state.rotationCount,
+      timestamp: state.lastRotationTime!,
+      tubeStates: {
+        tube1: tubes.tube1.status,
+        tube2: tubes.tube2.status,
+        tube3: tubes.tube3.status
+      }
     };
   }
   
-  getTubeForPath(learningPathId: string): number {
-    return this.tubeAssignments[learningPathId] || 1;
+  initializeTripleHelix(userId: string, initialStitches?: StitchId[]): TripleHelixState {
+    if (this.userStates.has(userId)) {
+      throw new Error('ALREADY_INITIALIZED');
+    }
+    
+    const defaultStitches: StitchId[] = initialStitches || [
+      't1-0001-add', 't2-0002-mult', 't3-0003-sub'
+    ];
+    
+    const tripleHelixState: TripleHelixState = {
+      userId,
+      tubes: {
+        tube1: {
+          id: 'tube1',
+          name: 'Addition Tube',
+          status: 'live',
+          positionMap: new Map([[1, defaultStitches[0]]]),
+          activeStitchId: defaultStitches[0],
+          totalStitches: 1
+        },
+        tube2: {
+          id: 'tube2',
+          name: 'Multiplication Tube',
+          status: 'ready',
+          positionMap: new Map([[1, defaultStitches[1]]]),
+          activeStitchId: defaultStitches[1],
+          totalStitches: 1
+        },
+        tube3: {
+          id: 'tube3',
+          name: 'Subtraction Tube',
+          status: 'preparing',
+          positionMap: new Map([[1, defaultStitches[2]]]),
+          activeStitchId: defaultStitches[2],
+          totalStitches: 1
+        }
+      },
+      activeTube: 'tube1',
+      rotationCount: 0,
+      sessionCount: 0
+    };
+    
+    this.userStates.set(userId, tripleHelixState);
+    return tripleHelixState;
+  }
+  
+  getTripleHelixState(userId: string): TripleHelixState {
+    const state = this.userStates.get(userId);
+    if (!state) throw new Error('USER_NOT_FOUND');
+    return state;
+  }
+  
+  updateTubePositions(userId: string, tubeId: TubeId, positionMap: Map<number, StitchId>): Tube {
+    const state = this.userStates.get(userId);
+    if (!state) throw new Error('USER_NOT_FOUND');
+    
+    const tube = state.tubes[tubeId];
+    if (!tube) throw new Error('TUBE_NOT_FOUND');
+    
+    tube.positionMap = positionMap;
+    tube.totalStitches = positionMap.size;
+    tube.activeStitchId = positionMap.get(1); // Position 1 is always active
+    
+    return tube;
+  }
+  
+  prepareBackgroundContent(userId: string): Record<TubeId, { prepared: boolean; stitchCount: number }> {
+    const state = this.userStates.get(userId);
+    if (!state) throw new Error('USER_NOT_FOUND');
+    
+    return {
+      tube1: { prepared: true, stitchCount: state.tubes.tube1.totalStitches },
+      tube2: { prepared: true, stitchCount: state.tubes.tube2.totalStitches },
+      tube3: { prepared: true, stitchCount: state.tubes.tube3.totalStitches }
+    };
   }
 }
 
 /**
  * Main orchestrator class that coordinates all engines
- * Updated to use LearningEngineService for proper integration
+ * UPDATED: Tube-based architecture following APML Framework v1.4.2
  */
 export class EngineOrchestrator {
-  private tripleHelixManager: SimpleTripleHelixManager;
-  private stitchManager: StitchManager;
-  private stitchLibrary: StitchLibrary;
+  private tripleHelixManager: TempTripleHelixManager;
+  private questionGenerator: QuestionGeneratorInterface;
+  private learningEngineService: LearningEngineService;
   
   // Active learning sessions for each user
   private activeSessions: Map<string, string> = new Map();
   
   constructor() {
-    // Initialize components without circular dependency
-    this.tripleHelixManager = new SimpleTripleHelixManager();
-    this.stitchManager = new StitchManager();
+    // Initialize tube-based components
+    this.tripleHelixManager = new TempTripleHelixManager();
+    this.learningEngineService = learningEngineService;
     
-    // Initialize basic stitch management
-    this.initializeLearningPaths();
+    // Note: questionGenerator will be injected when proper implementation is available
+    // For now, we'll handle questions through learningEngineService
+    
+    console.log('EngineOrchestrator initialized with tube-based architecture');
   }
   
   /**
-   * Generate a question for a user and learning path
+   * Generate a question for a user using tube-based architecture
    */
-  async generateQuestion(userId: string = 'default-user', learningPathId: string = 'addition'): Promise<PlayerCardQuestion> {
+  async generateQuestion(userId: string = 'default-user'): Promise<PlayerCardQuestion> {
     try {
-      // Ensure user has an active learning session
+      // Get active tube for user
+      const activeTube = this.tripleHelixManager.getActiveTube(userId);
+      const activeStitchId = activeTube.activeStitchId;
+      
+      if (!activeStitchId) {
+        throw new Error('NO_ACTIVE_STITCH');
+      }
+      
+      // Check for active session or initialize new one
       let sessionId = this.activeSessions.get(userId);
       
       if (!sessionId) {
-        // Initialize new learning session
+        // Initialize session for active stitch
         const sessionData = await this.learningEngineService.initializeLearningSession(
           userId, 
-          learningPathId
+          activeStitchId
         );
         sessionId = sessionData.sessionId;
         this.activeSessions.set(userId, sessionId);
@@ -180,36 +219,36 @@ export class EngineOrchestrator {
       
     } catch (error) {
       console.error('Failed to generate question:', error);
-      // Fallback to a simple question
-      return this.createFallbackQuestion(learningPathId);
+      // Fallback based on active tube concept
+      return this.createFallbackQuestionForTube(userId);
     }
   }
   
   /**
-   * Generate multiple questions
+   * Generate multiple questions for active stitch
    */
-  async generateMultipleQuestions(count: number, userId: string = 'default-user', learningPathId: string = 'addition'): Promise<PlayerCardQuestion[]> {
+  async generateMultipleQuestions(count: number, userId: string = 'default-user'): Promise<PlayerCardQuestion[]> {
     try {
       const questions: PlayerCardQuestion[] = [];
       
       for (let i = 0; i < count; i++) {
         try {
-          const question = await this.generateQuestion(userId, learningPathId);
+          const question = await this.generateQuestion(userId);
           questions.push(question);
         } catch (error) {
           console.warn(`Failed to generate question ${i + 1}/${count}:`, error);
-          // Add fallback question
-          questions.push(this.createFallbackQuestion(learningPathId));
+          // Add fallback question for active tube
+          questions.push(this.createFallbackQuestionForTube(userId));
         }
       }
       
       return questions;
     } catch (error) {
       console.error('Failed to generate multiple questions:', error);
-      // Fallback to generating fallback questions
+      // Fallback to generating fallback questions for active tube
       const questions: PlayerCardQuestion[] = [];
       for (let i = 0; i < count; i++) {
-        questions.push(this.createFallbackQuestion(learningPathId));
+        questions.push(this.createFallbackQuestionForTube(userId));
       }
       return questions;
     }
@@ -288,35 +327,41 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Get available learning paths
+   * Get available tubes for user
    */
-  getAvailableLearningPaths(): string[] {
-    return ['addition', 'subtraction', 'multiplication', 'division'];
+  getAvailableTubes(userId: string = 'default-user'): Tube[] {
+    try {
+      const tubes = this.tripleHelixManager.getAllTubes(userId);
+      return Object.values(tubes);
+    } catch (error) {
+      console.error('Failed to get available tubes:', error);
+      return [];
+    }
   }
   
   /**
-   * Get facts count for a learning path
+   * Get stitch count for active tube
    */
-  getFactsCount(learningPathId: string): number {
+  getStitchCount(userId: string = 'default-user'): number {
     try {
-      const facts = this.factRepository.getFactsByLearningPath(learningPathId);
-      return facts.length;
+      const activeTube = this.tripleHelixManager.getActiveTube(userId);
+      return activeTube.totalStitches;
     } catch (error) {
-      console.error('Failed to get facts count:', error);
+      console.error('Failed to get stitch count:', error);
       return 0;
     }
   }
   
   /**
-   * Converts a QuestionGenerator question to a PlayerCard question by adding a distractor
+   * Converts a question from LearningEngine to PlayerCard format
    */
-  private addDistractorToQuestion(question: QuestionGeneratorQuestion): PlayerCardQuestion {
+  private addDistractorToQuestion(question: any): PlayerCardQuestion {
     const correctAnswer = parseInt(question.correctAnswer);
     const distractor = this.generateDistractor(correctAnswer, question.operation || 'addition');
     
     return {
       id: question.id,
-      text: question.text,
+      text: question.text || question.questionText,
       correctAnswer: question.correctAnswer,
       distractor: distractor.toString(),
       boundaryLevel: question.boundaryLevel || 1,
@@ -358,9 +403,33 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Create a fallback question if generation fails
+   * Create a fallback question based on active tube
    */
-  private createFallbackQuestion(learningPathId: string): PlayerCardQuestion {
+  private createFallbackQuestionForTube(userId: string): PlayerCardQuestion {
+    try {
+      const activeTube = this.tripleHelixManager.getActiveTube(userId);
+      const tubeName = activeTube.name.toLowerCase();
+      
+      if (tubeName.includes('addition')) {
+        return this.createFallbackQuestion('addition');
+      } else if (tubeName.includes('multiplication')) {
+        return this.createFallbackQuestion('multiplication');
+      } else if (tubeName.includes('subtraction')) {
+        return this.createFallbackQuestion('subtraction');
+      } else if (tubeName.includes('division')) {
+        return this.createFallbackQuestion('division');
+      }
+    } catch (error) {
+      console.warn('Could not determine active tube, using addition fallback');
+    }
+    
+    return this.createFallbackQuestion('addition');
+  }
+  
+  /**
+   * Create a fallback question for specific concept
+   */
+  private createFallbackQuestion(concept: string): PlayerCardQuestion {
     const fallbackQuestions: Record<string, PlayerCardQuestion> = {
       'addition': {
         id: 'fallback-add-1',
@@ -396,81 +465,41 @@ export class EngineOrchestrator {
       }
     };
     
-    return fallbackQuestions[learningPathId] || fallbackQuestions['addition'];
+    return fallbackQuestions[concept] || fallbackQuestions['addition'];
   }
   
-  /**
-   * Initialize learning paths in the system
-   */
-  private initializeLearningPaths(): void {
-    try {
-      // Initialize learning paths
-      const learningPaths = ['addition', 'multiplication', 'subtraction', 'division'];
-      learningPaths.forEach(pathId => {
-        this.stitchManager.initializeLearningPath(pathId);
-      });
-      
-      console.log(`Initialized ${learningPaths.length} learning paths`);
-    } catch (error) {
-      console.error('Failed to initialize learning paths:', error);
-    }
-  }
+  // Removed initializeLearningPaths - replaced by tube-based initialization
   
   /**
-   * Get the current stitch for a user (uses active learning path from Triple Helix)
+   * Get the current stitch for a user from active tube
    */
-  getCurrentStitch(userId: string = 'default-user', learningPathId?: string): Stitch | null {
+  getCurrentStitchId(userId: string = 'default-user'): StitchId | null {
     try {
-      // Use active learning path from Triple Helix if no specific path provided
-      const activePathId = learningPathId || this.tripleHelixManager.getUserActiveLearningPath(userId);
-      return this.stitchManager.getNextStitch(userId, activePathId);
+      const activeTube = this.tripleHelixManager.getActiveTube(userId);
+      return activeTube.activeStitchId || null;
     } catch (error) {
-      console.error('Failed to get current stitch:', error);
+      console.error('Failed to get current stitch ID:', error);
       return null;
     }
   }
   
   /**
-   * Generate questions for a specific stitch (always exactly 20 questions in URN random order)
+   * Generate questions for a specific stitch ID (tube-based)
    */
-  generateQuestionsForStitch(stitch: Stitch, count: number = 20): PlayerCardQuestion[] {
+  async generateQuestionsForStitch(stitchId: StitchId, count: number = 20, userId: string = 'default-user'): Promise<PlayerCardQuestion[]> {
     try {
+      // This would use QuestionGeneratorInterface in full implementation
+      // For now, fallback to multiple question generation
       const questions: PlayerCardQuestion[] = [];
-      const targetCount = 20; // Always exactly 20 questions per stitch
       
-      // If the stitch doesn't have enough facts, we'll cycle through them to reach 20
-      const availableFactIds = stitch.factIds;
-      if (availableFactIds.length === 0) {
-        console.warn(`Stitch ${stitch.id} has no facts`);
-        return [];
-      }
-      
-      // Generate exactly 20 questions, cycling through facts if necessary
-      for (let i = 0; i < targetCount; i++) {
-        const factId = availableFactIds[i % availableFactIds.length];
-        
+      for (let i = 0; i < count; i++) {
         try {
-          // Simple fallback since this should go through LearningEngineService
-          const fact = { operands: [3, 4], result: 7, operation: 'addition' };
-          
-          let questionText = `What is ${fact.operands[0]} + ${fact.operands[1]}?`;
-          questionText = questionText.replace(/{{operand2}}/g, fact.operands[1].toString());
-          
-          const correctAnswer = fact.result.toString();
-          const distractor = this.generateDistractor(fact.result, fact.operation);
-          
-          questions.push({
-            id: `${stitch.id}-${factId}-${i}-${Date.now()}-${Math.random()}`,
-            text: questionText,
-            correctAnswer,
-            distractor: distractor.toString(),
-            boundaryLevel: stitch.difficulty,
-            factId: factId
-          });
+          const question = await this.generateQuestion(userId);
+          question.id = `${stitchId}-q${i}-${Date.now()}`; // Ensure unique IDs
+          questions.push(question);
         } catch (error) {
-          console.warn(`Failed to generate question for fact ${factId}:`, error);
-          // Add a fallback question to maintain count
-          questions.push(this.createFallbackQuestion(stitch.learningPathId));
+          console.warn(`Failed to generate question ${i + 1}/${count} for stitch ${stitchId}:`, error);
+          questions.push(this.createFallbackQuestionForTube(userId));
         }
       }
       
@@ -483,26 +512,29 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Complete a stitch and update progress
+   * Complete a stitch and update tube position (tube-based architecture)
    */
-  completeStitch(userId: string, stitchId: string, sessionResults: SessionResults): RepositionResult | null {
+  async completeStitch(userId: string, stitchId: StitchId, sessionResults: any): Promise<any> {
     try {
-      // Update stitch progress
-      this.stitchManager.updateStitchProgress(userId, stitchId, sessionResults);
+      // Process session completion with LearningEngine service
+      const sessionId = this.activeSessions.get(userId);
+      if (sessionId) {
+        await this.learningEngineService.completeSession(sessionId, sessionResults);
+        this.activeSessions.delete(userId); // Clear active session
+      }
       
-      // Calculate performance data
-      const performanceData: PerformanceData = {
-        correctCount: sessionResults.correctCount,
-        totalCount: sessionResults.totalCount,
-        averageResponseTime: sessionResults.completionTime / sessionResults.totalCount
+      console.log(`Stitch ${stitchId} completed for user ${userId}`);
+      
+      // In full implementation, this would trigger:
+      // 1. Spaced repetition repositioning
+      // 2. Boundary level updates
+      // 3. Tube position compression
+      
+      return {
+        stitchId,
+        completed: true,
+        sessionResults
       };
-      
-      // Reposition the stitch based on performance
-      const repositionResult = this.stitchManager.repositionStitch(userId, stitchId, performanceData);
-      
-      console.log(`Stitch ${stitchId} completed. Repositioned from ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
-      
-      return repositionResult;
     } catch (error) {
       console.error('Failed to complete stitch:', error);
       return null;
@@ -510,11 +542,19 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Get stitch progress for a user
+   * Get stitch progress for a user (tube-based)
    */
-  getStitchProgress(userId: string, stitchId: string) {
+  getStitchProgress(userId: string, stitchId: StitchId) {
     try {
-      return this.stitchManager.getStitchProgress(userId, stitchId);
+      // In full implementation, this would query StitchManagerInterface
+      // For now, return basic progress data
+      return {
+        stitchId,
+        userId,
+        position: 1, // Logical position in tube
+        boundaryLevel: 1,
+        lastSeen: new Date().toISOString()
+      };
     } catch (error) {
       console.warn(`No progress data for stitch ${stitchId}:`, error);
       return null;
@@ -522,79 +562,62 @@ export class EngineOrchestrator {
   }
   
   /**
-   * Get all stitches for a learning path
+   * Get all stitches for a tube
    */
-  getStitchesForPath(learningPathId: string): Stitch[] {
+  getStitchesForTube(userId: string, tubeId: TubeId): StitchId[] {
     try {
-      return this.stitchManager.getStitchesByLearningPath(learningPathId);
+      const tubes = this.tripleHelixManager.getAllTubes(userId);
+      const tube = tubes[tubeId];
+      return Array.from(tube.positionMap.values());
     } catch (error) {
-      console.error('Failed to get stitches for path:', error);
+      console.error('Failed to get stitches for tube:', error);
       return [];
     }
   }
 
   /**
-   * Get all stitch positions for backend synchronization
+   * Get all stitch positions for backend synchronization (tube-based)
    */
-  getAllStitchPositions(userId: string): Record<string, any> {
+  getAllStitchPositions(userId: string): Record<TubeId, any> {
     try {
-      // Get all learning paths and their stitch positions
-      const positions: Record<string, any> = {};
-      const learningPaths = ['addition', 'multiplication', 'subtraction', 'division'];
+      const positions: Record<TubeId, any> = {} as any;
+      const tubes = this.tripleHelixManager.getAllTubes(userId);
       
-      learningPaths.forEach(pathId => {
-        try {
-          const stitches = this.stitchManager.getStitchesByLearningPath(pathId);
-          positions[pathId] = {};
-          
-          stitches.forEach(stitch => {
-            const progress = this.stitchManager.getStitchProgress(userId, stitch.id);
-            if (progress) {
-              positions[pathId][stitch.id] = {
-                position: progress.spacedRepetitionPosition || 0,
-                lastSeen: progress.lastSeen,
-                masteryLevel: progress.masteryLevel,
-                sessionCount: progress.sessionCount
-              };
-            }
-          });
-        } catch (error) {
-          console.warn(`Failed to get positions for path ${pathId}:`, error);
-        }
+      Object.entries(tubes).forEach(([tubeId, tube]) => {
+        positions[tubeId as TubeId] = {
+          status: tube.status,
+          activeStitchId: tube.activeStitchId,
+          totalStitches: tube.totalStitches,
+          positionMap: Object.fromEntries(tube.positionMap)
+        };
       });
       
       return positions;
     } catch (error) {
       console.error('Failed to get all stitch positions:', error);
-      return {};
+      return {} as any;
     }
   }
 
   /**
-   * Get current triple helix state for backend synchronization
+   * Get current triple helix state for backend synchronization (tube-based)
    */
-  getTripleHelixState(userId: string): Record<string, any> {
+  getTripleHelixState(userId: string): TripleHelixState {
     try {
-      const state = this.tripleHelixManager.getHelixState(userId);
-      return {
-        activeTube: state.activeTube,
-        tubeRotationCount: state.tubeRotationCount,
-        lastRotationTime: state.lastRotationTime,
-        learningPaths: state.learningPaths.map(path => ({
-          id: path.id,
-          name: path.name,
-          isActive: path.isActive,
-          completedStitches: path.completedStitches,
-          totalStitches: path.totalStitches
-        }))
-      };
+      return this.tripleHelixManager.getTripleHelixState(userId);
     } catch (error) {
       console.error('Failed to get triple helix state:', error);
+      // Return fallback state
       return {
-        activeTube: 'addition',
-        tubeRotationCount: 0,
-        lastRotationTime: new Date().toISOString(),
-        learningPaths: []
+        userId,
+        tubes: {
+          tube1: { id: 'tube1', name: 'Tube 1', status: 'live', positionMap: new Map(), totalStitches: 0 },
+          tube2: { id: 'tube2', name: 'Tube 2', status: 'ready', positionMap: new Map(), totalStitches: 0 },
+          tube3: { id: 'tube3', name: 'Tube 3', status: 'preparing', positionMap: new Map(), totalStitches: 0 }
+        },
+        activeTube: 'tube1',
+        rotationCount: 0,
+        sessionCount: 0
       };
     }
   }
@@ -635,25 +658,25 @@ export class EngineOrchestrator {
   
   
   /**
-   * Get the active learning path for a user
+   * Get the active tube for a user
    */
-  getActiveLearningPath(userId: string = 'default-user'): LearningPath | null {
+  getActiveTube(userId: string = 'default-user'): Tube | null {
     try {
-      return this.tripleHelixManager.getActiveLearningPath(userId);
+      return this.tripleHelixManager.getActiveTube(userId);
     } catch (error) {
-      console.error('Failed to get active learning path:', error);
+      console.error('Failed to get active tube:', error);
       return null;
     }
   }
   
   /**
-   * Rotate learning paths for a user
+   * Rotate tubes for a user (Live Aid Stage Model)
    */
   rotateTripleHelix(userId: string = 'default-user') {
     try {
-      return this.tripleHelixManager.rotateLearningPaths(userId);
+      return this.tripleHelixManager.rotateTubes(userId);
     } catch (error) {
-      console.error('Failed to rotate learning paths:', error);
+      console.error('Failed to rotate tubes:', error);
       return null;
     }
   }

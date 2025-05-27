@@ -32,15 +32,19 @@
       <Pattern type="validation">validate{Data}()</Pattern>
     </Patterns>
     <ValidatedExamples>
-      <Method name="getCurrentStitch" component="EngineOrchestrator" pattern="getter" verified="true" />
+      <Method name="getCurrentStitchId" component="EngineOrchestrator" pattern="getter" verified="true" />
+      <Method name="getActiveTube" component="EngineOrchestrator" pattern="getter" verified="true" />
       <Method name="getFactById" component="FactRepository" pattern="getter" verified="true" />
-      <Method name="generateQuestion" component="QuestionGenerator" pattern="action" verified="true" />
-      <Method name="initializeLearningSession" component="LearningEngineService" pattern="initialization" verified="true" />
+      <Method name="generateStitchContent" component="QuestionGenerator" pattern="action" verified="true" />
+      <Method name="rotateTubes" component="TripleHelixManager" pattern="action" verified="true" />
+      <Method name="initializeTripleHelix" component="TripleHelixManager" pattern="initialization" verified="true" />
       <Method name="calculateAccuracy" component="MetricsCalculator" pattern="calculation" verified="true" />
       <Method name="processUserResponse" component="EngineOrchestrator" pattern="action" verified="true" />
     </ValidatedExamples>
     <CommonMistakes>
-      <Mistake wrong="getNextStitch" correct="getCurrentStitch" component="EngineOrchestrator" issue="method-name-mismatch" verified="true" />
+      <Mistake wrong="getNextStitch" correct="getCurrentStitchId" component="EngineOrchestrator" issue="method-name-mismatch" verified="true" />
+      <Mistake wrong="getLearningPath" correct="getActiveTube" component="EngineOrchestrator" issue="architecture-mismatch" verified="true" />
+      <Mistake wrong="generateQuestion" correct="generateStitchContent" component="QuestionGenerator" issue="interface-pattern-mismatch" verified="true" />
     </CommonMistakes>
   </Methods>
 
@@ -75,7 +79,9 @@
     <ValidatedExamples>
       <Import path="./FactRepository" from="FactRepositoryUtils.ts" verified="true" />
       <Import path="../services/LearningEngineService" from="EngineOrchestrator.ts" verified="true" />
-      <Import path="./StitchManager/StitchManager" from="EngineOrchestrator.ts" verified="true" />
+      <Import path="../interfaces/StitchManagerInterface" from="EngineOrchestrator.ts" verified="true" />
+      <Import path="../interfaces/TripleHelixManagerInterface" from="EngineOrchestrator.ts" verified="true" />
+      <Import path="../interfaces/QuestionGeneratorInterface" from="EngineOrchestrator.ts" verified="true" />
     </ValidatedExamples>
     <CommonMistakes>
       <Mistake wrong="./fact-repository-types" correct="./FactRepositoryTypes" issue="filename-case-mismatch" verified="true" />
@@ -90,6 +96,10 @@
       <Interface name="ThemeManagerInterface" component="ThemeManager" verified="true" />
       <Interface name="APMLTestingInterface" component="testing" verified="true" />
       <Interface name="PlayerCardInterface" component="PlayerCard" verified="true" />
+      <Interface name="StitchManagerInterface" component="StitchManager" verified="true" />
+      <Interface name="TripleHelixManagerInterface" component="TripleHelixManager" verified="true" />
+      <Interface name="SpacedRepetitionSystemInterface" component="SpacedRepetitionSystem" verified="true" />
+      <Interface name="QuestionGeneratorInterface" component="QuestionGenerator" verified="true" />
     </ValidatedExamples>
   </Interfaces>
 
