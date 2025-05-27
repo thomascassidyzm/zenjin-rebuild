@@ -38,6 +38,10 @@
       <Method name="generateStitchContent" component="QuestionGenerator" pattern="action" verified="true" />
       <Method name="rotateTubes" component="TripleHelixManager" pattern="action" verified="true" />
       <Method name="initializeTripleHelix" component="TripleHelixManager" pattern="initialization" verified="true" />
+      <Method name="populateStitch" component="StitchPopulation" pattern="action" verified="true" />
+      <Method name="getReadyStitch" component="StitchCache" pattern="getter" verified="true" />
+      <Method name="prepareStitch" component="StitchPreparation" pattern="action" verified="true" />
+      <Method name="rotateTubes" component="LiveAidManager" pattern="action" verified="true" />
       <Method name="calculateAccuracy" component="MetricsCalculator" pattern="calculation" verified="true" />
       <Method name="processUserResponse" component="EngineOrchestrator" pattern="action" verified="true" />
     </ValidatedExamples>
@@ -45,6 +49,8 @@
       <Mistake wrong="getNextStitch" correct="getCurrentStitchId" component="EngineOrchestrator" issue="method-name-mismatch" verified="true" />
       <Mistake wrong="getLearningPath" correct="getActiveTube" component="EngineOrchestrator" issue="architecture-mismatch" verified="true" />
       <Mistake wrong="generateQuestion" correct="generateStitchContent" component="QuestionGenerator" issue="interface-pattern-mismatch" verified="true" />
+      <Mistake wrong="getCachedStitch" correct="getReadyStitch" component="StitchCache" issue="terminology-mismatch" verified="true" />
+      <Mistake wrong="assembleStitch" correct="prepareStitch" component="StitchPreparation" issue="process-naming-mismatch" verified="true" />
     </CommonMistakes>
   </Methods>
 
@@ -82,6 +88,9 @@
       <Import path="../interfaces/StitchManagerInterface" from="EngineOrchestrator.ts" verified="true" />
       <Import path="../interfaces/TripleHelixManagerInterface" from="EngineOrchestrator.ts" verified="true" />
       <Import path="../interfaces/QuestionGeneratorInterface" from="EngineOrchestrator.ts" verified="true" />
+      <Import path="../interfaces/StitchPopulationInterface" from="StitchPreparation.ts" verified="true" />
+      <Import path="../interfaces/StitchCacheInterface" from="LiveAidManager.ts" verified="true" />
+      <Import path="../interfaces/LiveAidManagerInterface" from="EngineOrchestrator.ts" verified="true" />
     </ValidatedExamples>
     <CommonMistakes>
       <Mistake wrong="./fact-repository-types" correct="./FactRepositoryTypes" issue="filename-case-mismatch" verified="true" />
@@ -100,6 +109,10 @@
       <Interface name="TripleHelixManagerInterface" component="TripleHelixManager" verified="true" />
       <Interface name="SpacedRepetitionSystemInterface" component="SpacedRepetitionSystem" verified="true" />
       <Interface name="QuestionGeneratorInterface" component="QuestionGenerator" verified="true" />
+      <Interface name="StitchPopulationInterface" component="StitchPopulation" verified="true" />
+      <Interface name="StitchCacheInterface" component="StitchCache" verified="true" />
+      <Interface name="StitchPreparationInterface" component="StitchPreparation" verified="true" />
+      <Interface name="LiveAidManagerInterface" component="LiveAidManager" verified="true" />
     </ValidatedExamples>
   </Interfaces>
 
