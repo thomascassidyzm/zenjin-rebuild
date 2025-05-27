@@ -8,6 +8,7 @@
 import { LearningEngineService, learningEngineService } from '../services/LearningEngineService';
 import { StitchManager, Stitch, SessionResults, PerformanceData, RepositionResult } from './StitchManager/StitchManager';
 import { StitchLibrary } from './StitchLibrary';
+import { FactRepository } from './FactRepository';
 
 // Learning path interface for Triple Helix system
 interface LearningPath {
@@ -139,6 +140,7 @@ export class EngineOrchestrator {
   private tripleHelixManager: SimpleTripleHelixManager;
   private stitchManager: StitchManager;
   private stitchLibrary: StitchLibrary;
+  private factRepository: FactRepository;
   
   // Active learning sessions for each user
   private activeSessions: Map<string, string> = new Map();
@@ -148,6 +150,9 @@ export class EngineOrchestrator {
     this.learningEngineService = learningEngineService;
     this.tripleHelixManager = new SimpleTripleHelixManager();
     this.stitchManager = new StitchManager();
+    
+    // Initialize factRepository - use actual implementation
+    this.factRepository = new FactRepository();
     
     // Initialize basic stitch management
     this.initializeLearningPaths();
