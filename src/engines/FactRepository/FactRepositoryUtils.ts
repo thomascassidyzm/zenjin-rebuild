@@ -3,7 +3,7 @@
  * This file contains helper functions for working with mathematical facts
  */
 
-import { MathematicalFact, FactQuery, MathOperation, DifficultyLevel } from './fact-repository-types';
+import { MathematicalFact, FactQuery, MathOperation, DifficultyLevel } from './FactRepositoryTypes';
 
 /**
  * Formats a mathematical fact for display

@@ -13,6 +13,39 @@
     <DeploymentTarget>{DEPLOYMENT_INFO}</DeploymentTarget>
   </ProjectOverview>
   
+  <DevelopmentConstraints>
+    <MandatoryReadingComprehension>
+      Before making ANY changes, the AI assistant must:
+      1. Read and acknowledge understanding of APML Framework v1.4.1 principles from apml_framework_v1.4.1.md
+      2. Confirm current project status from registry.apml (especially component status levels and dependencies)
+      3. Understand existing architecture patterns and interface contracts from the codebase
+      4. Use TodoWrite tool to plan work BEFORE executing any changes
+    </MandatoryReadingComprehension>
+    
+    <ForbiddenActions>
+      - Creating mock/placeholder implementations when real components exist in the registry
+      - Bulk changes across multiple modules without APML validation
+      - Violating existing interface contracts or changing method signatures
+      - Adding new dependencies without checking registry patterns and existing architecture
+      - Ignoring component status levels (functional/integrated/etc) when making changes
+    </ForbiddenActions>
+    
+    <RequiredValidation>
+      <Checkpoint>Must explicitly acknowledge: "I have read the APML framework, understand the current project state from registry.apml, and will make minimal interface-compliant changes following existing architectural patterns"</Checkpoint>
+      <BuildValidation>All changes must compile successfully with npm run build</BuildValidation>
+      <APMLCompliance>Must respect existing APML status levels and not regress component integration</APMLCompliance>
+    </RequiredValidation>
+    
+    <DocumentationRequirements>
+      <MandatoryReads>
+        - /README.md for project overview and development workflow
+        - /registry.apml for single source of truth on component status and architecture
+        - /apml_framework_v1.4.1.md for framework principles and constraints
+        - This handoff document for current context and priorities
+      </MandatoryReads>
+    </DocumentationRequirements>
+  </DevelopmentConstraints>
+  
   <CriticalContext>
     <RecentBreakthrough>
       <Achievement>{MAJOR_ACHIEVEMENT_NAME}</Achievement>
