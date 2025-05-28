@@ -738,12 +738,10 @@ const AppContent: React.FC = () => {
     isAuthenticated: sessionState.isAuthenticated,
     userAuthChoice: userAuthChoice,
     authToPlayerState: authToPlayerState,
-    condition1: sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS,
-    condition2: authToPlayerState !== 'ACTIVE_LEARNING',
-    bothConditions: (sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS) && authToPlayerState !== 'ACTIVE_LEARNING'
+    condition: sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS
   });
   
-  if ((sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS) && authToPlayerState !== 'ACTIVE_LEARNING') {
+  if (sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS) {
     // Determine user context type based on user data or auth choice
     const userContext = (sessionState.user?.userType === 'anonymous' || userAuthChoice === UserAuthChoice.ANONYMOUS) ? {
       userType: 'anonymous' as const,
