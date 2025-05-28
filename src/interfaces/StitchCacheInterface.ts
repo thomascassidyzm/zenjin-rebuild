@@ -17,16 +17,16 @@ import { StitchId, TubeId } from './StitchManagerInterface';
  * Complete, ready-to-display question (fully assembled)
  */
 export interface ReadyQuestion {
-  id: string; // Unique question instance ID
-  text: string; // Minimal reading format: "Double 13", "19 × 4"
+  questionId: string; // Unique question instance ID
+  questionText: string; // Minimal reading format: "Double 13", "19 × 4"
   correctAnswer: string; // Numeric answer: "26", "76"
   distractor: string; // Boundary-appropriate wrong answer: "24", "78"
-  boundaryLevel: number; // Boundary level used for this question (1-5)
-  factId: string; // Source fact ID from FactRepository
-  metadata?: {
+  metadata: {
     conceptCode: string; // Which concept this question belongs to
-    questionIndex: number; // Position in original sequence (before shuffle)
-    preparationTimestamp: string; // When this was assembled
+    factId: string; // Source fact ID from FactRepository
+    boundaryLevel: number; // Boundary level used for this question (1-5)
+    questionFormat: string; // Question format template used
+    assemblyTimestamp: string; // When this was assembled
   };
 }
 

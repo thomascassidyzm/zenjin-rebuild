@@ -13,6 +13,16 @@ import { TripleHelixManagerInterface, Tube, TripleHelixState, TubeStatus } from 
 import { QuestionGeneratorInterface, StitchContent, StitchContentRequest } from '../interfaces/QuestionGeneratorInterface';
 import { Question as PlayerCardQuestion } from '../interfaces/PlayerCardInterface';
 
+// Live Aid Architecture imports (optional enhancement)
+import { LiveAidManager } from './LiveAidManager/LiveAidManager';
+import { StitchCache } from './StitchCache/StitchCache';
+import { StitchPreparation } from './StitchPreparation/StitchPreparation';
+import { StitchPopulation } from './StitchPopulation/StitchPopulation';
+import { FactRepository } from './FactRepository/FactRepository';
+import { DistinctionManager } from './DistinctionManager/DistinctionManager';
+import { DistractorGenerator } from './DistractorGenerator/DistractorGenerator';
+import { QuestionGenerator } from './QuestionGenerator/QuestionGenerator';
+
 // Temporary implementation until proper components are injected
 class TempTripleHelixManager implements TripleHelixManagerInterface {
   private userStates: Map<string, TripleHelixState> = new Map();
@@ -168,18 +178,30 @@ export class EngineOrchestrator {
   private questionGenerator: QuestionGeneratorInterface;
   private learningEngineService: LearningEngineService;
   
+  // Live Aid Architecture (optional enhancement)
+  private liveAidManager?: LiveAidManager;
+  private stitchCache?: StitchCache;
+  private stitchPreparation?: StitchPreparation;
+  private stitchPopulation?: StitchPopulation;
+  private liveAidEnabled: boolean = false;
+  
   // Active learning sessions for each user
   private activeSessions: Map<string, string> = new Map();
   
-  constructor() {
+  constructor(enableLiveAid: boolean = false) {
     // Initialize tube-based components
     this.tripleHelixManager = new TempTripleHelixManager();
     this.learningEngineService = learningEngineService;
     
+    // Optional Live Aid Architecture initialization
+    if (enableLiveAid) {
+      this.initializeLiveAid();
+    }
+    
     // Note: questionGenerator will be injected when proper implementation is available
     // For now, we'll handle questions through learningEngineService
     
-    console.log('EngineOrchestrator initialized with tube-based architecture');
+    console.log(`EngineOrchestrator initialized with tube-based architecture${this.liveAidEnabled ? ' + Live Aid' : ''}`);
   }
   
   /**
@@ -674,13 +696,114 @@ export class EngineOrchestrator {
    */
   rotateTripleHelix(userId: string = 'default-user') {
     try {
-      return this.tripleHelixManager.rotateTubes(userId);
+      const rotationResult = this.tripleHelixManager.rotateTubes(userId);
+      
+      // If Live Aid is enabled, trigger high-performance rotation
+      if (this.liveAidEnabled && this.liveAidManager) {
+        this.liveAidManager.rotateTubes(userId, rotationResult.newActiveTube);
+      }
+      
+      return rotationResult;
     } catch (error) {
       console.error('Failed to rotate tubes:', error);
       return null;
     }
   }
+  
+  /**
+   * Initialize Live Aid Architecture (optional enhancement)
+   * Follows APML 4-phase implementation sequence
+   */
+  private initializeLiveAid(): void {
+    try {
+      // Phase 1: StitchPopulation (curriculum mapping)
+      this.stitchPopulation = new StitchPopulation();
+      
+      // Phase 2: StitchPreparation (background assembly)
+      const factRepository = new FactRepository();
+      const distinctionManager = new DistinctionManager();
+      const distractorGenerator = new DistractorGenerator();
+      const questionGenerator = new QuestionGenerator();
+      
+      this.stitchPreparation = new StitchPreparation(
+        factRepository,
+        distinctionManager,
+        distractorGenerator,
+        questionGenerator
+      );
+      
+      // Phase 3: StitchCache (performance optimization)
+      this.stitchCache = new StitchCache();
+      
+      // Phase 4: LiveAidManager (system coordination)
+      this.liveAidManager = new LiveAidManager(
+        this.stitchPopulation,
+        this.stitchPreparation,
+        this.stitchCache
+      );
+      
+      this.liveAidEnabled = true;
+      console.log('Live Aid Architecture initialized successfully');
+      
+    } catch (error) {
+      console.error('Failed to initialize Live Aid Architecture:', error);
+      this.liveAidEnabled = false;
+    }
+  }
+  
+  /**
+   * Generate question with Live Aid enhancement (Netflix-like performance)
+   */
+  async generateQuestionWithLiveAid(userId: string = 'default-user'): Promise<PlayerCardQuestion> {
+    if (!this.liveAidEnabled || !this.liveAidManager) {
+      return this.generateQuestion(userId);
+    }
+    
+    try {
+      const activeTube = this.tripleHelixManager.getActiveTube(userId);
+      const readyStitch = await this.liveAidManager.getReadyStitch(userId, activeTube.id);
+      
+      if (readyStitch) {
+        return this.convertToPlayerCardQuestion(readyStitch.content);
+      } else {
+        // Fallback to regular generation
+        return this.generateQuestion(userId);
+      }
+    } catch (error) {
+      console.error('Live Aid question generation failed, falling back:', error);
+      return this.generateQuestion(userId);
+    }
+  }
+  
+  /**
+   * Get Live Aid performance metrics
+   */
+  getLiveAidMetrics(userId: string = 'default-user'): any {
+    if (!this.liveAidEnabled || !this.stitchCache) {
+      return { enabled: false };
+    }
+    
+    return {
+      enabled: true,
+      cacheHitRate: this.stitchCache.getCacheHitRate(),
+      backgroundPreparationStatus: this.stitchPreparation?.getPreparationStatus(userId) || 'unknown',
+      readyStitchCount: this.stitchCache.getReadyStitchCount(userId),
+      lastRotationTime: this.liveAidManager?.getLastRotationTime(userId) || null
+    };
+  }
+  
+  /**
+   * Enable or disable Live Aid for runtime switching
+   */
+  setLiveAidEnabled(enabled: boolean): void {
+    if (enabled && !this.liveAidEnabled) {
+      this.initializeLiveAid();
+    } else if (!enabled) {
+      this.liveAidEnabled = false;
+      console.log('Live Aid Architecture disabled');
+    }
+  }
 }
 
-// Create a singleton instance
-export const engineOrchestrator = new EngineOrchestrator();
+// Create a singleton instance with optional Live Aid
+export const engineOrchestrator = new EngineOrchestrator(true); // Enable Live Aid for Netflix-like performance

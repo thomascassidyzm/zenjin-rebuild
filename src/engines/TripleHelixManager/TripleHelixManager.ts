@@ -460,6 +460,86 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
   }
   
   /**
+   * Initialize a user in the system (Live Aid compatibility method)
+   * @param userId User identifier
+   * @returns Promise<void> for async compatibility
+   */
+  async initializeUser(userId: string): Promise<void> {
+    // Add user to the system if not exists
+    if (!this.users.has(userId)) {
+      this.users.add(userId);
+    }
+    
+    // Initialize triple helix if not exists
+    if (!this.tripleHelixStates.has(userId)) {
+      this.initializeTripleHelix(userId);
+    }
+  }
+  
+  /**
+   * Set the active tube for a user (Live Aid compatibility method)
+   * @param userId User identifier
+   * @param tubeId New active tube ID
+   */
+  setActiveTube(userId: string, tubeId: string): void {
+    // This maps to changing the active path in our learning path model
+    const tripleHelixState = this.validateTripleHelix(userId);
+    
+    // Find the path that corresponds to this tube
+    let targetPath: LearningPath | null = null;
+    let targetIndex = -1;
+    
+    // Check if it's currently a preparing path
+    for (let i = 0; i < tripleHelixState.preparingPaths.length; i++) {
+      const path = tripleHelixState.preparingPaths[i];
+      if (path.id.includes(tubeId)) {
+        targetPath = path;
+        targetIndex = i;
+        break;
+      }
+    }
+    
+    if (targetPath) {
+      // Move this path to active and current active to preparing
+      const currentActive = tripleHelixState.activePath;
+      currentActive.status = 'preparing';
+      
+      targetPath.status = 'active';
+      tripleHelixState.activePath = targetPath;
+      tripleHelixState.preparingPaths[targetIndex] = currentActive;
+      
+      // Save updated state
+      this.tripleHelixStates.set(userId, tripleHelixState);
+    }
+  }
+  
+  /**
+   * Get next stitch ID for a tube (Live Aid compatibility method)
+   * @param userId User identifier
+   * @param tubeId Tube identifier
+   * @returns Next stitch ID for the tube
+   */
+  getNextStitchId(userId: string, tubeId: string): string {
+    const tripleHelixState = this.validateTripleHelix(userId);
+    
+    // Check active path first
+    if (tripleHelixState.activePath.id.includes(tubeId)) {
+      return tripleHelixState.activePath.nextStitchId || `${tubeId}-next-stitch`;
+    }
+    
+    // Check preparing paths
+    for (const path of tripleHelixState.preparingPaths) {
+      if (path.id.includes(tubeId)) {
+        return path.nextStitchId || `${tubeId}-next-stitch`;
+      }
+    }
+    
+    // Fallback: generate a new stitch ID
+    const timestamp = Date.now();
+    return `${tubeId}-stitch-${timestamp}`;
+  }
+
+  /**
    * Finds a learning path by ID across all paths for a user
    * Helper method for path operations
    * 
