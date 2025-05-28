@@ -835,7 +835,7 @@ const AppContent: React.FC = () => {
     </div>
   );
 
-  // Phase 3: Main Application (after loading and choices complete)
+  // Phase 5: Main Application (only if no other phases handled the render)
   return mainAppContent;
 };
 
