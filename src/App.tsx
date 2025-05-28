@@ -175,40 +175,59 @@ const NavigationHeader: React.FC<{
   );
 };
 
-// Learning Session Component with Backend Integration
-const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId = 'addition' }) => {
+// Learning Session Component using LearningEngineService (tube-based)
+const LearningSession: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentStitch, setCurrentStitch] = useState<any>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
-  const [showProjectStatus, setShowProjectStatus] = useState(false);
   
   // Backend integration via UserSession context
   const { state: sessionState, recordSessionMetrics, updateUserState } = useUserSession();
-  const userId = sessionState.user?.id || 'default-user';
+  const userId = sessionState.user?.id || 'anon_' + Date.now();
 
-  // Generate questions when component mounts or learning path changes
+  // Initialize session using LearningEngineService
   useEffect(() => {
-    const stitchId = engineOrchestrator.getCurrentStitchId(userId);
-    setCurrentStitch(stitchId);
-    
-    const loadQuestions = async () => {
+    const initializeSession = async () => {
       try {
-        const generatedQuestions = await generateQuestionsForStitch(learningPathId, userId);
-        setQuestions(generatedQuestions);
+        // Use tube-based system (defaults to tube1 = doubling/halving)
+        const sessionResult = await learningEngineService.initializeLearningSession(
+          userId,
+          'addition', // Maps to tube1 in the service
+          { maxQuestions: 20 }
+        );
+        
+        setSessionId(sessionResult.sessionId);
+        
+        // Convert to PlayerCard format
+        const playerQuestions = sessionResult.initialQuestions.map(q => ({
+          id: q.id,
+          text: q.questionText,
+          correctAnswer: q.correctAnswer,
+          wrongAnswers: q.distractors,
+          metadata: {
+            factId: q.factId,
+            boundaryLevel: q.boundaryLevel,
+            sessionId: sessionResult.sessionId
+          }
+        }));
+        
+        setQuestions(playerQuestions);
         setCurrentQuestionIndex(0);
         setSessionScore({ correct: 0, total: 0 });
         setSessionComplete(false);
         setSessionStartTime(Date.now());
+        
+        console.log(`LearningEngineService session initialized: ${sessionResult.sessionId}`);
       } catch (error) {
-        console.error('Failed to load questions:', error);
+        console.error('Failed to initialize learning session:', error);
       }
     };
     
-    loadQuestions();
-  }, [learningPathId]);
+    initializeSession();
+  }, [userId]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -738,6 +757,9 @@ const AppContent: React.FC = () => {
             duration={3000}
           />
         );
+      
+      case 'ACTIVE_LEARNING':
+        return <LearningSession />;
       
       default:
         // AUTH_SUCCESS state - immediately show PRE_ENGAGEMENT (no loading screen)

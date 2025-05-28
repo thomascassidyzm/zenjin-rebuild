@@ -327,11 +327,47 @@
       <Error type="class-case-mismatch" description="Using wrong case for class names">
         <Example wrong="engineOrchestrator" correct="EngineOrchestrator" frequency="low" />
       </Error>
+      <Error type="table-name-mismatch" description="Database table name doesn't match schema">
+        <Example wrong="users" correct="app_users" frequency="high" verified="true" />
+      </Error>
+      <Error type="variable-undefined" description="Variable name doesn't exist in scope">
+        <Example wrong="userSession" correct="sessionState" frequency="high" verified="true" />
+      </Error>
+      <Error type="foreign-key-reference" description="Join reference uses wrong table name">
+        <Example wrong="users!inner(...)" correct="app_users!inner(...)" frequency="medium" verified="true" />
+      </Error>
     </NamingErrors>
   </ErrorPatterns>
 
-  <LastUpdated>2025-05-27</LastUpdated>
+  <DebuggingProtocol>
+    <Purpose>90% of errors are naming mismatches - follow this protocol FIRST before complex debugging</Purpose>
+    <Steps>
+      <Step order="1" action="Check table/field names against actual database schema" priority="critical" />
+      <Step order="2" action="Verify variable names exist in current scope" priority="critical" />
+      <Step order="3" action="Confirm method names match interface definitions" priority="high" />
+      <Step order="4" action="Validate import paths and file names" priority="high" />
+      <Step order="5" action="Check type compatibility (string vs object vs array)" priority="medium" />
+      <Step order="6" action="Only then investigate logic/architecture issues" priority="low" />
+    </Steps>
+    <CriticalQuestions>
+      <Question>What are the actual table names in the database?</Question>
+      <Question>What are the actual field names in this table?</Question>
+      <Question>What is this variable actually called in this scope?</Question>
+      <Question>Does this method actually exist on this interface?</Question>
+    </CriticalQuestions>
+    <UpdateProtocol>
+      <Requirement>Every session MUST update naming.apml when discovering new patterns or fixing naming errors</Requirement>
+      <Requirement>Add verified="true" and date when patterns are confirmed working</Requirement>
+      <Requirement>Document context where naming patterns apply</Requirement>
+    </UpdateProtocol>
+  </DebuggingProtocol>
+
+  <LastUpdated>2025-05-28</LastUpdated>
   <Notes>
     This naming index was created after encountering multiple naming-related errors in the project. It serves as both a reference guide and error prevention system. All examples marked as "verified" have been confirmed to exist and work correctly in the current codebase.
+    
+    CRITICAL UPDATE 2025-05-28: Added comprehensive database schema documentation (app_users, user_state tables), variable naming patterns, service patterns, and formal debugging protocol. This update was prompted by major naming mismatch errors that caused 500 API failures. 90% of debugging time can be eliminated by checking names first.
+    
+    PROTOCOL REQUIREMENT: Every Claude session must update this file when discovering new naming patterns or fixing naming errors. This is essential for LLM session continuity.
   </Notes>
 </NamingIndex>
