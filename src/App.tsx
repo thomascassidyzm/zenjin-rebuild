@@ -13,7 +13,6 @@ import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
-import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { learningEngineService } from './services/LearningEngineService';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
@@ -519,7 +518,6 @@ const AppContent: React.FC = () => {
 
   // Auth-to-Player Flow Event Bus
   const [authToPlayerState, setAuthToPlayerState] = useState<AuthToPlayerState>('AUTH_SUCCESS');
-  const [playerContent, setPlayerContent] = useState<any>(null);
 
   // Handle Auth-to-Player flow events
   useEffect(() => {
@@ -528,11 +526,10 @@ const AppContent: React.FC = () => {
       setAuthToPlayerState(to);
     });
 
-    // Listen for player ready event
+    // Listen for player ready event - use Auth-to-Player flow
     const unsubscribePlayer = authToPlayerEventBus.on('player:ready', (data) => {
-      console.log('🎮 Auth-to-Player flow complete, transitioning to player');
-      setPlayerContent(data.content); // Capture content from event
-      setCurrentPage('session');
+      console.log('🎮 Auth-to-Player flow complete, transitioning to ACTIVE_LEARNING');
+      // Don't set currentPage - let Auth-to-Player flow handle ACTIVE_LEARNING case
       setLaunchComplete(true);
     });
 
@@ -585,7 +582,8 @@ const AppContent: React.FC = () => {
 
   const handleStartSession = (pathId: string) => {
     setSelectedLearningPath(pathId);
-    setCurrentPage('session');
+    // Use Auth-to-Player flow instead of old session page
+    authToPlayerEventBus.playButtonClicked();
   };
 
   // Handle user authentication choice
@@ -782,66 +780,6 @@ const AppContent: React.FC = () => {
             initialData={mockDashboardData}
             onStartSessionClicked={handleStartSession}
           />
-        );
-      
-      case 'session':
-        // If we have content from Auth-to-Player flow, use it
-        if (playerContent) {
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-              <div className="w-full max-w-md">
-                <PlayerCard
-                  key={playerContent.id}
-                  initialQuestion={playerContent}
-                  onAnswerSelected={async (answer) => {
-                    console.log('Answer selected:', answer);
-                    
-                    // Process the answer and get next question
-                    try {
-                      // For now, use a simple anonymous user ID since this old flow is deprecated
-                      const userId = 'anon_' + Date.now();
-                      const result = await engineOrchestrator.processUserResponse(
-                        userId,
-                        answer.questionId,
-                        answer.selectedAnswer,
-                        answer.responseTime
-                      );
-                      
-                      if (result.nextQuestion) {
-                        // Update the current question with the next question
-                        setPlayerContent(result.nextQuestion);
-                        console.log('Next question loaded:', result.nextQuestion);
-                      } else {
-                        // Generate a new question if none provided
-                        const nextQuestion = await engineOrchestrator.generateQuestion(userId);
-                        setPlayerContent(nextQuestion);
-                        console.log('New question generated:', nextQuestion);
-                      }
-                    } catch (error) {
-                      console.error('Failed to get next question:', error);
-                      // Fallback - generate a new question
-                      try {
-                        const userId = 'anon_' + Date.now();
-                        const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
-                        setPlayerContent(fallbackQuestion);
-                      } catch (fallbackError) {
-                        console.error('Fallback question generation failed:', fallbackError);
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          );
-        }
-        // Fallback for when accessed directly without Auth-to-Player flow
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-            <div className="text-white text-center">
-              <h2 className="text-2xl font-bold mb-4">Learning Session</h2>
-              <p>Loading learning content...</p>
-            </div>
-          </div>
         );
       
       case 'project-status':
