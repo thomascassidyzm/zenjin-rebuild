@@ -1,13 +1,14 @@
-# APML Framework v1.4.2
+# APML Framework v1.4.3
 
 ## Version Information
 
-**Version:** 1.4.2  
-**Release Date:** May 27, 2025  
+**Version:** 1.4.3  
+**Release Date:** May 28, 2025  
 **Status:** Stable Release  
 **Authors:** Original concept by Zenjin, developed with Claude, Manus & Gemini
 
 ### Change Log
+- **v1.4.3 (2025-05-28):** Added Interface Review Queue Protocol and Session Scoping Guidelines. Addresses the interface-breaking change problem where AI sessions make assumptions about compatibility. Introduces mandatory interface review logging and optimal session length guidelines (100k tokens). Enforces single-completion task scoping to prevent cascading changes with unintended consequences.
 - **v1.4.2 (2025-05-27):** Added comprehensive Naming Index System as mandatory APML framework practice. Addresses the 80% problem where development errors stem from naming inconsistencies (method typos, import path mismatches, variable reference errors). Introduces naming.apml as mandatory project artifact alongside registry.apml. Provides template structure, integration workflow, and validation requirements. Transforms naming errors into permanent project knowledge through systematic documentation of conventions, patterns, and common mistakes.
 - **v1.4.1 (2025-05-26):** Added Specification Type Taxonomy to distinguish between Interface Specifications (component contracts), Behavioral Specifications (state machine logic), and Experience Specifications (user journey choreography). Eliminates conceptual confusion between different specification types. Provides systematic approach to different system aspects. Critical enhancement based on real framework usage patterns.
 - **v1.4.0 (2025-05-25):** Added mandatory External Service Integration Protocol as core framework requirement. Eliminates debugging cycles through interface-first external service integration. Requires comprehensive service documentation capture before implementation. Proven to resolve complex integrations (Supabase Auth) on first attempt with zero debugging. Transforms APML from framework to comprehensive methodology for any external service integration.
@@ -50,6 +51,9 @@ All entities must have explicitly defined context boundaries that fit within AI 
 ### Axiom 2: Interface Before Implementation
 Interfaces must be fully specified before implementation begins.
 
+### Axiom 2a: Interface Review Queue Protocol
+When AI sessions encounter potential interface mismatches or breaking changes, they must log these to an interface review queue rather than making assumptions. This prevents cascading changes with unintended consequences.
+
 ### Axiom 3: Single-Session Completability
 All defined tasks must be completable within a single AI session's context limits.
 
@@ -58,6 +62,73 @@ All decisions and rationales must be explicitly documented for future sessions.
 
 ### Axiom 5: Validation Through Distinction
 All implementations must be validated through explicit test-linked criteria.
+
+## Interface Review Queue Protocol
+
+### Purpose
+Prevents AI sessions from making assumptions about interface compatibility that lead to cascading changes with unintended consequences.
+
+### Protocol
+When encountering potential interface mismatches, AI sessions must:
+
+1. **Stop implementation** rather than making assumptions
+2. **Log the interface concern** to a review queue
+3. **Provide specific details** about the mismatch
+4. **Suggest review actions** rather than implementing fixes
+
+### Interface Review Queue Format
+```xml
+<InterfaceReviewQueue>
+  <ReviewItem priority="high" session="2025-05-28" component="PlayerCard">
+    <Issue>PlayerCard expects 'distractor: string' but AuthToPlayerEventBus provides 'wrongAnswers: string[]'</Issue>
+    <Impact>INVALID_QUESTION errors prevent user from seeing questions</Impact>
+    <Suggestion>Either update PlayerCard interface or modify AuthToPlayerEventBus output format</Suggestion>
+    <Decision>Pending human review</Decision>
+  </ReviewItem>
+</InterfaceReviewQueue>
+```
+
+### Benefits
+- Prevents assumption-driven fixes
+- Maintains interface integrity
+- Provides clear decision trail
+- Reduces session complexity
+
+## Session Scoping Guidelines
+
+### Optimal Session Length
+**Target: 100k tokens maximum per session**
+
+### Why 100k Tokens
+- Leaves 100k tokens for working memory
+- Prevents context pollution
+- Enables focused completion
+- Reduces cognitive overhead
+
+### Session Scoping Rules
+
+**Good Session Scope:**
+- "Fix PlayerCard question validation"
+- "Debug Auth-to-Player state transitions"
+- "Add question progression logic"
+
+**Too Large for One Session:**
+- "Fix entire user interface"
+- "Implement complete learning flow"
+- "Debug all authentication issues"
+
+### Session Boundaries
+End session when:
+- Target task completed (success)
+- Interface mismatch discovered (review queue)
+- Approaching 100k token limit
+- Scope creep detected
+
+### Context Handoff
+Between sessions, preserve only:
+- Task outcome
+- Interface review items
+- Critical architectural decisions
 
 ## Multi-LLM Component Architecture
 
