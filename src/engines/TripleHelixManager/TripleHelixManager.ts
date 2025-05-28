@@ -166,18 +166,17 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
   }
   
   /**
-   * Validates that a triple helix exists for a user
+   * Gets or creates triple helix state for a user (3-Layer Architecture)
    * @param userId User identifier
-   * @throws USER_NOT_FOUND if the specified user was not found
-   * @throws NO_TRIPLE_HELIX if no triple helix exists for this user
-   * @returns The triple helix state for the user
+   * @returns The triple helix state for the user (creates default if not exists)
    */
-  private validateTripleHelix(userId: string): TripleHelixState {
-    this.validateUser(userId);
+  private getOrCreateTripleHelix(userId: string): TripleHelixState {
+    // 3-Layer Architecture: Auto-create default tube configs for any user
+    let tripleHelixState = this.tripleHelixStates.get(userId);
     
-    const tripleHelixState = this.tripleHelixStates.get(userId);
     if (!tripleHelixState) {
-      throw new NoTripleHelixError(userId);
+      // Auto-initialize with default tube configurations
+      tripleHelixState = this.initializeTripleHelix(userId);
     }
     
     return tripleHelixState;
@@ -202,7 +201,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    * @throws NO_ACTIVE_PATH if no active learning path exists for this user
    */
   public getActiveLearningPath(userId: string): LearningPath {
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     
     if (!tripleHelixState.activePath) {
       throw new NoActivePathError(userId);
@@ -218,7 +217,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    * @throws USER_NOT_FOUND if the specified user was not found
    */
   public getPreparingPaths(userId: string): LearningPath[] {
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     return tripleHelixState.preparingPaths;
   }
   
@@ -238,7 +237,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     newActivePath: LearningPath;
     rotationCount: number;
   } {
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     
     // Ensure we have preparing paths to rotate to
     if (!tripleHelixState.preparingPaths || tripleHelixState.preparingPaths.length < 1) {
@@ -304,15 +303,14 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     userId: string,
     initialDifficulty: number = 2
   ): TripleHelixState {
-    // Validate user exists
-    this.validateUser(userId);
-    
+    // 3-Layer Architecture: No user validation needed - provide default tube configs for anyone
     // Validate difficulty
     this.validateDifficulty(initialDifficulty);
     
-    // Check if triple helix already exists
-    if (this.tripleHelixStates.has(userId)) {
-      throw new AlreadyInitializedError(userId);
+    // Check if triple helix already exists - return existing if found (3-Layer Architecture)
+    const existingState = this.tripleHelixStates.get(userId);
+    if (existingState) {
+      return existingState;
     }
     
     try {
@@ -381,7 +379,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    * @throws NO_TRIPLE_HELIX if no triple helix exists for this user
    */
   public getTripleHelixState(userId: string): TripleHelixState {
-    return this.validateTripleHelix(userId);
+    return this.getOrCreateTripleHelix(userId);
   }
   
   /**
@@ -406,7 +404,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     this.validateDifficulty(newDifficulty);
     
     // Get triple helix state
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     
     // Find the path to update
     let pathToUpdate: LearningPath | null = null;
@@ -483,7 +481,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    */
   setActiveTube(userId: string, tubeId: string): void {
     // This maps to changing the active path in our learning path model
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     
     // Find the path that corresponds to this tube
     let targetPath: LearningPath | null = null;
@@ -520,7 +518,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    * @returns Next stitch ID for the tube
    */
   getNextStitchId(userId: string, tubeId: string): string {
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     
     // Check active path first
     if (tripleHelixState.activePath.id.includes(tubeId)) {
@@ -554,7 +552,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     location: 'active' | 'preparing';
     preparingIndex?: number;
   } {
-    const tripleHelixState = this.validateTripleHelix(userId);
+    const tripleHelixState = this.getOrCreateTripleHelix(userId);
     
     // Check if it's the active path
     if (tripleHelixState.activePath.id === pathId) {
