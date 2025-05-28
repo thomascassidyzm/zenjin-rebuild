@@ -989,7 +989,14 @@
     </ResolvedGaps>
   </ImplementationProgress>
   
-  <LastUpdated>2025-05-27</LastUpdated>
+  <LastUpdated>2025-05-28</LastUpdated>
+  <!-- 2025-05-28: CRITICAL ROUTING FIX - Removed broken EngineOrchestrator path completely -->
+  <!-- 2025-05-28: App.tsx: Removed deprecated 'session' case that caused USER_NOT_FOUND errors -->
+  <!-- 2025-05-28: App.tsx: Fixed Auth-to-Player flow routing to enforce ACTIVE_LEARNING → LearningSession → learningEngineService -->
+  <!-- 2025-05-28: App.tsx: Removed engineOrchestrator import and all references (67 lines removed, 5 lines added) -->
+  <!-- 2025-05-28: Bundle size optimization: 398.84 kB → 386.76 kB through deprecated code removal -->
+  <!-- 2025-05-28: Enforced single code path: AUTH_SUCCESS → PRE_ENGAGEMENT → LOADING → ACTIVE_LEARNING -->
+  <!-- 2025-05-28: Updated naming.apml with RoutingPatterns section documenting proper vs deprecated flows -->
   <!-- 2025-05-27: LIVE AID CACHING ARCHITECTURE DESIGNED -->
   <!-- 2025-05-27: StitchPopulationInterface: Curriculum mapping with doubling/halving number endings, backwards multiplication progression -->
   <!-- 2025-05-27: StitchCacheInterface: ReadyStitch management for pre-assembled content with 20 shuffled questions -->

@@ -180,6 +180,8 @@
     <CommonMistakes>
       <Mistake wrong="userSession" correct="sessionState" issue="undefined-variable" frequency="high" verified="true" context="App.tsx question flow" />
       <Mistake wrong="userSession.user?.id" correct="sessionState.user?.id" issue="context-variable-mismatch" frequency="medium" verified="true" />
+      <Mistake wrong="setCurrentPage('session')" correct="authToPlayerEventBus.playButtonClicked()" issue="routing-to-deprecated-flow" frequency="high" verified="true" context="App.tsx flow routing" />
+      <Mistake wrong="engineOrchestrator.processUserResponse" correct="learningEngineService flow" issue="using-deprecated-orchestrator" frequency="high" verified="true" context="Question handling" />
     </CommonMistakes>
   </Variables>
 
@@ -193,6 +195,21 @@
       <Event name="connectivity-change" component="ConnectivityManager" verified="true" />
     </ValidatedExamples>
   </Events>
+
+  <RoutingPatterns>
+    <Convention>Use Auth-to-Player flow for all learning sessions</Convention>
+    <ValidatedFlows>
+      <Flow name="Auth-to-Player" pattern="AUTH_SUCCESS → PRE_ENGAGEMENT → LOADING → ACTIVE_LEARNING" verified="true" date="2025-05-28" />
+      <Flow name="Learning Session" pattern="ACTIVE_LEARNING case → LearningSession component → learningEngineService" verified="true" date="2025-05-28" />
+    </ValidatedFlows>
+    <DeprecatedFlows>
+      <Flow name="Old Session" pattern="currentPage 'session' → PlayerCard → engineOrchestrator" deprecated="true" removed="2025-05-28" reason="USER_NOT_FOUND errors, session management failures" />
+    </DeprecatedFlows>
+    <CommonMistakes>
+      <Mistake wrong="setCurrentPage('session')" correct="Use Auth-to-Player flow" issue="bypass-proper-flow" verified="true" />
+      <Mistake wrong="case 'session'" correct="case 'ACTIVE_LEARNING'" issue="deprecated-routing" verified="true" />
+    </CommonMistakes>
+  </RoutingPatterns>
 
   <APIEndpoints>
     <Convention>kebab-case with REST patterns</Convention>
@@ -367,6 +384,8 @@
     This naming index was created after encountering multiple naming-related errors in the project. It serves as both a reference guide and error prevention system. All examples marked as "verified" have been confirmed to exist and work correctly in the current codebase.
     
     CRITICAL UPDATE 2025-05-28: Added comprehensive database schema documentation (app_users, user_state tables), variable naming patterns, service patterns, and formal debugging protocol. This update was prompted by major naming mismatch errors that caused 500 API failures. 90% of debugging time can be eliminated by checking names first.
+    
+    ROUTING FIX UPDATE 2025-05-28: Added RoutingPatterns section after discovering App.tsx had conflicting code paths - old 'session' case using broken EngineOrchestrator vs new ACTIVE_LEARNING case using proper LearningEngineService. Removed deprecated routing patterns that caused USER_NOT_FOUND errors.
     
     PROTOCOL REQUIREMENT: Every Claude session must update this file when discovering new naming patterns or fixing naming errors. This is essential for LLM session continuity.
   </Notes>

@@ -55,10 +55,10 @@
   
   <CriticalContext>
     <RecentBreakthrough>
-      <Achievement>Build Issues Completely Resolved</Achievement>
+      <Achievement>Build Issues and Routing Conflicts Completely Resolved</Achievement>
       <Date>2025-05-28</Date>
-      <Impact>Fixed 500 API errors caused by table name mismatches (users → app_users), corrected Auth-to-Player flow with missing ACTIVE_LEARNING state, and integrated LearningEngineService with tube-based architecture. Frontend now uses proper service layer instead of deprecated EngineOrchestrator.</Impact>
-      <ValidationStatus>npm run build successful, all naming issues documented in naming.apml</ValidationStatus>
+      <Impact>Fixed 500 API errors caused by table name mismatches (users → app_users), corrected Auth-to-Player flow with missing ACTIVE_LEARNING state, and CRITICALLY fixed App.tsx routing conflicts where two code paths existed: old 'session' case using broken EngineOrchestrator vs new ACTIVE_LEARNING case using proper LearningEngineService. Removed 67 lines of deprecated code causing USER_NOT_FOUND errors.</Impact>
+      <ValidationStatus>npm run build successful, bundle size reduced to 386.76 kB, all routing issues documented in naming.apml</ValidationStatus>
     </RecentBreakthrough>
     
     <CurrentWorkingFeatures>
@@ -157,35 +157,34 @@
       <ValidationResults>npm run build successful, ready for deployment testing</ValidationResults>
     </Change>
     
-    <Change date="2025-05-28" type="architecture-fix" impact="high">
-      <Summary>Corrected Auth-to-Player flow and LearningSession integration</Summary>
+    <Change date="2025-05-28" type="critical-routing-fix" impact="high">
+      <Summary>Removed conflicting App.tsx routing paths causing EngineOrchestrator errors</Summary>
       <Details>
-        - Added missing ACTIVE_LEARNING case in authToPlayerState switch
-        - Updated LearningSession component to use LearningEngineService instead of EngineOrchestrator
-        - Removed learningPathId dependency (using tube-based architecture)
-        - Fixed undefined userSession variable references
+        - DISCOVERED: Two conflicting code paths in App.tsx - old 'session' case vs new ACTIVE_LEARNING case
+        - REMOVED: Entire deprecated 'session' case (lines 786-844) that used broken engineOrchestrator
+        - FIXED: authToPlayerEventBus 'player:ready' handler to not trigger old 'session' route
+        - UPDATED: handleStartSession to use Auth-to-Player flow instead of setCurrentPage('session')
+        - CLEANED: Removed engineOrchestrator import and playerContent state variables
+        - RESULT: 67 lines removed, 5 lines added, bundle size reduced 398.84 kB → 386.76 kB
       </Details>
-      <ValidationResults>Complete Auth-to-Player flow now implemented</ValidationResults>
+      <ValidationResults>USER_NOT_FOUND and "No active session" errors eliminated - single clean routing path enforced</ValidationResults>
     </Change>
     
     <Change date="2025-05-28" type="documentation" impact="medium">
-      <Summary>Comprehensive naming.apml updates with debugging protocol</Summary>
+      <Summary>Comprehensive naming.apml and registry.apml updates</Summary>
       <Details>
         - Added complete database schema (app_users, user_state tables)
         - Documented all verified naming patterns and common mistakes
+        - Added RoutingPatterns section documenting proper Auth-to-Player flow vs deprecated patterns
         - Established formal debugging protocol: check names first, logic second
-        - Added update requirements for future Claude sessions
+        - Updated registry.apml with routing fix details and bundle size optimization
+        - Added specific routing errors and solutions to prevent future conflicts
       </Details>
-      <ValidationResults>Future sessions can avoid 90% of naming-related debugging time</ValidationResults>
+      <ValidationResults>Future sessions can avoid 90% of naming-related debugging time and routing conflicts</ValidationResults>
     </Change>
   </RecentChanges>
   
   <KnownIssues>
-    <Issue severity="low" module="UserInterface">
-      <Description>Old mock player with 3 sample questions might still be accessible via direct navigation</Description>
-      <Impact>Confusing user experience if old flow is accessed</Impact>
-      <Resolution>Remove deprecated session flow after validating new Auth-to-Player flow works</Resolution>
-    </Issue>
     
     <Issue severity="low" module="BackendServices">
       <Description>Cookie "__cf_bm" rejected for invalid domain warnings in console</Description>

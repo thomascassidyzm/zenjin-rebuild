@@ -723,6 +723,15 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 4: Auth-to-Player Flow (after authentication success OR anonymous pending)
+  console.log('🐛 DEBUG Auth-to-Player conditions:', {
+    isAuthenticated: sessionState.isAuthenticated,
+    userAuthChoice: userAuthChoice,
+    authToPlayerState: authToPlayerState,
+    condition1: sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS,
+    condition2: authToPlayerState !== 'ACTIVE_LEARNING',
+    bothConditions: (sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS) && authToPlayerState !== 'ACTIVE_LEARNING'
+  });
+  
   if ((sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS) && authToPlayerState !== 'ACTIVE_LEARNING') {
     // Determine user context type based on user data or auth choice
     const userContext = (sessionState.user?.userType === 'anonymous' || userAuthChoice === UserAuthChoice.ANONYMOUS) ? {
@@ -801,6 +810,7 @@ const AppContent: React.FC = () => {
   const effectiveOnlineStatus = isOnline || backendIsWorking;
 
   // Main app content with smooth launch transition
+  console.log('🐛 DEBUG Rendering mainAppContent with currentPage:', currentPage);
   const mainAppContent = (
     <div className="min-h-screen bg-gray-950">
       <NavigationHeader 
