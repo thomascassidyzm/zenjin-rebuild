@@ -456,6 +456,7 @@ const AppContent: React.FC = () => {
 
   // Auth-to-Player Flow Event Bus
   const [authToPlayerState, setAuthToPlayerState] = useState<AuthToPlayerState>('AUTH_SUCCESS');
+  const [playerContent, setPlayerContent] = useState<any>(null);
 
   // Handle Auth-to-Player flow events
   useEffect(() => {
@@ -467,7 +468,8 @@ const AppContent: React.FC = () => {
     // Listen for player ready event - use Auth-to-Player flow
     const unsubscribePlayer = authToPlayerEventBus.on('player:ready', (data) => {
       console.log('🎮 Auth-to-Player flow complete, transitioning to ACTIVE_LEARNING');
-      // Don't set currentPage - let Auth-to-Player flow handle ACTIVE_LEARNING case
+      console.log('🎮 Player content received:', data.content);
+      setPlayerContent(data.content);
       setLaunchComplete(true);
     });
 
@@ -713,7 +715,44 @@ const AppContent: React.FC = () => {
         );
       
       case 'ACTIVE_LEARNING':
-        return <LearningSession />;
+        if (!playerContent) {
+          return (
+            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+              <div className="text-white text-center">
+                <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p>Loading content...</p>
+              </div>
+            </div>
+          );
+        }
+
+        // Convert AuthToPlayerEventBus content to PlayerCard Question format
+        const playerQuestion = {
+          id: playerContent.id,
+          text: playerContent.text,
+          correctAnswer: playerContent.correctAnswer,
+          distractor: playerContent.distractor,
+          boundaryLevel: playerContent.metadata?.boundaryLevel || 1,
+          factId: playerContent.metadata?.factId || 'unknown'
+        };
+
+        return (
+          <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+              <PlayerCard
+                key={playerQuestion.id}
+                initialQuestion={playerQuestion}
+                onAnswerSelected={(response) => {
+                  console.log('🎯 Player answer:', response);
+                  // For now, just show basic feedback - this can be enhanced later
+                  setTimeout(() => {
+                    console.log('🎯 Answer processed through Auth-to-Player flow');
+                  }, 1500);
+                }}
+              />
+            </div>
+          </div>
+        );
       
       default:
         // AUTH_SUCCESS state - immediately show PRE_ENGAGEMENT (no loading screen)
