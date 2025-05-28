@@ -653,7 +653,16 @@ export class LearningEngineService {
       this.log(`Generating 20-question stitch for learning path: ${learningPathId}`);
       
       // Use Live Aid Architecture for Netflix-like question generation
-      const readyStitch = await this.liveAidManager.getReadyStitch(userId, this.mapLearningPathToTube(learningPathId));
+      const tubeId = this.mapLearningPathToTube(learningPathId);
+      let readyStitch;
+      
+      try {
+        readyStitch = this.stitchCache.getReadyStitch(userId, tubeId);
+        this.log(`Cache hit for ${userId}/${tubeId} - using Live Aid content`);
+      } catch (error) {
+        this.log(`Cache miss for ${userId}/${tubeId}: ${error.message} - using fallback`);
+        readyStitch = null;
+      }
       
       if (readyStitch && readyStitch.questions.length > 0) {
         // Convert ReadyStitch questions to LearningEngine Question format
@@ -675,33 +684,15 @@ export class LearningEngineService {
         this.log(`Generated ${questions.length} Live Aid questions for ${readyStitch.conceptName}`);
         return questions;
       } else {
-        // Fallback to basic questions if Live Aid fails
-        this.log(`Live Aid failed for ${learningPathId}, using fallback generation`);
-        const questions: Question[] = [];
-        
-        for (let i = 0; i < 20; i++) {
-          questions.push({
-            id: `${learningPathId}-fallback-q${i}-${Date.now()}`,
-            factId: 'fallback-fact',
-            questionText: `${learningPathId === 'addition' ? 'What is 5 + 3?' : learningPathId === 'multiplication' ? 'Double 7' : 'What is 12 - 4?'}`,
-            correctAnswer: learningPathId === 'addition' ? '8' : learningPathId === 'multiplication' ? '14' : '8',
-            distractors: [learningPathId === 'addition' ? '9' : learningPathId === 'multiplication' ? '15' : '7'],
-            boundaryLevel: 1,
-            difficulty: 1,
-            metadata: {
-              learningPathId: learningPathId,
-              fallback: true
-            }
-          });
-        }
-        
-        this.log(`Generated ${questions.length} fallback questions for learning path ${learningPathId}`);
-        return questions;
+        // NEW USERS: Hard-code the first stitch (always the same)
+        this.log(`New user ${userId} - generating hard-coded first stitch for ${learningPathId}`);
+        return this.generateFirstStitchForNewUser(learningPathId);
       }
       
     } catch (error) {
-      this.log(`Failed to generate stitch questions: ${error}`);
-      return [];
+      this.log(`Failed to generate stitch questions: ${error} - using hard-coded first stitch`);
+      // For any error, use the hard-coded first stitch (same for all new users)
+      return this.generateFirstStitchForNewUser(learningPathId);
     }
   }
   
@@ -878,6 +869,54 @@ export class LearningEngineService {
     return `<?xml version="1.0" encoding="UTF-8"?>\n<data>${JSON.stringify(data)}</data>`;
   }
   
+  /**
+   * Generate hard-coded first stitch for new users (always the same)
+   * @private
+   */
+  private generateFirstStitchForNewUser(learningPathId: string): Question[] {
+    // First stitch is ALWAYS doubling numbers ending in 0/5 (easiest)
+    const doublingQuestions = [
+      { question: 'Double 10', answer: '20', distractor: '19' },
+      { question: 'Double 15', answer: '30', distractor: '31' },
+      { question: 'Double 20', answer: '40', distractor: '39' },
+      { question: 'Double 25', answer: '50', distractor: '51' },
+      { question: 'Double 30', answer: '60', distractor: '59' },
+      { question: 'Double 35', answer: '70', distractor: '71' },
+      { question: 'Double 40', answer: '80', distractor: '79' },
+      { question: 'Double 45', answer: '90', distractor: '91' },
+      { question: 'Double 5', answer: '10', distractor: '11' },
+      { question: 'Double 50', answer: '100', distractor: '99' },
+      { question: 'Half of 20', answer: '10', distractor: '11' },
+      { question: 'Half of 30', answer: '15', distractor: '14' },
+      { question: 'Half of 40', answer: '20', distractor: '21' },
+      { question: 'Half of 50', answer: '25', distractor: '24' },
+      { question: 'Half of 60', answer: '30', distractor: '31' },
+      { question: 'Half of 70', answer: '35', distractor: '34' },
+      { question: 'Half of 80', answer: '40', distractor: '41' },
+      { question: 'Half of 90', answer: '45', distractor: '44' },
+      { question: 'Half of 100', answer: '50', distractor: '51' },
+      { question: 'Half of 10', answer: '5', distractor: '6' }
+    ];
+
+    const questions: Question[] = doublingQuestions.map((q, index) => ({
+      id: `first-stitch-q${index + 1}-${Date.now()}`,
+      factId: `doubling-0-5-endings-${index + 1}`,
+      questionText: q.question,
+      correctAnswer: q.answer,
+      distractors: [q.distractor],
+      boundaryLevel: 1,
+      difficulty: 1,
+      metadata: {
+        learningPathId: learningPathId,
+        stitchId: 't1-0001-0001', // First stitch in tube 1
+        conceptName: 'doubling_0_5_endings_1',
+        hardCoded: true
+      }
+    }));
+
+    return questions;
+  }
+
   /**
    * Map learning path to tube ID for Live Aid Architecture
    * @private
