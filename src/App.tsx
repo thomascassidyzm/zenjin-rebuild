@@ -522,7 +522,8 @@ const AppContent: React.FC = () => {
 
   const handleStartSession = (pathId: string) => {
     setSelectedLearningPath(pathId);
-    // Use Auth-to-Player flow instead of old session page
+    // This should only be called from dashboard for authenticated users who want to start a new session
+    // Anonymous users go directly to PreEngagement, authenticated users would already be past this
     authToPlayerEventBus.playButtonClicked();
   };
 
@@ -533,14 +534,14 @@ const AppContent: React.FC = () => {
     try {
       switch (choice) {
         case UserAuthChoice.ANONYMOUS:
-          // Simple approach: go directly to PreEngagementCard, create user later
+          // Go directly to PreEngagement (big play button) as designed
           const anonymousUserContext: AnonymousUserContext = {
             userType: 'anonymous',
             userId: 'pending-creation', // Will be created when play button clicked
             userName: 'Guest'
           };
           
-          console.log('✅ Starting Auth-to-Player flow for anonymous user (no backend calls)');
+          console.log('✅ Starting Auth-to-Player flow for anonymous user to PreEngagement');
           authToPlayerEventBus.startFlow(anonymousUserContext);
           break;
         case UserAuthChoice.SIGN_IN:
@@ -727,7 +728,7 @@ const AppContent: React.FC = () => {
         }
 
         // Convert AuthToPlayerEventBus content to PlayerCard Question format
-        const playerQuestion = {
+        const playerQuestion: Question = {
           id: playerContent.id,
           text: playerContent.text,
           correctAnswer: playerContent.correctAnswer,
