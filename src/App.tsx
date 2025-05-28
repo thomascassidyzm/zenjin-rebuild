@@ -174,7 +174,7 @@ const NavigationHeader: React.FC<{
   );
 };
 
-// Learning Session Component using LearningEngineService (tube-based)
+// Learning Session Component using AuthToPlayerEventBus content
 const LearningSession: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
@@ -184,10 +184,10 @@ const LearningSession: React.FC = () => {
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   
   // Backend integration via UserSession context
-  const { state: sessionState, recordSessionMetrics, updateUserState } = useUserSession();
-  const userId = sessionState.user?.id || 'anon_' + Date.now();
+  const { state: sessionState, recordSessionMetrics } = useUserSession();
+  const userId = sessionState.user?.id || sessionState.user?.anonymousId || 'anon_' + Date.now();
 
-  // Initialize session using LearningEngineService
+  // Initialize session using LearningEngineService with proper user ID
   useEffect(() => {
     const initializeSession = async () => {
       try {
@@ -219,7 +219,7 @@ const LearningSession: React.FC = () => {
         setSessionComplete(false);
         setSessionStartTime(Date.now());
         
-        console.log(`LearningEngineService session initialized: ${sessionResult.sessionId}`);
+        console.log(`LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
       } catch (error) {
         console.error('Failed to initialize learning session:', error);
       }
@@ -286,101 +286,72 @@ const LearningSession: React.FC = () => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
-        // Stitch complete - auto-rotate to next tube and continue
-        handleStitchCompletion(newScore);
-        // No setSessionComplete - session continues automatically!
+        // Session complete
+        setSessionComplete(true);
+        handleSessionCompletion(newScore);
       }
     }, 1500);
   };
 
-  const handleStitchCompletion = async (finalScore: { correct: number; total: number }) => {
-    if (!currentStitch) return;
-    
+  const handleSessionCompletion = async (finalScore: { correct: number; total: number }) => {
     try {
       const completionTime = Date.now() - sessionStartTime;
-      const sessionResults = {
-        correctCount: finalScore.correct,
-        totalCount: finalScore.total,
-        completionTime
-      };
       
       // Record session metrics to backend
       const sessionMetrics = {
-        sessionId: `${currentStitch.id}_${Date.now()}`,
+        sessionId: sessionId || `session_${Date.now()}`,
         correctAnswers: finalScore.correct,
         totalQuestions: finalScore.total,
         completionTime,
-        learningPath: learningPathId,
+        learningPath: 'addition',
         timestamp: new Date().toISOString()
       };
       
       await recordSessionMetrics(sessionMetrics);
       console.log('✅ Session metrics recorded to backend');
       
-      // Complete the stitch and reposition it
-      const repositionResult = await engineOrchestrator.completeStitch(userId, currentStitch.id, sessionResults);
-      
-      if (repositionResult) {
-        console.log(`Stitch completed! Moved from position ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
-        
-        // Update user state with new stitch positions
-        await updateUserState({
-          stitchPositions: engineOrchestrator.getAllStitchPositions(userId)
-        });
-      }
-      
-      // LIVE-AID ROTATION: Automatically rotate to next tube and start next stitch
-      const rotationResult = engineOrchestrator.rotateTripleHelix(userId);
-      if (rotationResult) {
-        console.log(`Tube rotated: ${rotationResult.previousActiveTube} → ${rotationResult.newActiveTube}`);
-        
-        // Update user state with new triple helix state
-        await updateUserState({
-          tripleHelixState: engineOrchestrator.getTripleHelixState(userId)
-        });
-      }
-      
-      // Automatically start next stitch from the new active tube
-      const nextStitchId = engineOrchestrator.getCurrentStitchId(userId);
-      if (nextStitchId) {
-        setCurrentStitch(nextStitchId);
-        try {
-          const newQuestions = await engineOrchestrator.generateQuestionsForStitch(nextStitchId, 20, userId);
-          setQuestions(newQuestions);
-          setCurrentQuestionIndex(0);
-          setSessionStartTime(Date.now());
-          console.log(`🎯 Started stitch '${nextStitchId}' from tube: ${rotationResult?.newActiveTube}`);
-        } catch (error) {
-          console.error('Failed to generate questions for next stitch:', error);
-        }
-      }
     } catch (error) {
-      console.error('Failed to complete stitch:', error);
+      console.error('Failed to record session metrics:', error);
     }
   };
 
   const resetSession = async () => {
-    // Start fresh session from current active tube (don't override with learningPathId)
-    const stitchId = engineOrchestrator.getCurrentStitchId(userId); // No learningPathId - use active tube
-    setCurrentStitch(stitchId);
-    
-    if (stitchId) {
-      try {
-        const generatedQuestions = await engineOrchestrator.generateQuestionsForStitch(stitchId, 20, userId);
-        setQuestions(generatedQuestions);
-      } catch (error) {
-        console.error('Failed to generate questions for reset session:', error);
-      }
+    // Start fresh session using LearningEngineService
+    try {
+      const sessionResult = await learningEngineService.initializeLearningSession(
+        userId,
+        'addition',
+        { maxQuestions: 20 }
+      );
+      
+      setSessionId(sessionResult.sessionId);
+      
+      const playerQuestions = sessionResult.initialQuestions.map(q => ({
+        id: q.id,
+        text: q.questionText,
+        correctAnswer: q.correctAnswer,
+        wrongAnswers: q.distractors,
+        metadata: {
+          factId: q.factId,
+          boundaryLevel: q.boundaryLevel,
+          sessionId: sessionResult.sessionId
+        }
+      }));
+      
+      setQuestions(playerQuestions);
+      setCurrentQuestionIndex(0);
+      setSessionScore({ correct: 0, total: 0 });
+      setSessionComplete(false);
+      setSessionStartTime(Date.now());
+      
+      console.log(`New session started: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
+    } catch (error) {
+      console.error('Failed to reset session:', error);
     }
-    setCurrentQuestionIndex(0);
-    setSessionScore({ correct: 0, total: 0 });
-    setSessionComplete(false);
-    setSessionStartTime(Date.now());
   };
 
   if (sessionComplete) {
     const percentage = Math.round((sessionScore.correct / sessionScore.total) * 100);
-    const nextStitchId = engineOrchestrator.getCurrentStitchId(userId);
     
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
@@ -403,7 +374,6 @@ const LearningSession: React.FC = () => {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
       {/* Session Progress */}
@@ -416,12 +386,6 @@ const LearningSession: React.FC = () => {
             <div className="text-sm">
               Score: {sessionScore.correct}/{sessionScore.total}
             </div>
-            <button
-              onClick={() => setShowProjectStatus(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs"
-            >
-              📊 Project Status
-            </button>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
             <div 
@@ -447,20 +411,13 @@ const LearningSession: React.FC = () => {
               <button
                 onClick={() => {
                   const flawlessScore = { correct: 20, total: 20 };
-                  handleStitchCompletion(flawlessScore);
+                  setSessionComplete(true);
+                  handleSessionCompletion(flawlessScore);
+                  setSessionScore(flawlessScore);
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
-                ✓ Flawless (20/20)
-              </button>
-              <button
-                onClick={() => {
-                  const imperfectScore = { correct: 15, total: 20 };
-                  handleStitchCompletion(imperfectScore);
-                }}
-                className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
-              >
-                ✗ Imperfect (15/20)
+                ✓ Complete Session
               </button>
             </div>
           </div>
