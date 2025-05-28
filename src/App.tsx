@@ -403,25 +403,6 @@ const LearningSession: React.FC = () => {
     );
   }
 
-  // Show project status dashboard if enabled
-  if (showProjectStatus) {
-    return (
-      <div>
-        <div className="bg-gray-900 p-3">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 className="text-white font-semibold">Project Status Dashboard</h1>
-            <button
-              onClick={() => setShowProjectStatus(false)}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
-            >
-              Back to App
-            </button>
-          </div>
-        </div>
-        <ProjectStatusDashboard />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
