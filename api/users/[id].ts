@@ -111,7 +111,7 @@ async function handleGetState(
       .from('user_state')
       .select(`
         *,
-        users!inner(id, user_type, subscription_tier, display_name, anonymous_id)
+        app_users!inner(id, user_type, subscription_tier, display_name, anonymous_id)
       `)
       .eq('user_id', userId)
       .single();
@@ -142,19 +142,19 @@ async function handleGetState(
     // Transform to API response format
     const userState = {
       userId: data.user_id,
-      anonymousId: data.users.user_type === 'anonymous' ? data.users.anonymous_id : undefined,
+      anonymousId: data.app_users.user_type === 'anonymous' ? data.app_users.anonymous_id : undefined,
       stitchPositions: data.stitch_positions || {},
       tripleHelixState: data.triple_helix_state || {},
       spacedRepetitionState: data.spaced_repetition_state || {},
       progressMetrics: data.progress_metrics || {},
       lastSyncTime: data.last_sync_time,
       version: data.version,
-      subscriptionTier: data.users.subscription_tier,
+      subscriptionTier: data.app_users.subscription_tier,
       user: {
-        id: data.users.id,
-        userType: data.users.user_type,
-        displayName: data.users.display_name,
-        subscriptionTier: data.users.subscription_tier
+        id: data.app_users.id,
+        userType: data.app_users.user_type,
+        displayName: data.app_users.display_name,
+        subscriptionTier: data.app_users.subscription_tier
       }
     };
 

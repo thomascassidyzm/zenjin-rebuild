@@ -140,7 +140,14 @@
       <Service name="LearningEngineService" domain="learning" verified="true" />
       <Service name="AnonymousUserService" domain="user-management" verified="true" />
       <Service name="AuthenticationFlowService" domain="authentication" verified="true" />
+      <Service name="UserSessionManager" domain="user-management" pattern="Manager" verified="true" />
+      <Service name="BackendServiceOrchestrator" domain="backend" pattern="Orchestrator" verified="true" />
+      <Service name="AuthToPlayerEventBus" domain="authentication" pattern="EventBus" verified="true" />
     </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="UserSessionService" correct="UserSessionManager" issue="service-pattern-mismatch" verified="true" />
+      <Mistake wrong="BackendService" correct="BackendServiceOrchestrator" issue="missing-pattern-suffix" verified="true" />
+    </CommonMistakes>
   </Services>
 
   <Properties>
@@ -167,7 +174,13 @@
       <Variable name="isAuthenticated" pattern="boolean" verified="true" />
       <Variable name="userId" pattern="identifier" verified="true" />
       <Variable name="sessionId" pattern="identifier" verified="true" />
+      <Variable name="sessionState" pattern="context-state" component="UserSessionContext" verified="true" />
+      <Variable name="learningEngineService" pattern="service-instance" component="LearningEngineService" verified="true" />
     </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="userSession" correct="sessionState" issue="undefined-variable" frequency="high" verified="true" context="App.tsx question flow" />
+      <Mistake wrong="userSession.user?.id" correct="sessionState.user?.id" issue="context-variable-mismatch" frequency="medium" verified="true" />
+    </CommonMistakes>
   </Variables>
 
   <Events>
@@ -191,15 +204,46 @@
     </ValidatedExamples>
   </APIEndpoints>
 
+  <DatabaseTables>
+    <Convention>snake_case</Convention>
+    <ValidatedExamples>
+      <Table name="app_users" description="Main user records table" verified="true" date="2025-05-28" />
+      <Table name="user_state" description="User learning state and progress" verified="true" date="2025-05-28" />
+    </ValidatedExamples>
+    <CommonMistakes>
+      <Mistake wrong="users" correct="app_users" issue="table-name-mismatch" frequency="high" verified="true" context="API routes, database queries" />
+      <Mistake wrong="users!inner(...)" correct="app_users!inner(...)" issue="foreign-key-reference" frequency="medium" verified="true" context="Supabase joins" />
+      <Mistake wrong="data.users.field" correct="data.app_users.field" issue="response-mapping" frequency="medium" verified="true" context="API response transformation" />
+    </CommonMistakes>
+  </DatabaseTables>
+
   <DatabaseFields>
     <Convention>snake_case</Convention>
     <ValidatedExamples>
-      <Field name="user_id" type="uuid" table="users" verified="true" />
-      <Field name="created_at" type="timestamp" table="users" verified="true" />
-      <Field name="subscription_tier" type="text" table="users" verified="true" />
-      <Field name="anonymous_id" type="text" table="users" verified="true" />
-      <Field name="stitch_positions" type="jsonb" table="user_state" verified="true" />
+      <!-- app_users table fields -->
+      <Field name="id" type="uuid" table="app_users" constraint="PRIMARY KEY" verified="true" />
+      <Field name="user_type" type="text" table="app_users" constraint="NOT NULL" verified="true" />
+      <Field name="anonymous_id" type="text" table="app_users" constraint="UNIQUE" verified="true" />
+      <Field name="email" type="text" table="app_users" constraint="UNIQUE" verified="true" />
+      <Field name="display_name" type="text" table="app_users" verified="true" />
+      <Field name="subscription_tier" type="text" table="app_users" default="Free" verified="true" />
+      <Field name="created_at" type="timestamp" table="app_users" default="now()" verified="true" />
+      <Field name="updated_at" type="timestamp" table="app_users" default="now()" verified="true" />
+      <Field name="expires_at" type="timestamp" table="app_users" verified="true" />
+      <Field name="metadata" type="jsonb" table="app_users" default="{}" verified="true" />
+      
+      <!-- user_state table fields -->
+      <Field name="id" type="uuid" table="user_state" constraint="PRIMARY KEY" verified="true" />
+      <Field name="user_id" type="uuid" table="user_state" constraint="FOREIGN KEY app_users(id)" verified="true" />
+      <Field name="stitch_positions" type="jsonb" table="user_state" default="{}" verified="true" />
       <Field name="triple_helix_state" type="jsonb" table="user_state" verified="true" />
+      <Field name="spaced_repetition_state" type="jsonb" table="user_state" verified="true" />
+      <Field name="progress_metrics" type="jsonb" table="user_state" default="{totalPoints: 0}" verified="true" />
+      <Field name="version" type="bigint" table="user_state" default="1" verified="true" />
+      <Field name="last_sync_time" type="timestamp" table="user_state" default="now()" verified="true" />
+      <Field name="sync_source" type="text" table="user_state" verified="true" />
+      <Field name="created_at" type="timestamp" table="user_state" default="now()" verified="true" />
+      <Field name="updated_at" type="timestamp" table="user_state" default="now()" verified="true" />
     </ValidatedExamples>
   </DatabaseFields>
 
