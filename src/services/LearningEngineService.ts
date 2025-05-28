@@ -18,6 +18,12 @@ import { QuestionGenerator } from '../engines/QuestionGenerator/QuestionGenerato
 import { DistractorGenerator } from '../engines/DistractorGenerator/DistractorGenerator';
 import { DistinctionManager } from '../engines/DistinctionManager/DistinctionManager';
 
+// Import Live Aid Architecture components
+import { StitchPopulation } from '../engines/StitchPopulation/StitchPopulation';
+import { StitchPreparation } from '../engines/StitchPreparation/StitchPreparation';
+import { StitchCache } from '../engines/StitchCache/StitchCache';
+import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
+
 // Import component types
 import type { 
   MathematicalFact, 
@@ -133,6 +139,12 @@ export class LearningEngineService {
   private distractorGenerator: DistractorGenerator;
   private distinctionManager: DistinctionManager;
   
+  // Live Aid Architecture components
+  private stitchPopulation: StitchPopulation;
+  private stitchPreparation: StitchPreparation;
+  private stitchCache: StitchCache;
+  private liveAidManager: LiveAidManager;
+  
   // Active learning sessions
   private activeSessions: Map<string, LearningSession> = new Map();
   
@@ -169,9 +181,23 @@ export class LearningEngineService {
         this.distractorGenerator
       );
       
+      // Initialize Live Aid Architecture components in proper sequence
+      this.stitchPopulation = new StitchPopulation(this.factRepository);
+      this.stitchPreparation = new StitchPreparation(
+        this.factRepository,
+        this.distinctionManager,
+        this.distractorGenerator,
+        this.questionGenerator
+      );
+      this.stitchCache = new StitchCache();
+      this.liveAidManager = new LiveAidManager(
+        this.stitchPopulation,
+        this.stitchPreparation,
+        this.stitchCache
+      );
       
       this.isInitialized = true;
-      this.log('LearningEngine service initialized successfully');
+      this.log('LearningEngine service initialized successfully with Live Aid Architecture');
     } catch (error) {
       throw new LearningEngineError(
         'LE-INIT-001',
@@ -626,27 +652,52 @@ export class LearningEngineService {
       // Generate questions for the learning path concept
       this.log(`Generating 20-question stitch for learning path: ${learningPathId}`);
       
-      // Generate exactly 20 questions for the stitch
-      const questions: Question[] = [];
+      // Use Live Aid Architecture for Netflix-like question generation
+      const readyStitch = await this.liveAidManager.getReadyStitch(userId, this.mapLearningPathToTube(learningPathId));
       
-      // For now, generate basic questions using the existing components
-      for (let i = 0; i < 20; i++) {
-        questions.push({
-          id: `${learningPathId}-q${i}-${Date.now()}`,
-          factId: 'temp-fact',
-          questionText: `Sample question ${i + 1} for ${learningPathId}`,
-          correctAnswer: (Math.floor(Math.random() * 20) + 1).toString(),
-          distractors: [(Math.floor(Math.random() * 20) + 21).toString()],
-          boundaryLevel: 1,
-          difficulty: 1,
+      if (readyStitch && readyStitch.questions.length > 0) {
+        // Convert ReadyStitch questions to LearningEngine Question format
+        const questions: Question[] = readyStitch.questions.map((q, index) => ({
+          id: q.id,
+          factId: q.factId,
+          questionText: q.text,
+          correctAnswer: q.correctAnswer,
+          distractors: q.distractor ? [q.distractor] : [],
+          boundaryLevel: q.boundaryLevel || 1,
+          difficulty: q.boundaryLevel || 1,
           metadata: {
-            learningPathId: learningPathId
+            learningPathId: learningPathId,
+            stitchId: readyStitch.stitchId,
+            conceptName: readyStitch.conceptName
           }
-        });
+        }));
+        
+        this.log(`Generated ${questions.length} Live Aid questions for ${readyStitch.conceptName}`);
+        return questions;
+      } else {
+        // Fallback to basic questions if Live Aid fails
+        this.log(`Live Aid failed for ${learningPathId}, using fallback generation`);
+        const questions: Question[] = [];
+        
+        for (let i = 0; i < 20; i++) {
+          questions.push({
+            id: `${learningPathId}-fallback-q${i}-${Date.now()}`,
+            factId: 'fallback-fact',
+            questionText: `${learningPathId === 'addition' ? 'What is 5 + 3?' : learningPathId === 'multiplication' ? 'Double 7' : 'What is 12 - 4?'}`,
+            correctAnswer: learningPathId === 'addition' ? '8' : learningPathId === 'multiplication' ? '14' : '8',
+            distractors: [learningPathId === 'addition' ? '9' : learningPathId === 'multiplication' ? '15' : '7'],
+            boundaryLevel: 1,
+            difficulty: 1,
+            metadata: {
+              learningPathId: learningPathId,
+              fallback: true
+            }
+          });
+        }
+        
+        this.log(`Generated ${questions.length} fallback questions for learning path ${learningPathId}`);
+        return questions;
       }
-      
-      this.log(`Generated ${questions.length} questions for learning path ${learningPathId}`);
-      return questions;
       
     } catch (error) {
       this.log(`Failed to generate stitch questions: ${error}`);
@@ -827,6 +878,26 @@ export class LearningEngineService {
     return `<?xml version="1.0" encoding="UTF-8"?>\n<data>${JSON.stringify(data)}</data>`;
   }
   
+  /**
+   * Map learning path to tube ID for Live Aid Architecture
+   * @private
+   */
+  private mapLearningPathToTube(learningPathId: string): 'tube1' | 'tube2' | 'tube3' {
+    switch (learningPathId) {
+      case 'addition':
+      case 'doubling':
+      case 'halving':
+        return 'tube1'; // Doubling/halving tube
+      case 'multiplication':
+        return 'tube2'; // Backwards multiplication tube
+      case 'division':
+      case 'algebra':
+        return 'tube3'; // Division-as-algebra tube
+      default:
+        return 'tube1'; // Default to tube1
+    }
+  }
+
   /**
    * Log service activities
    * @private

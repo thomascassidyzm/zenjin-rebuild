@@ -13,9 +13,9 @@ import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
+import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
-import { engineOrchestrator } from './engines/EngineOrchestrator';
 import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
 import { authToPlayerEventBus, AuthToPlayerState } from './services/AuthToPlayerEventBus';
@@ -714,9 +714,38 @@ const AppContent: React.FC = () => {
                 <PlayerCard
                   key={playerContent.id}
                   initialQuestion={playerContent}
-                  onAnswerSelected={(answer) => {
+                  onAnswerSelected={async (answer) => {
                     console.log('Answer selected:', answer);
-                    // Handle answer selection here
+                    
+                    // Process the answer and get next question
+                    try {
+                      const result = await engineOrchestrator.processUserResponse(
+                        userSession.user?.id || 'default-user',
+                        answer.questionId,
+                        answer.selectedAnswer,
+                        answer.responseTime
+                      );
+                      
+                      if (result.nextQuestion) {
+                        // Update the current question with the next question
+                        setPlayerContent(result.nextQuestion);
+                        console.log('Next question loaded:', result.nextQuestion);
+                      } else {
+                        // Generate a new question if none provided
+                        const nextQuestion = await engineOrchestrator.generateQuestion(userSession.user?.id || 'default-user');
+                        setPlayerContent(nextQuestion);
+                        console.log('New question generated:', nextQuestion);
+                      }
+                    } catch (error) {
+                      console.error('Failed to get next question:', error);
+                      // Fallback - generate a new question
+                      try {
+                        const fallbackQuestion = await engineOrchestrator.generateQuestion(userSession.user?.id || 'default-user');
+                        setPlayerContent(fallbackQuestion);
+                      } catch (fallbackError) {
+                        console.error('Fallback question generation failed:', fallbackError);
+                      }
+                    }
                   }}
                 />
               </div>
