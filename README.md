@@ -146,15 +146,62 @@ personalizedState = {
 ## Development Workflow
 
 ### 🚀 AI-Assisted Development with Vercel Deployment
+
+**Complete Workflow:**
+
 ```bash
 # 1. AI implements changes following APML interface-first principles
+
 # 2. Local build verification
 npm run build
 
-# 3. Human commits via GitHub Desktop
-# 4. Vercel auto-builds and deploys
-# 5. Live testing on deployed version
+# 3. AI prepares commit with detailed message
+git add .
+git commit -m "$(cat <<'EOF'
+COMMIT_TITLE: Brief description of what was changed
+
+PROBLEM: Description of the issue being solved
+- Specific symptom or error
+- Root cause analysis
+
+SOLUTION: What was implemented  
+- Specific changes made
+- Files modified and why
+
+RESULT: Expected outcome
+- How to verify the fix works
+- What user should see now
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+
+# 4. Human pushes via GitHub Desktop
+# 5. Vercel auto-builds and deploys (usually 1-2 minutes)
+# 6. Live testing on deployed version at vercel domain
 ```
+
+**Git Commit Message Template:**
+```
+COMMIT_TITLE: Brief summary of changes
+
+PROBLEM: [What was broken/needed]
+SOLUTION: [What was implemented] 
+RESULT: [Expected outcome]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Benefits of This Workflow:**
+- ✅ **Detailed commit history** with problem-solution-result structure
+- ✅ **Automatic deployment** - no manual build/deploy steps needed  
+- ✅ **Live testing** ensures real-world functionality
+- ✅ **GitHub Desktop** provides visual diff review before pushing
+- ✅ **Claude Code attribution** tracks AI-assisted development
+- ✅ **Vercel integration** provides instant preview URLs for testing
 
 ### 🧪 Testing Strategy
 - **Live deployment testing** (no local dev server)
