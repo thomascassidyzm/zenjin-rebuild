@@ -190,10 +190,25 @@ export class LearningEngineService {
         this.questionGenerator
       );
       this.stitchCache = new StitchCache();
+      
+      // LiveAidManager requires TripleHelixManager - temporarily create mock or import real one
+      const mockTripleHelixManager = {
+        getActiveTube: (userId: string) => 'tube1',
+        setActiveTube: (userId: string, tubeId: any) => {},
+        getNextStitchId: (userId: string, tubeId: any) => 't1-0001-0001',
+        initializeUser: async (userId: string) => {},
+        getOrCreateTripleHelix: (userId: string) => ({
+          tube1: { 1: 't1-0001-0001' },
+          tube2: { 1: 't2-0001-0001' },
+          tube3: { 1: 't3-0001-0001' }
+        })
+      };
+      
       this.liveAidManager = new LiveAidManager(
-        this.stitchPopulation,
+        this.stitchCache,
         this.stitchPreparation,
-        this.stitchCache
+        this.stitchPopulation,
+        mockTripleHelixManager as any
       );
       
       this.isInitialized = true;
@@ -652,42 +667,10 @@ export class LearningEngineService {
       // Generate questions for the learning path concept
       this.log(`Generating 20-question stitch for learning path: ${learningPathId}`);
       
-      // Use Live Aid Architecture for Netflix-like question generation
-      const tubeId = this.mapLearningPathToTube(learningPathId);
-      let readyStitch;
-      
-      try {
-        readyStitch = this.stitchCache.getReadyStitch(userId, tubeId);
-        this.log(`Cache hit for ${userId}/${tubeId} - using Live Aid content`);
-      } catch (error) {
-        this.log(`Cache miss for ${userId}/${tubeId}: ${error.message} - using fallback`);
-        readyStitch = null;
-      }
-      
-      if (readyStitch && readyStitch.questions.length > 0) {
-        // Convert ReadyStitch questions to LearningEngine Question format
-        const questions: Question[] = readyStitch.questions.map((q, index) => ({
-          id: q.id,
-          factId: q.factId,
-          questionText: q.text,
-          correctAnswer: q.correctAnswer,
-          distractors: q.distractor ? [q.distractor] : [],
-          boundaryLevel: q.boundaryLevel || 1,
-          difficulty: q.boundaryLevel || 1,
-          metadata: {
-            learningPathId: learningPathId,
-            stitchId: readyStitch.stitchId,
-            conceptName: readyStitch.conceptName
-          }
-        }));
-        
-        this.log(`Generated ${questions.length} Live Aid questions for ${readyStitch.conceptName}`);
-        return questions;
-      } else {
-        // NEW USERS: Hard-code the first stitch (always the same)
-        this.log(`New user ${userId} - generating hard-coded first stitch for ${learningPathId}`);
-        return this.generateFirstStitchForNewUser(learningPathId);
-      }
+      // For now, use hard-coded first stitch for all users to establish working baseline
+      // TODO: Implement Live Aid Architecture integration after basic flow is validated
+      this.log(`Generating hard-coded first stitch for ${learningPathId} (Live Aid disabled for now)`);
+      return this.generateFirstStitchForNewUser(learningPathId);
       
     } catch (error) {
       this.log(`Failed to generate stitch questions: ${error} - using hard-coded first stitch`);

@@ -14,6 +14,7 @@ import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
 import { engineOrchestrator } from './engines/EngineOrchestrator';
+import { learningEngineService } from './services/LearningEngineService';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { ConnectivityManager } from './engines/ConnectivityManager';
@@ -74,33 +75,45 @@ const mockDashboardData: DashboardData = {
   streakDays: 7
 };
 
-// Generate questions for current stitch in learning path
+// Generate questions for current stitch in learning path using LearningEngineService
 const generateQuestionsForStitch = async (learningPathId: string, userId: string = 'default-user'): Promise<Question[]> => {
   try {
-    // Get the current stitch for this user and learning path
-    const currentStitchId = engineOrchestrator.getCurrentStitchId(userId);
+    console.log(`Generating questions for learning path: ${learningPathId}, user: ${userId}`);
     
-    if (!currentStitchId) {
-      console.warn(`No current stitch available for ${learningPathId}`);
-      const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
-      return [fallbackQuestion];
+    // Use LearningEngineService for session-based question generation
+    const sessionResult = await learningEngineService.initializeLearningSession(
+      userId,
+      learningPathId,
+      { maxQuestions: 20 }
+    );
+    
+    console.log(`Session ${sessionResult.sessionId} created with ${sessionResult.initialQuestions.length} questions`);
+    
+    if (sessionResult.initialQuestions.length === 0) {
+      console.warn(`No questions generated for ${learningPathId}`);
+      return [];
     }
     
-    // Generate questions specifically for this stitch (always 20 questions)
-    const questions = await engineOrchestrator.generateQuestionsForStitch(currentStitchId, 20, userId);
-    
-    if (questions.length === 0) {
-      console.warn(`No questions generated for stitch ${currentStitchId}`);
-      const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
-      return [fallbackQuestion];
-    }
+    // Convert LearningEngineService questions to PlayerCard format
+    const questions: Question[] = sessionResult.initialQuestions.map(q => ({
+      id: q.id,
+      text: q.questionText,
+      correctAnswer: q.correctAnswer,
+      wrongAnswers: q.distractors,
+      metadata: {
+        factId: q.factId,
+        boundaryLevel: q.boundaryLevel,
+        difficulty: q.difficulty,
+        sessionId: sessionResult.sessionId,
+        ...q.metadata
+      }
+    }));
     
     return questions;
   } catch (error) {
     console.error('Failed to generate stitch questions:', error);
-    // Fallback to random question generation
-    const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
-    return [fallbackQuestion];
+    // Return empty array to avoid infinite loops
+    return [];
   }
 };
 
@@ -199,12 +212,56 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  const handleAnswerSelected = (response: any) => {
+  const handleAnswerSelected = async (response: any) => {
     const newScore = {
       correct: sessionScore.correct + (response.isCorrect ? 1 : 0),
       total: sessionScore.total + 1
     };
     setSessionScore(newScore);
+
+    // Process the response through LearningEngineService if we have session metadata
+    const currentQuestion = questions[currentQuestionIndex];
+    if (currentQuestion?.metadata?.sessionId) {
+      try {
+        const userResponse = {
+          questionId: currentQuestion.id,
+          selectedAnswer: response.selectedAnswer,
+          responseTime: response.responseTime || 3000,
+          isCorrect: response.isCorrect,
+          timestamp: new Date().toISOString()
+        };
+        
+        const responseResult = await learningEngineService.processUserResponse(
+          currentQuestion.metadata.sessionId,
+          currentQuestion.id,
+          userResponse
+        );
+        
+        console.log(`Response processed: ${responseResult.feedback.isCorrect ? 'correct' : 'incorrect'}`);
+        console.log(`Encouragement: ${responseResult.feedback.encouragement}`);
+        
+        // If there's a next question from the service, add it to our queue
+        if (responseResult.nextQuestion && !responseResult.sessionComplete) {
+          const nextQ: Question = {
+            id: responseResult.nextQuestion.id,
+            text: responseResult.nextQuestion.questionText,
+            correctAnswer: responseResult.nextQuestion.correctAnswer,
+            wrongAnswers: responseResult.nextQuestion.distractors,
+            metadata: {
+              factId: responseResult.nextQuestion.factId,
+              boundaryLevel: responseResult.nextQuestion.boundaryLevel,
+              difficulty: responseResult.nextQuestion.difficulty,
+              sessionId: currentQuestion.metadata.sessionId,
+              ...responseResult.nextQuestion.metadata
+            }
+          };
+          
+          setQuestions(prev => [...prev, nextQ]);
+        }
+      } catch (error) {
+        console.error('Failed to process response through LearningEngineService:', error);
+      }
+    }
 
     // Move to next question after delay
     setTimeout(() => {
