@@ -776,8 +776,10 @@ const AppContent: React.FC = () => {
                     
                     // Process the answer and get next question
                     try {
+                      // For now, use a simple anonymous user ID since this old flow is deprecated
+                      const userId = 'anon_' + Date.now();
                       const result = await engineOrchestrator.processUserResponse(
-                        userSession.user?.id || 'default-user',
+                        userId,
                         answer.questionId,
                         answer.selectedAnswer,
                         answer.responseTime
@@ -789,7 +791,7 @@ const AppContent: React.FC = () => {
                         console.log('Next question loaded:', result.nextQuestion);
                       } else {
                         // Generate a new question if none provided
-                        const nextQuestion = await engineOrchestrator.generateQuestion(userSession.user?.id || 'default-user');
+                        const nextQuestion = await engineOrchestrator.generateQuestion(userId);
                         setPlayerContent(nextQuestion);
                         console.log('New question generated:', nextQuestion);
                       }
@@ -797,7 +799,8 @@ const AppContent: React.FC = () => {
                       console.error('Failed to get next question:', error);
                       // Fallback - generate a new question
                       try {
-                        const fallbackQuestion = await engineOrchestrator.generateQuestion(userSession.user?.id || 'default-user');
+                        const userId = 'anon_' + Date.now();
+                        const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
                         setPlayerContent(fallbackQuestion);
                       } catch (fallbackError) {
                         console.error('Fallback question generation failed:', fallbackError);

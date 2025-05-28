@@ -62,9 +62,9 @@ export default async function handler(
     // Generate a UUID for the anonymous user
     const userId = uuidv4();
 
-    // Create user record in custom users table (no auth required for anonymous users)
+    // Create user record in app_users table (no auth required for anonymous users)
     const { error: userError } = await supabase
-      .from('users')
+      .from('app_users')
       .insert({
         id: userId,
         user_type: 'anonymous',
@@ -134,7 +134,7 @@ export default async function handler(
     if (stateError) {
       console.error('Initial state creation failed:', stateError);
       // Cleanup user record
-      await supabase.from('users').delete().eq('id', userId);
+      await supabase.from('app_users').delete().eq('id', userId);
       
       return res.status(500).json({
         success: false,
