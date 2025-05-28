@@ -17,6 +17,9 @@ import {
   AnonymousUserContext
 } from '../interfaces/AuthToPlayerInterface';
 
+// Re-export types needed by other modules
+export type { AuthToPlayerState, UserContext, AuthenticatedUserContext, AnonymousUserContext };
+
 type EventCallback<T = any> = (data: T) => void;
 
 class AuthToPlayerEventBus implements AuthToPlayerInterface {

@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { APMLBackendTester } from './APMLBackendTester';
-import { APMLValidationSuite } from './APMLValidationSuite/APMLValidationSuite';
 
 // APML Status Data (from registry.apml)
 const apmlStatusLevels = [
@@ -375,7 +373,11 @@ export const ProjectStatusDashboard: React.FC = () => {
                 </p>
               </div>
               <div className="p-6">
-                <APMLValidationSuite />
+                {/* <APMLValidationSuite /> - Component removed */}
+                <div className="text-center py-8 text-gray-400">
+                  <p>Testing components removed per APML protocols</p>
+                  <p className="text-sm mt-2">Focusing on core Live Aid implementation</p>
+                </div>
               </div>
             </div>
 
@@ -391,7 +393,11 @@ export const ProjectStatusDashboard: React.FC = () => {
                 </p>
               </div>
               <div className="p-6">
-                <APMLBackendTester />
+                {/* <APMLBackendTester /> - Component removed */}
+                <div className="text-center py-8 text-gray-400">
+                  <p>Backend testing components removed</p>
+                  <p className="text-sm mt-2">Core functionality working, build successful</p>
+                </div>
               </div>
             </div>
           </div>

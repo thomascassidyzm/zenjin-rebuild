@@ -72,12 +72,20 @@
   
   <NextPrioritySteps>
     <HighPriority>
+      <Step id="ALGORITHM_DEFINITION_001" module="Architecture" task="Define Explicit Implementation Algorithms">
+        <Description>CRITICAL APML REQUIREMENT: Capture explicit algorithmic details for all Live Aid processes before implementation begins</Description>
+        <Context>APML protocols require explicit knowledge capture - cannot leave implementation details to "emerge during coding"</Context>
+        <ApproachSuggestion>COMPLETED: See LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml for complete algorithmic definitions</ApproachSuggestion>
+        <ValidationCriteria>Complete "implementation cookbook" with step-by-step algorithms for all Live Aid processes</ValidationCriteria>
+        <Status>COMPLETED</Status>
+      </Step>
+      
       <Step id="STITCH_POPULATION_001" module="LearningEngine" task="Implement StitchPopulation system">
         <Description>Create curriculum mapping algorithms that translate concept progressions into specific fact selection criteria</Description>
         <Context>Tube 1: doubling/halving number endings (0/5 → 1-4 → 6-9), Tube 2: backwards multiplication (19× → 18× → 17×), Tube 3: division-as-algebra</Context>
-        <ApproachSuggestion>Start with Tube 1 doubling progression, implement ConceptMapping to FactQuery translation, validate with actual FactRepository</ApproachSuggestion>
+        <ApproachSuggestion>Follow algorithms in LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml: Concept-to-Fact Query Translation, Number Ending Selection, Backwards Multiplication Selection, 90/10 Surprise Distribution</ApproachSuggestion>
         <ValidationCriteria>Must produce 20 facts per stitch following number ending complexity patterns</ValidationCriteria>
-        <Status>PENDING</Status>
+        <Status>READY_FOR_IMPLEMENTATION</Status>
       </Step>
       
       <Step id="BACKGROUND_PREP_001" module="LearningEngine" task="Implement StitchPreparation background assembly">
@@ -229,14 +237,15 @@
   
   <HandoffInstructions>
     <ImmediateActions>
-      <Action priority="1">Read and understand the complete Live Aid architecture from all four new interfaces</Action>
-      <Action priority="2">Comprehend curriculum foundation: doubling/halving as multiplicative base, NOT addition/subtraction</Action>
-      <Action priority="3">Implement StitchPopulation system starting with Tube 1 doubling number ending patterns</Action>
-      <Action priority="4">Validate curriculum algorithms against actual FactRepository content (~40,000 facts available)</Action>
-      <Action priority="5">Build background preparation system for seamless ReadyStitch assembly</Action>
+      <Action priority="1">✅ COMPLETED: Explicit implementation algorithms defined in LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml</Action>
+      <Action priority="2">Read and understand the complete Live Aid architecture from all four new interfaces</Action>
+      <Action priority="3">Comprehend curriculum foundation: doubling/halving as multiplicative base, NOT addition/subtraction</Action>
+      <Action priority="4">✅ COMPLETED: Complete "implementation cookbook" with step-by-step algorithms created</Action>
+      <Action priority="5">CURRENT PRIORITY: Implement StitchPopulation system following explicit algorithmic definitions</Action>
     </ImmediateActions>
     
     <ContextBoundaries>
+      <Boundary name="APML Explicit Knowledge">All implementation algorithms must be explicitly defined before coding - no "figure it out during implementation" approach</Boundary>
       <Boundary name="Performance Architecture">All question generation must happen in PREPARING phase, LIVE phase is pure streaming only</Boundary>
       <Boundary name="Curriculum Foundation">Doubling/halving is foundational, addition/subtraction is supplementary (10% surprises)</Boundary>
       <Boundary name="Reading Minimization">Question formats must eliminate all unnecessary language, focus on mathematical core</Boundary>
@@ -245,13 +254,62 @@
     </ContextBoundaries>
     
     <CommunicationGuidelines>
+      <Guideline>✅ COMPLETED: All implementation algorithms explicitly defined in LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml</Guideline>
       <Guideline>Always acknowledge understanding of Live Aid caching architecture before implementing changes</Guideline>
       <Guideline>Respect the curriculum foundation insights - doubling/halving builds mathematical intuition more effectively than addition/subtraction</Guideline>
       <Guideline>Maintain the Netflix-like performance philosophy - complexity hidden in background, streaming experience for users</Guideline>
       <Guideline>Follow minimal reading paradigms strictly - eliminate unnecessary cognitive load from question presentation</Guideline>
       <Guideline>Use TodoWrite tool to plan implementation phases, respecting the three-layer clean separation architecture</Guideline>
+      <Guideline>Create complete "implementation cookbook" with step-by-step processes before beginning development work</Guideline>
     </CommunicationGuidelines>
   </HandoffInstructions>
+  
+  <AlgorithmicRequirements>
+    <MandatoryDefinitions>
+      <Algorithm name="Fact Selection Queries">
+        <Description>Precise FactRepository query patterns for each curriculum concept</Description>
+        <RequiredDetails>Exact filtering criteria for number endings (0/5, 1-4, 6-9), range specifications, operation types</RequiredDetails>
+        <Implementation>ConceptMapping → FactQuery translation with specific parameters</Implementation>
+        <Validation>Must produce exactly 20 facts per stitch following curriculum patterns</Validation>
+      </Algorithm>
+      
+      <Algorithm name="Content Assembly Pipeline">
+        <Description>Step-by-step process: fact selection → boundary assessment → distractor generation → question assembly → shuffling</Description>
+        <RequiredDetails>Integration sequence with DistinctionManager, DistractorGenerator timing, quality validation criteria</RequiredDetails>
+        <Implementation>Background preparation workflow with progress tracking and error handling</Implementation>
+        <Validation>Must produce ReadyStitch objects meeting performance and quality standards</Validation>
+      </Algorithm>
+      
+      <Algorithm name="Cache Management Mechanics">
+        <Description>Invalidation triggers, preparation scheduling, and performance optimization strategies</Description>
+        <RequiredDetails>Boundary level change detection, background task prioritization, system health monitoring thresholds</RequiredDetails>
+        <Implementation>Live Aid coordination with cache hit/miss optimization and degradation handling</Implementation>
+        <Validation>Must maintain zero-wait user experience under all normal operating conditions</Validation>
+      </Algorithm>
+      
+      <Algorithm name="Tube Transition Triggers">
+        <Description>Mechanical processes for PREPARING → READY → LIVE transitions</Description>
+        <RequiredDetails>Stitch completion detection, rotation timing, background preparation queue management</RequiredDetails>
+        <Implementation>LiveAidManager coordination with TripleHelixManager integration</Implementation>
+        <Validation>Must ensure seamless tube rotation without user-facing delays</Validation>
+      </Algorithm>
+      
+      <Algorithm name="90/10 Surprise Distribution">
+        <Description>Precise implementation of core curriculum vs surprise stitch placement</Description>
+        <RequiredDetails>Randomization patterns, surprise concept selection, distribution across tubes</RequiredDetails>
+        <Implementation>Population algorithm modification with surprise injection at specific intervals</Implementation>
+        <Validation>Must maintain curriculum progression while providing cognitive disruption</Validation>
+      </Algorithm>
+    </MandatoryDefinitions>
+    
+    <APMLCompliance>
+      <Requirement>All algorithms must be explicitly defined before implementation begins</Requirement>
+      <Requirement>No "figure it out during coding" approach - complete algorithmic cookbook required</Requirement>
+      <Requirement>Step-by-step processes documented with validation criteria</Requirement>
+      <Requirement>Integration points between components clearly specified</Requirement>
+      <Requirement>Performance optimization strategies explicitly captured</Requirement>
+    </APMLCompliance>
+  </AlgorithmicRequirements>
   
   <KnownOptimizations>
     <Optimization area="Curriculum Sequencing">

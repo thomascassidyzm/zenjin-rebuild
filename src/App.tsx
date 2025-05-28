@@ -75,29 +75,32 @@ const mockDashboardData: DashboardData = {
 };
 
 // Generate questions for current stitch in learning path
-const generateQuestionsForStitch = (learningPathId: string, userId: string = 'default-user'): Question[] => {
+const generateQuestionsForStitch = async (learningPathId: string, userId: string = 'default-user'): Promise<Question[]> => {
   try {
     // Get the current stitch for this user and learning path
-    const currentStitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
+    const currentStitchId = engineOrchestrator.getCurrentStitchId(userId);
     
-    if (!currentStitch) {
+    if (!currentStitchId) {
       console.warn(`No current stitch available for ${learningPathId}`);
-      return [engineOrchestrator.generateQuestion(userId, learningPathId)];
+      const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
+      return [fallbackQuestion];
     }
     
     // Generate questions specifically for this stitch (always 20 questions)
-    const questions = engineOrchestrator.generateQuestionsForStitch(currentStitch, 20);
+    const questions = await engineOrchestrator.generateQuestionsForStitch(currentStitchId, 20, userId);
     
     if (questions.length === 0) {
-      console.warn(`No questions generated for stitch ${currentStitch.id}`);
-      return [engineOrchestrator.generateQuestion(userId, learningPathId)];
+      console.warn(`No questions generated for stitch ${currentStitchId}`);
+      const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
+      return [fallbackQuestion];
     }
     
     return questions;
   } catch (error) {
     console.error('Failed to generate stitch questions:', error);
     // Fallback to random question generation
-    return [engineOrchestrator.generateQuestion('default-user', learningPathId)];
+    const fallbackQuestion = await engineOrchestrator.generateQuestion(userId);
+    return [fallbackQuestion];
   }
 };
 
@@ -175,15 +178,23 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
 
   // Generate questions when component mounts or learning path changes
   useEffect(() => {
-    const stitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
-    setCurrentStitch(stitch);
+    const stitchId = engineOrchestrator.getCurrentStitchId(userId);
+    setCurrentStitch(stitchId);
     
-    const generatedQuestions = generateQuestionsForStitch(learningPathId, userId);
-    setQuestions(generatedQuestions);
-    setCurrentQuestionIndex(0);
-    setSessionScore({ correct: 0, total: 0 });
-    setSessionComplete(false);
-    setSessionStartTime(Date.now());
+    const loadQuestions = async () => {
+      try {
+        const generatedQuestions = await generateQuestionsForStitch(learningPathId, userId);
+        setQuestions(generatedQuestions);
+        setCurrentQuestionIndex(0);
+        setSessionScore({ correct: 0, total: 0 });
+        setSessionComplete(false);
+        setSessionStartTime(Date.now());
+      } catch (error) {
+        console.error('Failed to load questions:', error);
+      }
+    };
+    
+    loadQuestions();
   }, [learningPathId]);
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -232,7 +243,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       console.log('✅ Session metrics recorded to backend');
       
       // Complete the stitch and reposition it
-      const repositionResult = engineOrchestrator.completeStitch(userId, currentStitch.id, sessionResults);
+      const repositionResult = await engineOrchestrator.completeStitch(userId, currentStitch.id, sessionResults);
       
       if (repositionResult) {
         console.log(`Stitch completed! Moved from position ${repositionResult.previousPosition} to ${repositionResult.newPosition}`);
@@ -246,7 +257,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       // LIVE-AID ROTATION: Automatically rotate to next tube and start next stitch
       const rotationResult = engineOrchestrator.rotateTripleHelix(userId);
       if (rotationResult) {
-        console.log(`Tube rotated: ${rotationResult.previousActivePath.id} → ${rotationResult.newActivePath.id}`);
+        console.log(`Tube rotated: ${rotationResult.previousActiveTube} → ${rotationResult.newActiveTube}`);
         
         // Update user state with new triple helix state
         await updateUserState({
@@ -255,28 +266,36 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
       }
       
       // Automatically start next stitch from the new active tube
-      const nextStitch = engineOrchestrator.getCurrentStitch(userId);
-      if (nextStitch) {
-        setCurrentStitch(nextStitch);
-        const newQuestions = engineOrchestrator.generateQuestionsForStitch(nextStitch, 20);
-        setQuestions(newQuestions);
-        setCurrentQuestionIndex(0);
-        setSessionStartTime(Date.now());
-        console.log(`🎯 Started stitch '${nextStitch.id}' from tube: ${rotationResult?.newActivePath.id}`);
+      const nextStitchId = engineOrchestrator.getCurrentStitchId(userId);
+      if (nextStitchId) {
+        setCurrentStitch(nextStitchId);
+        try {
+          const newQuestions = await engineOrchestrator.generateQuestionsForStitch(nextStitchId, 20, userId);
+          setQuestions(newQuestions);
+          setCurrentQuestionIndex(0);
+          setSessionStartTime(Date.now());
+          console.log(`🎯 Started stitch '${nextStitchId}' from tube: ${rotationResult?.newActiveTube}`);
+        } catch (error) {
+          console.error('Failed to generate questions for next stitch:', error);
+        }
       }
     } catch (error) {
       console.error('Failed to complete stitch:', error);
     }
   };
 
-  const resetSession = () => {
+  const resetSession = async () => {
     // Start fresh session from current active tube (don't override with learningPathId)
-    const stitch = engineOrchestrator.getCurrentStitch(userId); // No learningPathId - use active tube
-    setCurrentStitch(stitch);
+    const stitchId = engineOrchestrator.getCurrentStitchId(userId); // No learningPathId - use active tube
+    setCurrentStitch(stitchId);
     
-    if (stitch) {
-      const generatedQuestions = engineOrchestrator.generateQuestionsForStitch(stitch, 20);
-      setQuestions(generatedQuestions);
+    if (stitchId) {
+      try {
+        const generatedQuestions = await engineOrchestrator.generateQuestionsForStitch(stitchId, 20, userId);
+        setQuestions(generatedQuestions);
+      } catch (error) {
+        console.error('Failed to generate questions for reset session:', error);
+      }
     }
     setCurrentQuestionIndex(0);
     setSessionScore({ correct: 0, total: 0 });
@@ -286,7 +305,7 @@ const LearningSession: React.FC<{ learningPathId?: string }> = ({ learningPathId
 
   if (sessionComplete) {
     const percentage = Math.round((sessionScore.correct / sessionScore.total) * 100);
-    const nextStitch = engineOrchestrator.getCurrentStitch(userId, learningPathId);
+    const nextStitchId = engineOrchestrator.getCurrentStitchId(userId);
     
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
@@ -640,7 +659,7 @@ const AppContent: React.FC = () => {
       userType: 'authenticated' as const,
       userId: sessionState.user?.id || '',
       userName: sessionState.user?.displayName,
-      email: sessionState.user?.email || ''
+      email: sessionState.user?.id || '' // Using id as email fallback since User interface doesn't have email
     } as AuthenticatedUserContext;
 
     switch (authToPlayerState) {
@@ -648,7 +667,7 @@ const AppContent: React.FC = () => {
         return (
           <PreEngagementCard
             userContext={userContext}
-            onPlayClicked={() => authToPlayerEventBus.playButtonClicked()}
+            onPlayClicked={async () => authToPlayerEventBus.playButtonClicked()}
             isLoading={false}
             loadingProgress={0}
           />
@@ -657,7 +676,7 @@ const AppContent: React.FC = () => {
       case 'LOADING_WITH_ANIMATION':
         return (
           <MathLoadingAnimation
-            onAnimationComplete={() => authToPlayerEventBus.animationCompleted()}
+            onAnimationComplete={async () => authToPlayerEventBus.animationCompleted()}
             loadingProgress={0}
             duration={3000}
           />
@@ -668,7 +687,7 @@ const AppContent: React.FC = () => {
         return (
           <PreEngagementCard
             userContext={userContext}
-            onPlayClicked={() => authToPlayerEventBus.playButtonClicked()}
+            onPlayClicked={async () => authToPlayerEventBus.playButtonClicked()}
             isLoading={false}
             loadingProgress={0}
           />

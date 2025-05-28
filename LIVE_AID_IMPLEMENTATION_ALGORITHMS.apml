@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LiveAidImplementationAlgorithms version="1.0" date="2025-05-28">
+  <Purpose>
+    CRITICAL APML REQUIREMENT: Explicit algorithmic definition for all Live Aid processes before implementation begins. This document provides the complete "implementation cookbook" with step-by-step algorithms for fact selection, content assembly, cache management, tube transitions, and 90/10 surprise distribution. Following APML Framework v1.4.2 principles, all implementation details are explicitly captured to eliminate "figure it out during coding" approach.
+  </Purpose>
+  
+  <APMLCompliance>
+    <FrameworkVersion>1.4.2</FrameworkVersion>
+    <RequirementsFulfilled>
+      <Requirement>Explicit Knowledge Capture - All algorithms fully specified</Requirement>
+      <Requirement>Interface-First Development - All processes defined against existing interfaces</Requirement>
+      <Requirement>Step-by-Step Implementation - Complete algorithmic cookbook provided</Requirement>
+      <Requirement>Validation Criteria - Success measures defined for each algorithm</Requirement>
+    </RequirementsFulfilled>
+  </APMLCompliance>
+  
+  <CurriculumFoundation>
+    <Core>
+      <Concept name="Doubling/Halving Multiplicative Base">
+        <NumberEndingComplexity>
+          <Easy>0, 5 endings (e.g., 10, 15, 20, 25, 30, 35)</Easy>
+          <Medium>1, 2, 3, 4 endings (e.g., 11, 12, 13, 14, 21, 22, 23, 24)</Medium>
+          <Hard>6, 7, 8, 9 endings (e.g., 16, 17, 18, 19, 26, 27, 28, 29)</Hard>
+        </NumberEndingComplexity>
+        <TubeAllocation>Tube 1: ~20 stitches following complexity progression</TubeAllocation>
+      </Concept>
+      
+      <Concept name="Backwards Multiplication">
+        <Progression>19× → 18× → 17× → 16× → ... → 3× (skip 1×, 2× as trivial)</Progression>
+        <TubeAllocation>Tube 2: 17 stitches (19× through 3×, 20 questions each)</TubeAllocation>
+      </Concept>
+      
+      <Concept name="Division as Algebra">
+        <Format>"□ × 7 = 35" instead of "35 ÷ 7 = ?"</Format>
+        <TubeAllocation>Tube 3: Similar count with inverse relationships</TubeAllocation>
+      </Concept>
+      
+      <Concept name="Strategic Addition/Subtraction">
+        <Distribution>~10% surprise stitches across all tubes</Distribution>
+        <Purpose>Political necessity for parent/teacher acceptance, cognitive disruption</Purpose>
+      </Concept>
+    </Core>
+    
+    <MinimalReadingFormats>
+      <Doubling>"Double 13" (not "What is double 13?")</Doubling>
+      <Halving>"Half of 42" (not "Halve 42")</Halving>
+      <Multiplication>"19 × 4" (not "19 × 4 = ?")</Multiplication>
+      <Division>"15 / 3" (not "15 ÷ 3")</Division>
+      <Algebra>"□ × 6 = 24" (boxes not ?, future: "6n = 24")</Algebra>
+      <Answers>Numeric only - "26" not "twenty-six"</Answers>
+    </MinimalReadingFormats>
+  </CurriculumFoundation>
+  
+  <FactSelectionAlgorithms>
+    <Algorithm name="Concept-to-Fact Query Translation">
+      <Description>Translates curriculum concept mappings into precise FactRepository queries</Description>
+      <Implementation>
+        <Step id="1">Parse ConceptMapping.conceptName to determine operation type</Step>
+        <Step id="2">Extract complexity level from concept (0/5 endings, 1-4 endings, 6-9 endings)</Step>
+        <Step id="3">Build FactQuery with specific criteria:
+          - operation: extracted from conceptName
+          - numberEndings: based on complexity level
+          - numberRange: appropriate for concept difficulty
+          - maxFacts: 20 for standard stitches
+        </Step>
+        <Step id="4">Add exclusion criteria for recently used facts (avoid repetition)</Step>
+        <Step id="5">Execute query against FactRepository with validation</Step>
+        <Step id="6">If insufficient facts (&lt;20), expand criteria or flag concept as under-populated</Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Must return exactly 20 facts for standard stitches</Criterion>
+        <Criterion>Facts must match number ending complexity level</Criterion>
+        <Criterion>No duplicate facts within same stitch</Criterion>
+        <Criterion>Query execution time &lt; 50ms for performance</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Doubling/Halving Number Ending Selection">
+      <Description>Selects numbers based on ending complexity for doubling/halving concepts</Description>
+      <Implementation>
+        <Step id="1">Determine complexity band from concept code:
+          - Concepts 0001-0007: 0/5 endings (easy)
+          - Concepts 0008-0014: 1-4 endings (medium)  
+          - Concepts 0015-0020: 6-9 endings (hard)
+        </Step>
+        <Step id="2">Build number pool based on complexity:
+          - Easy: numbers ending in 0,5 within range 10-50
+          - Medium: numbers ending in 1,2,3,4 within range 11-49
+          - Hard: numbers ending in 6,7,8,9 within range 16-49
+        </Step>
+        <Step id="3">Filter by operation appropriateness:
+          - Doubling: ensure result fits within reasonable bounds (&lt;100)
+          - Halving: prioritize even numbers, include strategic half-numbers (3.5, 7.5)
+        </Step>
+        <Step id="4">Randomize selection maintaining diversity across ending digits</Step>
+        <Step id="5">Validate sufficient variety (no more than 4 of same ending)</Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>All selected numbers match target complexity band</Criterion>
+        <Criterion>Results of operations are reasonable for boundary level</Criterion>
+        <Criterion>Good distribution across target endings (no clustering)</Criterion>
+        <Criterion>Half-numbers included appropriately for halving operations</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Backwards Multiplication Table Selection">
+      <Description>Selects multiplication facts for backwards progression (19× → 3×)</Description>
+      <Implementation>
+        <Step id="1">Parse concept code to determine table number (e.g., concept "0019" = 19× table)</Step>
+        <Step id="2">Generate complete multiplication set for that table:
+          - tableNumber × 1 through tableNumber × 12 (standard times table range)
+          - Skip obvious facts (× 1, × 10) if stitch needs exactly 20 questions
+        </Step>
+        <Step id="3">Add strategic "boundary crossing" facts:
+          - tableNumber × 0.5 (if appropriate for boundary level)
+          - tableNumber × 1.5, × 2.5 (decimal extensions)
+        </Step>
+        <Step id="4">Include "reverse verification" format occasionally:
+          - "What × 7 = 133?" instead of "19 × 7"
+        </Step>
+        <Step id="5">Randomize order within selected facts</Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>All facts belong to specified multiplication table</Criterion>
+        <Criterion>Exactly 20 facts selected for standard stitch</Criterion>
+        <Criterion>Good mix of integer and strategic decimal multipliers</Criterion>
+        <Criterion>Includes appropriate boundary-crossing challenges</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Division-as-Algebra Fact Selection">
+      <Description>Selects division facts presented as algebraic inverse multiplication</Description>
+      <Implementation>
+        <Step id="1">Select base multiplication facts appropriate for user boundary level</Step>
+        <Step id="2">Transform to algebraic format:
+          - "35 ÷ 7" becomes "□ × 7 = 35"
+          - "72 ÷ 8" becomes "□ × 8 = 72"
+        </Step>
+        <Step id="3">Ensure clean division (no remainders for basic level)</Step>
+        <Step id="4">Add strategic "find the multiplier" variants:
+          - "6 × □ = 42" (finding second operand)
+          - "□ × □ = 36" (finding factor pairs, advanced)
+        </Step>
+        <Step id="5">Balance familiar facts with learning-edge challenges</Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>All divisions result in clean integer answers</Criterion>
+        <Criterion>Algebraic format uses box (□) notation consistently</Criterion>
+        <Criterion>Appropriate difficulty progression for boundary level</Criterion>
+        <Criterion>Mix of "find dividend", "find divisor", "find factor" formats</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="90/10 Surprise Distribution">
+      <Description>Implements strategic surprise concept placement across tubes</Description>
+      <Implementation>
+        <Step id="1">Calculate total stitches across all three tubes (approximately 60)</Step>
+        <Step id="2">Determine surprise stitch count: totalStitches × 0.1 (approximately 6 stitches)</Step>
+        <Step id="3">Distribute surprises across tubes:
+          - Tube 1: 2 surprise stitches (addition/subtraction with number endings)
+          - Tube 2: 2 surprise stitches (division facts related to multiplication tables)
+          - Tube 3: 2 surprise stitches (doubling/halving related to algebra)
+        </Step>
+        <Step id="4">Select surprise positions using pseudo-random spacing:
+          - Avoid first 3 or last 3 positions in any tube
+          - Minimum 3 stitches between any two surprises
+          - Use user ID as seed for consistent but unpredictable placement
+        </Step>
+        <Step id="5">Select surprise concepts that maintain cognitive disruption:
+          - Addition: strategic patterns like "13 + 7" (crossing tens)
+          - Subtraction: "24 - 6" (requiring mental borrowing)
+          - Cross-tube concepts: "Double 9" appearing in multiplication tube
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Surprise rate stays between 8-12% of total stitches</Criterion>
+        <Criterion>Surprises well-distributed across all three tubes</Criterion>
+        <Criterion>No clustering of surprises (minimum spacing maintained)</Criterion>
+        <Criterion>Surprise concepts provide appropriate cognitive disruption</Criterion>
+        <Criterion>User ID-based seeding ensures consistency across sessions</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+  </FactSelectionAlgorithms>
+  
+  <ContentAssemblyAlgorithms>
+    <Algorithm name="Background Question Assembly Pipeline">
+      <Description>Complete step-by-step process for assembling ready questions with boundary-appropriate distractors</Description>
+      <Implementation>
+        <Step id="1">FACT SELECTION PHASE:
+          - Execute concept-to-fact query against FactRepository
+          - Validate sufficient facts available (minimum 20)
+          - Apply user-specific exclusions (recently seen facts)
+        </Step>
+        <Step id="2">BOUNDARY LEVEL ASSESSMENT:
+          - Query DistinctionManager for user's current boundary level
+          - Determine appropriate distractor difficulty range
+          - Set question complexity parameters
+        </Step>
+        <Step id="3">QUESTION FORMATTING PHASE:
+          - Apply minimal reading format templates
+          - Transform facts into presentation format
+          - Validate format consistency (no question marks, minimal text)
+        </Step>
+        <Step id="4">DISTRACTOR GENERATION PHASE:
+          - For each question, generate boundary-appropriate wrong answer
+          - Ensure distractor is plausible but clearly incorrect
+          - Avoid patterns that make guessing easy
+        </Step>
+        <Step id="5">QUESTION ASSEMBLY PHASE:
+          - Combine formatted question + correct answer + distractor
+          - Add metadata (concept code, fact ID, boundary level)
+          - Validate complete question object
+        </Step>
+        <Step id="6">SHUFFLE PHASE:
+          - Randomize question order using cryptographic random
+          - Ensure no obvious patterns in presentation
+          - Validate shuffle quality (no adjacent similar questions)
+        </Step>
+        <Step id="7">READY STITCH ASSEMBLY:
+          - Package 20 shuffled questions into ReadyStitch object
+          - Add stitch metadata (concept name, preparation timestamp)
+          - Validate complete stitch ready for caching
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Complete ReadyStitch with exactly 20 shuffled questions</Criterion>
+        <Criterion>All questions use minimal reading format consistently</Criterion>
+        <Criterion>Distractors appropriate for user's boundary level</Criterion>
+        <Criterion>No duplicate questions within stitch</Criterion>
+        <Criterion>Assembly time under 2 seconds for performance</Criterion>
+        <Criterion>Question shuffle demonstrates good randomization</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Boundary-Appropriate Distractor Generation">
+      <Description>Generates wrong answers that match user's current distinction boundary level</Description>
+      <Implementation>
+        <Step id="1">BOUNDARY LEVEL MAPPING:
+          - Level 1 (beginner): Distractors differ by ±1-3 from correct answer
+          - Level 2: Distractors differ by ±2-5, include operation confusion
+          - Level 3: Distractors include common mistake patterns
+          - Level 4: Distractors require careful calculation to eliminate
+          - Level 5 (advanced): Distractors are sophisticated near-misses
+        </Step>
+        <Step id="2">OPERATION-SPECIFIC DISTRACTOR PATTERNS:
+          - Doubling: correctAnswer ± 2, or correctAnswer × 1.5 rounded
+          - Multiplication: swap operands, add instead of multiply, off-by-one table
+          - Division: remainder included incorrectly, multiplicative inverse
+          - Addition: carrying errors, digit reversal
+        </Step>
+        <Step id="3">AVOID PATTERN EXPLOITATION:
+          - Never use same distractor pattern twice in succession
+          - Avoid distractors that are always higher or always lower
+          - Ensure distractors are plausible given operation context
+        </Step>
+        <Step id="4">CONTEXTUAL VALIDATION:
+          - Distractor must be reasonable for number range being used
+          - Should not accidentally create a different correct answer
+          - Must be clearly distinguishable from correct answer (no ambiguity)
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Distractor difficulty matches user's boundary level</Criterion>
+        <Criterion>Wrong answers are plausible but clearly incorrect</Criterion>
+        <Criterion>No exploitable patterns across multiple questions</Criterion>
+        <Criterion>Distractors challenge user appropriately without frustration</Criterion>
+        <Criterion>Generated in under 10ms per question for performance</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Question Shuffle Quality Assurance">
+      <Description>Ensures high-quality randomization of questions within stitches</Description>
+      <Implementation>
+        <Step id="1">INITIAL RANDOMIZATION:
+          - Use cryptographically secure random number generator
+          - Seed with combination of user ID + stitch ID + current timestamp
+          - Apply Fisher-Yates shuffle algorithm for uniform distribution
+        </Step>
+        <Step id="2">PATTERN DETECTION AND CORRECTION:
+          - Check for consecutive questions with same operation type
+          - Detect sequences that might create cognitive burden
+          - Identify any unintentional difficulty ramps
+        </Step>
+        <Step id="3">ADJACENCY VALIDATION:
+          - Ensure no adjacent questions have similar answers
+          - Avoid consecutive questions from same fact family
+          - Check that distractors don't accidentally become correct for adjacent questions
+        </Step>
+        <Step id="4">LEARNING FLOW OPTIMIZATION:
+          - Balance easy/medium/hard questions throughout stitch
+          - Ensure no more than 3 consecutive challenging questions
+          - Place 1-2 confidence-building questions near beginning
+        </Step>
+        <Step id="5">FINAL VALIDATION:
+          - Verify shuffle entropy meets statistical requirements
+          - Confirm no detectable patterns in question sequence
+          - Validate readiness for streaming playback
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Shuffle passes statistical randomness tests</Criterion>
+        <Criterion>No adjacent questions with problematic similarities</Criterion>
+        <Criterion>Balanced difficulty distribution throughout stitch</Criterion>
+        <Criterion>No exploitable patterns for gaming the system</Criterion>
+        <Criterion>Optimal learning flow for user engagement</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+  </ContentAssemblyAlgorithms>
+  
+  <CacheManagementAlgorithms>
+    <Algorithm name="Live Aid Cache State Management">
+      <Description>Manages PREPARING → READY → LIVE cache states for zero-wait performance</Description>
+      <Implementation>
+        <Step id="1">CACHE STATE INITIALIZATION:
+          - For new user: Set up three TubeCacheState objects
+          - Tube 1: READY (pre-assembled stitch cached)
+          - Tube 2: PREPARING (background assembly in progress)
+          - Tube 3: LIVE (currently being consumed by user)
+        </Step>
+        <Step id="2">CACHE HIT LOGIC:
+          - Check if requested tube has READY status
+          - Validate cache timestamp (not expired due to boundary level change)
+          - Return ReadyStitch immediately if available
+        </Step>
+        <Step id="3">CACHE MISS HANDLING:
+          - Log cache miss event for monitoring
+          - Trigger emergency preparation if no READY content available
+          - Fall back to synchronous assembly if absolutely necessary
+        </Step>
+        <Step id="4">CACHE INVALIDATION TRIGGERS:
+          - User boundary level advancement (major reason)
+          - Maximum cache age exceeded (24 hours default)
+          - User progression milestone reached
+          - Manual cache refresh requested
+        </Step>
+        <Step id="5">BACKGROUND CACHE REFRESH:
+          - Monitor preparation progress for PREPARING tubes
+          - Automatically promote PREPARING → READY when complete
+          - Queue next stitch for background preparation
+        </Step>
+        <Step id="6">PERFORMANCE MONITORING:
+          - Track cache hit/miss ratio (target: >95%)
+          - Monitor preparation completion times
+          - Alert if cache performance degrades
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Cache hit rate maintained above 95%</Criterion>
+        <Criterion>Average cache miss resolution time under 500ms</Criterion>
+        <Criterion>Background preparation keeps READY tubes populated</Criterion>
+        <Criterion>Cache invalidation triggers work correctly</Criterion>
+        <Criterion>No memory leaks in cache management</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Cache Invalidation Decision Tree">
+      <Description>Determines when and how to invalidate cached content based on user state changes</Description>
+      <Implementation>
+        <Step id="1">BOUNDARY LEVEL CHANGE DETECTION:
+          - Monitor DistinctionManager for user mastery updates
+          - Compare current boundary level with cached content level
+          - If change detected: invalidate ALL cached content for user
+        </Step>
+        <Step id="2">TEMPORAL INVALIDATION:
+          - Check cache timestamps against maximum age policy (24 hours)
+          - Mark expired content for regeneration
+          - Prioritize invalidation by tube usage pattern
+        </Step>
+        <Step id="3">PROGRESSION MILESTONE INVALIDATION:
+          - Detect when user completes significant progression markers
+          - Invalidate content that no longer matches learning trajectory
+          - Trigger fresh content generation for new difficulty level
+        </Step>
+        <Step id="4">SELECTIVE vs FULL INVALIDATION:
+          - Minor changes: invalidate only affected tube
+          - Major changes: full cache clear and regeneration
+          - Emergency scenarios: immediate invalidation with sync fallback
+        </Step>
+        <Step id="5">INVALIDATION NOTIFICATION:
+          - Notify LiveAidManager of cache invalidation events
+          - Trigger background preparation for replacement content
+          - Update cache state to prevent serving stale content
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Boundary level changes trigger appropriate invalidation</Criterion>
+        <Criterion>No stale content served after invalidation triggers</Criterion>
+        <Criterion>Selective invalidation preserves valid cached content</Criterion>
+        <Criterion>Background regeneration starts immediately after invalidation</Criterion>
+        <Criterion>System gracefully handles invalidation during active use</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Emergency Content Preparation">
+      <Description>Handles scenarios where no READY content is available and immediate content is needed</Description>
+      <Implementation>
+        <Step id="1">EMERGENCY DETECTION:
+          - User requests content from tube with no READY stitch
+          - Background preparation failed or is taking too long
+          - Cache invalidation occurred during active session
+        </Step>
+        <Step id="2">RAPID ASSEMBLY MODE:
+          - Skip normal background queue processing
+          - Use simplified distractor generation for speed
+          - Reduce validation steps that don't affect correctness
+        </Step>
+        <Step id="3">FALLBACK CONTENT STRATEGIES:
+          - Use pre-computed "generic" stitches if available
+          - Adapt content from adjacent boundary levels
+          - Generate minimal-complexity content as last resort
+        </Step>
+        <Step id="4">ASSEMBLY TIMEOUT PROTECTION:
+          - Set hard limit on emergency preparation time (3 seconds max)
+          - If timeout exceeded, serve simplified content rather than fail
+          - Log emergency scenarios for system improvement
+        </Step>
+        <Step id="5">POST-EMERGENCY RECOVERY:
+          - Resume normal background preparation immediately
+          - Generate proper replacement content for future use
+          - Update cache with correct content as soon as available
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Emergency content delivered within 3 seconds maximum</Criterion>
+        <Criterion>Emergency content maintains educational value</Criterion>
+        <Criterion>System recovers to normal operation after emergency</Criterion>
+        <Criterion>Emergency scenarios are logged for analysis</Criterion>
+        <Criterion>No user-facing errors during emergency situations</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+  </CacheManagementAlgorithms>
+  
+  <TubeTransitionAlgorithms>
+    <Algorithm name="Live Aid Tube Rotation Mechanics">
+      <Description>Orchestrates seamless PREPARING → READY → LIVE → PREPARING tube transitions</Description>
+      <Implementation>
+        <Step id="1">ROTATION TRIGGER DETECTION:
+          - Monitor for stitch completion in LIVE tube
+          - Detect manual rotation requests
+          - Check for scheduled rotation events
+        </Step>
+        <Step id="2">PRE-ROTATION VALIDATION:
+          - Verify READY tube has complete, valid stitch available
+          - Check PREPARING tube has background process active
+          - Ensure system state is consistent for rotation
+        </Step>
+        <Step id="3">ATOMIC ROTATION EXECUTION:
+          - LIVE tube: transition to PREPARING (start new background process)
+          - READY tube: transition to LIVE (promote to active consumption)
+          - PREPARING tube: transition to READY (cache completed stitch)
+        </Step>
+        <Step id="4">POST-ROTATION TASKS:
+          - Update LiveAidSystemState with new tube assignments
+          - Start background preparation for new PREPARING tube
+          - Clear any stale state from previous rotation
+        </Step>
+        <Step id="5">ROTATION VALIDATION:
+          - Verify all three tubes have correct states after rotation
+          - Confirm background preparation started successfully
+          - Validate no content gaps or state inconsistencies
+        </Step>
+        <Step id="6">PERFORMANCE MONITORING:
+          - Log rotation completion time (target: under 100ms)
+          - Track background preparation success rate
+          - Monitor for rotation-related errors
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Rotation completes in under 100ms</Criterion>
+        <Criterion>No user-facing delays during rotation</Criterion>
+        <Criterion>All tube states correctly updated after rotation</Criterion>
+        <Criterion>Background preparation starts immediately for new PREPARING tube</Criterion>
+        <Criterion>No content gaps or missing stitches after rotation</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="Background Preparation Scheduling">
+      <Description>Optimizes timing and priority of background content preparation</Description>
+      <Implementation>
+        <Step id="1">PREPARATION QUEUE MANAGEMENT:
+          - Maintain priority queue of preparation requests
+          - High priority: imminent READY tube transitions
+          - Normal priority: scheduled background preparation
+          - Low priority: pre-emptive cache warming
+        </Step>
+        <Step id="2">TIMING OPTIMIZATION:
+          - Estimate user's session duration from historical data
+          - Schedule preparation to complete just before needed
+          - Balance preparation load across available system resources
+        </Step>
+        <Step id="3">RESOURCE ALLOCATION:
+          - Monitor system CPU/memory usage
+          - Throttle preparation during high user activity
+          - Increase preparation rate during low activity periods
+        </Step>
+        <Step id="4">PREPARATION FAILURE HANDLING:
+          - Retry failed preparations with exponential backoff
+          - Escalate to emergency preparation if retries exhausted
+          - Log preparation failures for system monitoring
+        </Step>
+        <Step id="5">ADAPTIVE SCHEDULING:
+          - Learn from user's session patterns (duration, pacing)
+          - Adjust preparation timing based on historical success rates
+          - Optimize for user-specific behavior patterns
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>Background preparation completes before content is needed</Criterion>
+        <Criterion>System resource usage stays within acceptable limits</Criterion>
+        <Criterion>Preparation failures handled gracefully without user impact</Criterion>
+        <Criterion>Scheduling adapts to user behavior patterns</Criterion>
+        <Criterion>Queue management prevents preparation bottlenecks</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+    
+    <Algorithm name="System Health Monitoring and Degradation Handling">
+      <Description>Monitors Live Aid system performance and handles degradation scenarios</Description>
+      <Implementation>
+        <Step id="1">HEALTH METRIC COLLECTION:
+          - Cache hit/miss ratios (target: >95% hit rate)
+          - Background preparation success rates (target: >98%)
+          - Average rotation times (target: &lt;100ms)
+          - User wait times (target: ~0ms for READY content)
+        </Step>
+        <Step id="2">DEGRADATION DETECTION:
+          - Identify when metrics fall below acceptable thresholds
+          - Detect cascading failures in background preparation
+          - Monitor for resource exhaustion or external service issues
+        </Step>
+        <Step id="3">DEGRADATION RESPONSE STRATEGIES:
+          - Graceful: Reduce background preparation frequency
+          - Moderate: Switch to simplified content assembly
+          - Severe: Fall back to synchronous content generation
+          - Critical: Serve pre-computed fallback content
+        </Step>
+        <Step id="4">RECOVERY MONITORING:
+          - Continuously test system capabilities during degradation
+          - Gradually restore normal operation as conditions improve
+          - Prevent oscillation between degraded and normal states
+        </Step>
+        <Step id="5">INCIDENT LOGGING AND ANALYSIS:
+          - Record all degradation events with detailed context
+          - Analyze patterns to improve system resilience
+          - Update thresholds and responses based on real-world performance
+        </Step>
+      </Implementation>
+      <ValidationCriteria>
+        <Criterion>System maintains educational value even during degradation</Criterion>
+        <Criterion>Users experience minimal impact during degraded performance</Criterion>
+        <Criterion>Recovery to normal operation happens automatically</Criterion>
+        <Criterion>Degradation events are properly logged and analyzed</Criterion>
+        <Criterion>System becomes more resilient over time through learning</Criterion>
+      </ValidationCriteria>
+    </Algorithm>
+  </TubeTransitionAlgorithms>
+  
+  <ImplementationSequence>
+    <Phase1 name="StitchPopulation Implementation">
+      <Priority>CRITICAL - Foundation for all content generation</Priority>
+      <Dependencies>FactRepository (functional), curriculum concept definitions</Dependencies>
+      <KeyAlgorithms>
+        <Algorithm>Concept-to-Fact Query Translation</Algorithm>
+        <Algorithm>Doubling/Halving Number Ending Selection</Algorithm>
+        <Algorithm>Backwards Multiplication Table Selection</Algorithm>
+        <Algorithm>90/10 Surprise Distribution</Algorithm>
+      </KeyAlgorithms>
+      <ValidationMilestone>Can populate all three tubes with appropriate fact selections</ValidationMilestone>
+    </Phase1>
+    
+    <Phase2 name="StitchPreparation Implementation">
+      <Priority>HIGH - Required for background content assembly</Priority>
+      <Dependencies>StitchPopulation (functional), DistinctionManager, DistractorGenerator</Dependencies>
+      <KeyAlgorithms>
+        <Algorithm>Background Question Assembly Pipeline</Algorithm>
+        <Algorithm>Boundary-Appropriate Distractor Generation</Algorithm>
+        <Algorithm>Question Shuffle Quality Assurance</Algorithm>
+      </KeyAlgorithms>
+      <ValidationMilestone>Can assemble complete ReadyStitch objects with 20 shuffled questions</ValidationMilestone>
+    </Phase2>
+    
+    <Phase3 name="StitchCache Implementation">
+      <Priority>HIGH - Required for performance optimization</Priority>
+      <Dependencies>StitchPreparation (functional)</Dependencies>
+      <KeyAlgorithms>
+        <Algorithm>Live Aid Cache State Management</Algorithm>
+        <Algorithm>Cache Invalidation Decision Tree</Algorithm>
+        <Algorithm>Emergency Content Preparation</Algorithm>
+      </KeyAlgorithms>
+      <ValidationMilestone>Maintains >95% cache hit rate with proper invalidation</ValidationMilestone>
+    </Phase3>
+    
+    <Phase4 name="LiveAidManager Implementation">
+      <Priority>MEDIUM - Required for full system coordination</Priority>
+      <Dependencies>StitchCache (functional), tube transition logic</Dependencies>
+      <KeyAlgorithms>
+        <Algorithm>Live Aid Tube Rotation Mechanics</Algorithm>
+        <Algorithm>Background Preparation Scheduling</Algorithm>
+        <Algorithm>System Health Monitoring and Degradation Handling</Algorithm>
+      </KeyAlgorithms>
+      <ValidationMilestone>Seamless PREPARING → READY → LIVE transitions under 100ms</ValidationMilestone>
+    </Phase4>
+  </ImplementationSequence>
+  
+  <IntegrationPoints>
+    <ExistingComponents>
+      <FactRepository>Query interface for mathematical facts (~40,000 facts)</FactRepository>
+      <DistinctionManager>User boundary level assessment and mastery tracking</DistinctionManager>
+      <DistractorGenerator>Wrong answer generation with boundary level consideration</DistractorGenerator>
+      <QuestionGenerator>Question formatting and presentation logic</QuestionGenerator>
+      <TripleHelixManager>Tube-based progression and stitch coordination</TripleHelixManager>
+    </ExistingComponents>
+    
+    <NewComponents>
+      <StitchPopulation>Maps curriculum concepts to fact selection queries</StitchPopulation>
+      <StitchPreparation>Background assembly of complete ready-to-stream content</StitchPreparation>
+      <StitchCache>High-performance caching for instant content delivery</StitchCache>
+      <LiveAidManager>System coordination for seamless tube transitions</LiveAidManager>
+    </NewComponents>
+  </IntegrationPoints>
+  
+  <PerformanceTargets>
+    <ResponseTime>
+      <CacheHit>Under 10ms for ReadyStitch retrieval</CacheHit>
+      <TubeRotation>Under 100ms for complete rotation</TubeRotation>
+      <BackgroundPreparation>Under 2 seconds for complete stitch assembly</BackgroundPreparation>
+      <EmergencyPreparation>Under 3 seconds maximum for fallback content</EmergencyPreparation>
+    </ResponseTime>
+    
+    <Reliability>
+      <CacheHitRate>Above 95% for optimal user experience</CacheHitRate>
+      <BackgroundSuccessRate>Above 98% for preparation processes</BackgroundSuccessRate>
+      <ZeroWaitExperience>Users should never wait for content during normal operation</ZeroWaitExperience>
+    </Reliability>
+    
+    <Quality>
+      <DistractorAccuracy>Wrong answers appropriate for user's boundary level</DistractorAccuracy>
+      <CurriculumAlignment>All content follows doubling/halving foundation principles</CurriculumAlignment>
+      <MinimalReading>All questions use specified minimal reading formats</MinimalReading>
+    </Quality>
+  </PerformanceTargets>
+  
+  <ValidationProtocol>
+    <UnitTesting>
+      <FactSelection>Test each concept mapping produces appropriate facts</FactSelection>
+      <DistractorGeneration>Test boundary-appropriate wrong answer generation</DistractorGeneration>
+      <CacheManagement>Test cache hit/miss scenarios and invalidation logic</CacheManagement>
+      <TubeRotation>Test rotation mechanics and state transitions</TubeRotation>
+    </UnitTesting>
+    
+    <IntegrationTesting>
+      <EndToEndFlow>Test complete PREPARING → READY → LIVE cycle</EndToEndFlow>
+      <PerformanceValidation>Measure actual performance against targets</PerformanceValidation>
+      <DegradationHandling>Test system behavior under stress conditions</DegradationHandling>
+      <UserExperienceValidation>Verify zero-wait experience and content quality</UserExperienceValidation>
+    </IntegrationTesting>
+    
+    <ProductionValidation>
+      <MetricsMonitoring>Continuous monitoring of performance targets</MetricsMonitoring>
+      <UserFeedback>Educational effectiveness measurement</UserFeedback>
+      <SystemResilience>Long-term stability and error recovery validation</SystemResilience>
+    </ProductionValidation>
+  </ValidationProtocol>
+  
+</LiveAidImplementationAlgorithms>
