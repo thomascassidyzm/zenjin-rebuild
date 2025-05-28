@@ -619,6 +619,7 @@ const AppContent: React.FC = () => {
   };
 
   // Phase 1: User Choice (Launch Interface - immediate start page)
+  console.log('🐛 Phase 1 check - userAuthChoice:', userAuthChoice);
   if (!userAuthChoice) {
     return (
       <LaunchInterface
@@ -629,6 +630,11 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 2: Authentication Forms (for Sign In/Sign Up choices)
+  console.log('🐛 Phase 2 check - sign in/up flow conditions:', {
+    isSignInOrUp: userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP,
+    notAuthenticated: !sessionState.isAuthenticated,
+    notLoading: !sessionState.isLoading
+  });
   if ((userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP) && !sessionState.isAuthenticated && !sessionState.isLoading) {
     const handleSendOTP = async (email: string): Promise<boolean> => {
       setAuthError(null);
@@ -711,6 +717,11 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 3: Session Loading (only show for sign-in users, not anonymous)
+  console.log('🐛 Phase 3 check - loading conditions:', {
+    isLoading: sessionState.isLoading,
+    notAuthenticated: !sessionState.isAuthenticated,
+    notAnonymous: userAuthChoice !== UserAuthChoice.ANONYMOUS
+  });
   if (sessionState.isLoading && !sessionState.isAuthenticated && userAuthChoice !== UserAuthChoice.ANONYMOUS) {
     const loadingContext = LoadingContext.USER_AUTHENTICATION;
       
