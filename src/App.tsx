@@ -742,6 +742,7 @@ const AppContent: React.FC = () => {
     );
   }
 
+
   // Phase 4: Auth-to-Player Flow (after authentication success OR anonymous pending)
   console.log('🐛 DEBUG Auth-to-Player conditions:', {
     isAuthenticated: sessionState.isAuthenticated,
@@ -821,14 +822,20 @@ const AppContent: React.FC = () => {
         };
 
         return (
-          <PlayerCard 
-            initialQuestion={playerQuestion}
-            onAnswerSelected={(response) => {
-              console.log('Answer selected:', response);
-              // TODO: Handle answer submission and progression to next question
-            }}
-            points={0}
-          />
+          <div className="min-h-screen bg-gray-950">
+            <NavigationHeader 
+              currentPage="learning" 
+              onNavigate={handleNavigate}
+              isOnline={effectiveOnlineStatus}
+              connectionType={connectionType}
+              backendConnected={hasBackendConnection}
+            />
+            <LearningSession 
+              initialQuestionFromBus={playerQuestion} 
+              sessionIdFromBus={playerQuestion.metadata?.sessionId}
+              sessionDataFromBus={sessionData}
+            />
+          </div>
         );
       
       default:
@@ -862,15 +869,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Determine online status - show green if basic connectivity is working
-  // Don't require full backend integration for green light during development
-  const backendStatus = getBackendStatus();
-  const hasBackendConnection = backendStatus.api || sessionState.isAuthenticated;
-  
-  // If backend is working (user authenticated), then connectivity is clearly working
-  // Use practical detection: if we can create users and sync state, we're online
-  const backendIsWorking = sessionState.isAuthenticated || hasBackendConnection;
-  const effectiveOnlineStatus = isOnline || backendIsWorking;
 
   // Main app content with smooth launch transition
   console.log('🐛 DEBUG Rendering mainAppContent with currentPage:', currentPage);
