@@ -182,14 +182,12 @@ export class FactRepository implements FactRepositoryInterface {
    */
   private initializeRepository(): void {
     console.log('🔄 FactRepository: Initializing facts...');
-    // Initialize with well-defined mathematical facts first
-    this.addBasicMultiplicationFacts();  // 20×20 = 400 facts
+    // Initialize with all required mathematical facts to satisfy system dependencies
+    this.addBasicMultiplicationFacts();  // 20×20 = 400 facts (well-defined scope)
     this.addDoublingAndHalvingFacts();   // ~200 facts (doubling 1-100, halving even numbers)
     this.addBasicAdditionFacts();        // 0-12×0-12 = 169 facts (small scope as requested)
-    
-    // TODO: Add these back later once core flow is working
-    // this.addBasicSubtractionFacts();  // Will add small scope later  
-    // this.addBasicDivisionFacts();     // Will add extensive scope later
+    this.addBasicSubtractionFacts();     // 0-12×0-12 = 78 facts (small scope as requested)
+    this.addBasicDivisionFacts();        // 12×12 = 144 range (optimized scope)
     
     // Build indexes for efficient querying
     this.buildIndexes();
