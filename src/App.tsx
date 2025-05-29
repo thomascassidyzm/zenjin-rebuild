@@ -98,7 +98,9 @@ const generateQuestionsForStitch = async (learningPathId: string, userId: string
       id: q.id,
       text: q.questionText,
       correctAnswer: q.correctAnswer,
-      wrongAnswers: q.distractors,
+      distractor: (q.distractors && q.distractors[0]) || 'Unknown',
+      boundaryLevel: q.boundaryLevel || 1,
+      factId: q.factId || 'unknown',
       metadata: {
         factId: q.factId,
         boundaryLevel: q.boundaryLevel,
@@ -202,7 +204,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
           id: q.id,
           text: q.questionText, // LearningEngineService uses questionText
           correctAnswer: q.correctAnswer,
-          wrongAnswers: q.distractors || [],
+          distractor: (q.distractors && q.distractors[0]) || q.distractor || 'Unknown', // Take first distractor or fallback
+          boundaryLevel: q.metadata?.boundaryLevel || q.boundaryLevel || 1,
+          factId: q.metadata?.factId || q.factId || 'unknown',
           metadata: {
             factId: q.metadata?.factId || q.factId || 'unknown',
             boundaryLevel: q.metadata?.boundaryLevel || q.boundaryLevel || 1,
@@ -219,8 +223,14 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
         setSessionStartTime(Date.now());
         console.log(`LearningSession initialized from bus with full session data: ${allQuestions.length} questions`);
       } else if (initialQuestionFromBus && sessionIdFromBus) {
-        // Fallback: Initialize from single question
-        setQuestions([initialQuestionFromBus]);
+        // Fallback: Initialize from single question - ensure it matches Question interface
+        const fixedQuestion = {
+          ...initialQuestionFromBus,
+          distractor: initialQuestionFromBus.distractor || 'Unknown',
+          boundaryLevel: initialQuestionFromBus.boundaryLevel || 1,
+          factId: initialQuestionFromBus.factId || 'unknown'
+        };
+        setQuestions([fixedQuestion]);
         setSessionId(sessionIdFromBus);
         setCurrentQuestionIndex(0);
         setSessionScore({ correct: 0, total: 0 });
@@ -244,7 +254,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
             id: q.id,
             text: q.questionText,
             correctAnswer: q.correctAnswer,
-            wrongAnswers: q.distractors,
+            distractor: (q.distractors && q.distractors[0]) || 'Unknown',
+            boundaryLevel: q.boundaryLevel || 1,
+            factId: q.factId || 'unknown',
             metadata: {
               factId: q.factId,
               boundaryLevel: q.boundaryLevel,
@@ -304,7 +316,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
             id: responseResult.nextQuestion.id,
             text: responseResult.nextQuestion.questionText,
             correctAnswer: responseResult.nextQuestion.correctAnswer,
-            wrongAnswers: responseResult.nextQuestion.distractors,
+            distractor: (responseResult.nextQuestion.distractors && responseResult.nextQuestion.distractors[0]) || 'Unknown',
+            boundaryLevel: responseResult.nextQuestion.boundaryLevel || 1,
+            factId: responseResult.nextQuestion.factId || 'unknown',
             metadata: {
               factId: responseResult.nextQuestion.factId,
               boundaryLevel: responseResult.nextQuestion.boundaryLevel,
@@ -370,7 +384,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
         id: q.id,
         text: q.questionText,
         correctAnswer: q.correctAnswer,
-        wrongAnswers: q.distractors,
+        distractor: (q.distractors && q.distractors[0]) || 'Unknown',
+        boundaryLevel: q.boundaryLevel || 1,
+        factId: q.factId || 'unknown',
         metadata: {
           factId: q.factId,
           boundaryLevel: q.boundaryLevel,
