@@ -821,10 +821,13 @@ const AppContent: React.FC = () => {
         };
 
         return (
-          <LearningSession 
-            initialQuestionFromBus={playerQuestion} 
-            sessionIdFromBus={playerQuestion.metadata?.sessionId}
-            sessionDataFromBus={sessionData}
+          <PlayerCard 
+            initialQuestion={playerQuestion}
+            onAnswerSelected={(response) => {
+              console.log('Answer selected:', response);
+              // TODO: Handle answer submission and progression to next question
+            }}
+            points={0}
           />
         );
       
