@@ -167,7 +167,7 @@ export class LearningEngineService {
       // Initialize components in dependency order
       this.factRepository = new FactRepository();
       this.contentManager = new ContentManager(this.factRepository);
-      this.distinctionManager = new DistinctionManager();
+      this.distinctionManager = new DistinctionManager(this.factRepository);
       this.distractorGenerator = new DistractorGenerator(this.factRepository);
       this.questionGenerator = new QuestionGenerator(
         this.factRepository,
