@@ -431,7 +431,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="flex flex-col flex-1">
       {/* Session Progress */}
       <div className="bg-gray-900 p-4">
         <div className="max-w-4xl mx-auto">
@@ -743,6 +743,12 @@ const AppContent: React.FC = () => {
   }
 
 
+  // Determine online status - needed for NavigationHeader
+  const backendStatus = getBackendStatus();
+  const hasBackendConnection = backendStatus.api || sessionState.isAuthenticated;
+  const backendIsWorking = sessionState.isAuthenticated || hasBackendConnection;
+  const effectiveOnlineStatus = isOnline || backendIsWorking;
+
   // Phase 4: Auth-to-Player Flow (after authentication success OR anonymous pending)
   console.log('🐛 DEBUG Auth-to-Player conditions:', {
     isAuthenticated: sessionState.isAuthenticated,
@@ -759,6 +765,9 @@ const AppContent: React.FC = () => {
     authToPlayerState: authToPlayerState
   });
   
+  // Store Auth-to-Player content for integration into main app
+  let authToPlayerContent = null;
+  
   if (shouldShowAuthToPlayerFlow) {
     // Determine user context type based on user data or auth choice
     const userContext = (sessionState.user?.userType === 'anonymous' || userAuthChoice === UserAuthChoice.ANONYMOUS) ? {
@@ -774,7 +783,7 @@ const AppContent: React.FC = () => {
 
     switch (authToPlayerState) {
       case 'PRE_ENGAGEMENT':
-        return (
+        authToPlayerContent = (
           <PreEngagementCard
             userContext={userContext}
             onPlayClicked={handlePlayButtonClicked}
@@ -782,19 +791,21 @@ const AppContent: React.FC = () => {
             loadingProgress={0}
           />
         );
+        break;
       
       case 'LOADING_WITH_ANIMATION':
-        return (
+        authToPlayerContent = (
           <MathLoadingAnimation
             onAnimationComplete={handleAnimationComplete}
             loadingProgress={0}
             duration={3000}
           />
         );
+        break;
       
       case 'ACTIVE_LEARNING':
         if (!playerContent) {
-          return (
+          authToPlayerContent = (
             <div className="min-h-screen bg-gray-950 flex items-center justify-center">
               <div className="text-white text-center">
                 <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
@@ -802,45 +813,37 @@ const AppContent: React.FC = () => {
               </div>
             </div>
           );
-        }
+        } else {
+          // Convert AuthToPlayerEventBus content to PlayerCard Question format
+          const playerQuestion: Question = {
+            id: playerContent.id,
+            text: playerContent.text,
+            correctAnswer: playerContent.correctAnswer,
+            distractor: playerContent.distractor, // This should be a string array
+            boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Keep top-level for PlayerCard
+            factId: playerContent.metadata?.factId || 'unknown',     // Keep top-level for PlayerCard
+            metadata: { // Ensure this metadata object exists for LearningSession's sessionIdFromBus prop
+              sessionId: playerContent.metadata?.sessionId,
+              factId: playerContent.metadata?.factId || 'unknown', // Can also be here
+              boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Can also be here
+              // Spread other potential custom metadata from playerContent
+              ...(playerContent.metadata || {})
+            }
+          };
 
-        // Convert AuthToPlayerEventBus content to PlayerCard Question format
-        const playerQuestion: Question = {
-          id: playerContent.id,
-          text: playerContent.text,
-          correctAnswer: playerContent.correctAnswer,
-          distractor: playerContent.distractor, // This should be a string array
-          boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Keep top-level for PlayerCard
-          factId: playerContent.metadata?.factId || 'unknown',     // Keep top-level for PlayerCard
-          metadata: { // Ensure this metadata object exists for LearningSession's sessionIdFromBus prop
-            sessionId: playerContent.metadata?.sessionId,
-            factId: playerContent.metadata?.factId || 'unknown', // Can also be here
-            boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Can also be here
-            // Spread other potential custom metadata from playerContent
-            ...(playerContent.metadata || {})
-          }
-        };
-
-        return (
-          <div className="min-h-screen bg-gray-950">
-            <NavigationHeader 
-              currentPage="learning" 
-              onNavigate={handleNavigate}
-              isOnline={effectiveOnlineStatus}
-              connectionType={connectionType}
-              backendConnected={hasBackendConnection}
-            />
+          authToPlayerContent = (
             <LearningSession 
               initialQuestionFromBus={playerQuestion} 
               sessionIdFromBus={playerQuestion.metadata?.sessionId}
               sessionDataFromBus={sessionData}
             />
-          </div>
-        );
+          );
+        }
+        break;
       
       default:
         // AUTH_SUCCESS state - immediately show PRE_ENGAGEMENT (no loading screen)
-        return (
+        authToPlayerContent = (
           <PreEngagementCard
             userContext={userContext}
             onPlayClicked={handlePlayButtonClicked}
@@ -872,20 +875,30 @@ const AppContent: React.FC = () => {
 
   // Main app content with smooth launch transition
   console.log('🐛 DEBUG Rendering mainAppContent with currentPage:', currentPage);
+  
+  // Determine what content to show
+  const contentToRender = authToPlayerContent || renderCurrentPage();
+  
+  // For full-screen states (PRE_ENGAGEMENT, LOADING_WITH_ANIMATION), return content directly
+  if (authToPlayerContent && (authToPlayerState === 'PRE_ENGAGEMENT' || authToPlayerState === 'LOADING_WITH_ANIMATION')) {
+    return authToPlayerContent;
+  }
+  
+  // For other states, wrap in main app layout with navigation
   const mainAppContent = (
     <div className="min-h-screen bg-gray-950">
       <NavigationHeader 
-        currentPage={currentPage} 
+        currentPage={authToPlayerState === 'ACTIVE_LEARNING' ? 'learning' : currentPage} 
         onNavigate={handleNavigate}
         isOnline={effectiveOnlineStatus}
         connectionType={connectionType}
         backendConnected={hasBackendConnection}
       />
-      {renderCurrentPage()}
+      {contentToRender}
     </div>
   );
 
-  // Phase 5: Main Application (only if no other phases handled the render)
+  // Phase 5: Main Application
   return mainAppContent;
 };
 
