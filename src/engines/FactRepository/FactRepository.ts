@@ -182,12 +182,14 @@ export class FactRepository implements FactRepositoryInterface {
    */
   private initializeRepository(): void {
     console.log('🔄 FactRepository: Initializing facts...');
-    // Initialize with basic mathematical facts
-    this.addBasicAdditionFacts();
-    this.addBasicSubtractionFacts();
-    this.addBasicMultiplicationFacts();
-    this.addBasicDivisionFacts();
-    this.addDoublingAndHalvingFacts();
+    // Initialize with well-defined mathematical facts first
+    this.addBasicMultiplicationFacts();  // 20×20 = 400 facts
+    this.addDoublingAndHalvingFacts();   // ~200 facts (doubling 1-100, halving even numbers)
+    
+    // TODO: Add these back later once core flow is working
+    // this.addBasicAdditionFacts();     // Will add small scope later
+    // this.addBasicSubtractionFacts();  // Will add small scope later  
+    // this.addBasicDivisionFacts();     // Will add extensive scope later
     
     // Build indexes for efficient querying
     this.buildIndexes();
@@ -278,9 +280,9 @@ export class FactRepository implements FactRepositoryInterface {
    */
   private addBasicAdditionFacts(): void {
     // Add essential addition facts only (much smaller set)
-    // Focus on facts actually needed for learning - 0-20 range
-    for (let a = 0; a <= 20; a++) {
-      for (let b = 0; b <= 20; b++) {
+    // Focus on facts actually needed for learning - 0-12 range for performance
+    for (let a = 0; a <= 12; a++) {
+      for (let b = 0; b <= 12; b++) {
         const result = a + b;
         const id = `add-${a}-${b}`;
         const difficulty = this.calculateAdditionDifficulty(a, b);
@@ -342,8 +344,8 @@ export class FactRepository implements FactRepositoryInterface {
    * Adds basic subtraction facts to the repository
    */
   private addBasicSubtractionFacts(): void {
-    // Add essential subtraction facts (0-40 range for performance)
-    for (let a = 0; a <= 40; a++) {
+    // Add essential subtraction facts (0-12 range for performance - small scope as requested)
+    for (let a = 0; a <= 12; a++) {
       for (let b = 0; b <= a; b++) {
         const result = a - b;
         
