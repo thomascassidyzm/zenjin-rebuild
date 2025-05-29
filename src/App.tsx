@@ -749,15 +749,22 @@ const AppContent: React.FC = () => {
           id: playerContent.id,
           text: playerContent.text,
           correctAnswer: playerContent.correctAnswer,
-          distractor: playerContent.distractor,
-          boundaryLevel: playerContent.metadata?.boundaryLevel || 1,
-          factId: playerContent.metadata?.factId || 'unknown'
+          distractor: playerContent.distractor, // This should be a string array
+          boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Keep top-level for PlayerCard
+          factId: playerContent.metadata?.factId || 'unknown',     // Keep top-level for PlayerCard
+          metadata: { // Ensure this metadata object exists for LearningSession's sessionIdFromBus prop
+            sessionId: playerContent.metadata?.sessionId,
+            factId: playerContent.metadata?.factId || 'unknown', // Can also be here
+            boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Can also be here
+            // Spread other potential custom metadata from playerContent
+            ...(playerContent.metadata || {})
+          }
         };
 
         return (
           <LearningSession 
             initialQuestionFromBus={playerQuestion} 
-            sessionIdFromBus={playerQuestion.metadata.sessionId} 
+            sessionIdFromBus={playerQuestion.metadata?.sessionId} 
           />
         );
       
