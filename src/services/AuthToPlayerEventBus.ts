@@ -117,6 +117,10 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     // Track content readiness
     this.on('loading:content-ready', (data) => {
       this.contentReady = true;
+      // Store the content from the loading event
+      if (data.content) {
+        this.backgroundData.firstStitch = data.content;
+      }
       this.checkTransitionToPlayer();
     });
 
@@ -304,6 +308,9 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
             boundaryLevel: firstQuestion.boundaryLevel
           }
         };
+        
+        // Store session data for LearningSession component
+        this.backgroundData.sessionData = sessionData;
         
         console.log('✅ Content loaded from LearningEngine:', content);
         this.emit('loading:content-ready', { content });

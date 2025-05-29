@@ -734,7 +734,15 @@ const AppContent: React.FC = () => {
     condition: sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS
   });
   
-  if (sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS) {
+  const shouldShowAuthToPlayerFlow = sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS;
+  console.log('🐛 Auth-to-Player flow decision:', {
+    shouldShow: shouldShowAuthToPlayerFlow,
+    isAuthenticated: sessionState.isAuthenticated,
+    userAuthChoice: userAuthChoice,
+    authToPlayerState: authToPlayerState
+  });
+  
+  if (shouldShowAuthToPlayerFlow) {
     // Determine user context type based on user data or auth choice
     const userContext = (sessionState.user?.userType === 'anonymous' || userAuthChoice === UserAuthChoice.ANONYMOUS) ? {
       userType: 'anonymous' as const,
