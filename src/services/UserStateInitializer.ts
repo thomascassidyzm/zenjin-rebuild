@@ -81,9 +81,12 @@ export class UserStateInitializer {
    */
   private async initializeAnonymousUser(userId: string): Promise<UserLearningState> {
     console.log('📚 Setting up anonymous user with default content');
+    console.log('🔍 DEBUG: About to get default stitch...');
     
     // Get the default Triple Helix starting position
+    console.log('🔍 DEBUG: Calling curriculumMapper.getDefaultStartingPosition()...');
     const defaultPosition = this.curriculumMapper.getDefaultStartingPosition();
+    console.log('🔍 DEBUG: Got default position:', defaultPosition);
     
     // Get the first stitch to work on
     const currentStitch = this.curriculumMapper.getCurrentStitch(defaultPosition);
