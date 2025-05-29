@@ -175,7 +175,12 @@ const NavigationHeader: React.FC<{
 };
 
 // Learning Session Component using AuthToPlayerEventBus content
-const LearningSession: React.FC = () => {
+interface LearningSessionProps {
+  initialQuestionFromBus?: Question;
+  sessionIdFromBus?: string;
+}
+
+const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBus, sessionIdFromBus }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
@@ -190,43 +195,55 @@ const LearningSession: React.FC = () => {
   // Initialize session using LearningEngineService with proper user ID
   useEffect(() => {
     const initializeSession = async () => {
-      try {
-        // Use tube-based system (defaults to tube1 = doubling/halving)
-        const sessionResult = await learningEngineService.initializeLearningSession(
-          userId,
-          'addition', // Maps to tube1 in the service
-          { maxQuestions: 20 }
-        );
-        
-        setSessionId(sessionResult.sessionId);
-        
-        // Convert to PlayerCard format
-        const playerQuestions = sessionResult.initialQuestions.map(q => ({
-          id: q.id,
-          text: q.questionText,
-          correctAnswer: q.correctAnswer,
-          wrongAnswers: q.distractors,
-          metadata: {
-            factId: q.factId,
-            boundaryLevel: q.boundaryLevel,
-            sessionId: sessionResult.sessionId
-          }
-        }));
-        
-        setQuestions(playerQuestions);
+      if (initialQuestionFromBus && sessionIdFromBus) {
+        // Initialize from props
+        setQuestions([initialQuestionFromBus]);
+        setSessionId(sessionIdFromBus);
         setCurrentQuestionIndex(0);
         setSessionScore({ correct: 0, total: 0 });
         setSessionComplete(false);
         setSessionStartTime(Date.now());
-        
-        console.log(`LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
-      } catch (error) {
-        console.error('Failed to initialize learning session:', error);
+        console.log(`LearningSession initialized from bus: ${sessionIdFromBus} with 1 question`);
+      } else {
+        // Initialize by fetching new questions
+        try {
+          // Use tube-based system (defaults to tube1 = doubling/halving)
+          const sessionResult = await learningEngineService.initializeLearningSession(
+            userId,
+            'addition', // Maps to tube1 in the service
+            { maxQuestions: 20 }
+          );
+          
+          setSessionId(sessionResult.sessionId);
+          
+          // Convert to PlayerCard format
+          const playerQuestions = sessionResult.initialQuestions.map(q => ({
+            id: q.id,
+            text: q.questionText,
+            correctAnswer: q.correctAnswer,
+            wrongAnswers: q.distractors,
+            metadata: {
+              factId: q.factId,
+              boundaryLevel: q.boundaryLevel,
+              sessionId: sessionResult.sessionId
+            }
+          }));
+          
+          setQuestions(playerQuestions);
+          setCurrentQuestionIndex(0);
+          setSessionScore({ correct: 0, total: 0 });
+          setSessionComplete(false);
+          setSessionStartTime(Date.now());
+          
+          console.log(`LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
+        } catch (error) {
+          console.error('Failed to initialize learning session:', error);
+        }
       }
     };
     
     initializeSession();
-  }, [userId]);
+  }, [userId, initialQuestionFromBus, sessionIdFromBus]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -732,27 +749,23 @@ const AppContent: React.FC = () => {
           id: playerContent.id,
           text: playerContent.text,
           correctAnswer: playerContent.correctAnswer,
-          distractor: playerContent.distractor,
-          boundaryLevel: playerContent.metadata?.boundaryLevel || 1,
-          factId: playerContent.metadata?.factId || 'unknown'
+          distractor: playerContent.distractor, // This should be a string array
+          boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Keep top-level for PlayerCard
+          factId: playerContent.metadata?.factId || 'unknown',     // Keep top-level for PlayerCard
+          metadata: { // Ensure this metadata object exists for LearningSession's sessionIdFromBus prop
+            sessionId: playerContent.metadata?.sessionId,
+            factId: playerContent.metadata?.factId || 'unknown', // Can also be here
+            boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Can also be here
+            // Spread other potential custom metadata from playerContent
+            ...(playerContent.metadata || {})
+          }
         };
 
         return (
-          <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-              <PlayerCard
-                key={playerQuestion.id}
-                initialQuestion={playerQuestion}
-                onAnswerSelected={(response) => {
-                  console.log('🎯 Player answer:', response);
-                  // For now, just show basic feedback - this can be enhanced later
-                  setTimeout(() => {
-                    console.log('🎯 Answer processed through Auth-to-Player flow');
-                  }, 1500);
-                }}
-              />
-            </div>
-          </div>
+          <LearningSession 
+            initialQuestionFromBus={playerQuestion} 
+            sessionIdFromBus={playerQuestion.metadata?.sessionId} 
+          />
         );
       
       default:
