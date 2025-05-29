@@ -64,10 +64,15 @@ export class UserStateInitializer {
   async initializeUserLearningState(userId: string, userType: 'anonymous' | 'authenticated'): Promise<UserLearningState> {
     console.log(`🎯 Initializing learning state for ${userType} user: ${userId}`);
 
-    if (userType === 'anonymous') {
-      return this.initializeAnonymousUser(userId);
-    } else {
-      return this.initializeAuthenticatedUser(userId);
+    try {
+      if (userType === 'anonymous') {
+        return await this.initializeAnonymousUser(userId);
+      } else {
+        return await this.initializeAuthenticatedUser(userId);
+      }
+    } catch (error) {
+      console.error('❌ Error in initializeUserLearningState:', error);
+      throw error;
     }
   }
 

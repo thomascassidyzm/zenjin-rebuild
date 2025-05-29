@@ -18,7 +18,14 @@ export class FactRepository implements FactRepositoryInterface {
    * Creates a new instance of FactRepository with initial facts
    */
   constructor() {
-    this.initializeRepository();
+    console.log('🔄 FactRepository constructor: Starting initialization...');
+    try {
+      this.initializeRepository();
+      console.log('✅ FactRepository constructor: Initialization complete');
+    } catch (error) {
+      console.error('❌ FactRepository constructor: Initialization failed:', error);
+      throw error;
+    }
   }
   
   /**
@@ -174,6 +181,7 @@ export class FactRepository implements FactRepositoryInterface {
    * Initialize the repository with basic mathematical facts
    */
   private initializeRepository(): void {
+    console.log('🔄 FactRepository: Initializing facts...');
     // Initialize with basic mathematical facts
     this.addBasicAdditionFacts();
     this.addBasicSubtractionFacts();
@@ -183,14 +191,15 @@ export class FactRepository implements FactRepositoryInterface {
     
     // Build indexes for efficient querying
     this.buildIndexes();
+    console.log('✅ FactRepository: Facts initialized successfully');
   }
   
   /**
    * Adds specific doubling and halving facts to ensure complete coverage
    */
   private addDoublingAndHalvingFacts(): void {
-    // Ensure doubling facts for all numbers up to 100
-    for (let a = 1; a <= 100; a++) {
+    // Ensure doubling facts for essential numbers (1-50 for performance)
+    for (let a = 1; a <= 50; a++) {
       const doubledResult = a * 2;
       const doublingId = `mult-${a}-2`;
       
@@ -268,19 +277,10 @@ export class FactRepository implements FactRepositoryInterface {
    * Adds basic addition facts to the repository
    */
   private addBasicAdditionFacts(): void {
-    // Add addition facts for numbers 0-100
-    for (let a = 0; a <= 100; a++) {
-      for (let b = 0; b <= 100; b++) {
-        // To limit memory usage, only store:
-        // 1. All combinations where a and b are both <= 20
-        // 2. Round numbers (multiples of 5 or 10) up to 100
-        // 3. Combinations where one number is <= 20 and the other <= 100
-        if (a > 20 && b > 20) {
-          if (a % 5 !== 0 || b % 5 !== 0) {
-            continue;
-          }
-        }
-        
+    // Add essential addition facts only (much smaller set)
+    // Focus on facts actually needed for learning - 0-20 range
+    for (let a = 0; a <= 20; a++) {
+      for (let b = 0; b <= 20; b++) {
         const result = a + b;
         const id = `add-${a}-${b}`;
         const difficulty = this.calculateAdditionDifficulty(a, b);
@@ -289,7 +289,7 @@ export class FactRepository implements FactRepositoryInterface {
         const tags = ['addition', this.getDifficultyLevel(difficulty)];
         
         // Add tag for doubling if operands are the same
-        if (a === b && a <= 100) {
+        if (a === b) {
           tags.push('doubling');
         }
         
@@ -310,29 +310,42 @@ export class FactRepository implements FactRepositoryInterface {
         this.facts.set(id, fact);
       }
     }
+    
+    // Add some larger round numbers for variety
+    const largeNumbers = [25, 30, 40, 50, 60, 70, 80, 90, 100];
+    for (const large of largeNumbers) {
+      for (let small = 0; small <= 20; small++) {
+        const result = large + small;
+        const id = `add-${large}-${small}`;
+        const difficulty = this.calculateAdditionDifficulty(large, small);
+        
+        const fact: MathematicalFact = {
+          id,
+          operation: 'addition',
+          operands: [large, small],
+          result,
+          difficulty,
+          relatedFactIds: [
+            `add-${small}-${large}`, // Commutative property
+            `sub-${result}-${large}`, // Inverse operation
+            `sub-${result}-${small}` // Inverse operation
+          ],
+          tags: ['addition', this.getDifficultyLevel(difficulty), 'large-numbers']
+        };
+        
+        this.facts.set(id, fact);
+      }
+    }
   }
   
   /**
    * Adds basic subtraction facts to the repository
    */
   private addBasicSubtractionFacts(): void {
-    // Add subtraction facts for numbers 0-100
-    for (let result = 0; result <= 100; result++) {
-      for (let a = 0; a <= 100 + result; a++) {
-        const b = a - result;
-        
-        // Skip negative results
-        if (b < 0) continue;
-        
-        // To limit memory usage, only store:
-        // 1. All combinations where result and a are both <= 20
-        // 2. Round numbers (multiples of 5 or 10) up to 100
-        // 3. Combinations where one number is <= 20 and the other <= 100
-        if (result > 20 && a > 20) {
-          if (result % 5 !== 0 || a % 5 !== 0) {
-            continue;
-          }
-        }
+    // Add essential subtraction facts (0-40 range for performance)
+    for (let a = 0; a <= 40; a++) {
+      for (let b = 0; b <= a; b++) {
+        const result = a - b;
         
         const id = `sub-${a}-${b}`;
         const difficulty = this.calculateSubtractionDifficulty(a, b);
@@ -470,16 +483,16 @@ export class FactRepository implements FactRepositoryInterface {
    * Adds basic division facts to the repository
    */
   private addBasicDivisionFacts(): void {
-    // Generate division facts based on multiplication facts
-    // Cover up to 20×20 for full tables
-    for (let dividend = 1; dividend <= 400; dividend++) {
-      for (let divisor = 1; divisor <= 20; divisor++) {
+    // Generate essential division facts based on times tables
+    // Focus on realistic range (up to 144 = 12×12) for performance
+    for (let dividend = 1; dividend <= 144; dividend++) {
+      for (let divisor = 1; divisor <= 12; divisor++) {
         // Only include facts with whole number results
         if (dividend % divisor !== 0) continue;
         
         const result = dividend / divisor;
-        // Only include results up to 20 for complete tables
-        if (result > 20) continue;
+        // Only include results up to 12 for times tables coverage
+        if (result > 12) continue;
         
         const id = `div-${dividend}-${divisor}`;
         const difficulty = this.calculateDivisionDifficulty(dividend, divisor);
