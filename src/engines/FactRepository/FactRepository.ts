@@ -185,9 +185,9 @@ export class FactRepository implements FactRepositoryInterface {
     // Initialize with well-defined mathematical facts first
     this.addBasicMultiplicationFacts();  // 20×20 = 400 facts
     this.addDoublingAndHalvingFacts();   // ~200 facts (doubling 1-100, halving even numbers)
+    this.addBasicAdditionFacts();        // 0-12×0-12 = 169 facts (small scope as requested)
     
     // TODO: Add these back later once core flow is working
-    // this.addBasicAdditionFacts();     // Will add small scope later
     // this.addBasicSubtractionFacts();  // Will add small scope later  
     // this.addBasicDivisionFacts();     // Will add extensive scope later
     
