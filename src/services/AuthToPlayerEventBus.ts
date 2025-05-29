@@ -25,7 +25,13 @@ type EventCallback<T = any> = (data: T) => void;
 class AuthToPlayerEventBus implements AuthToPlayerInterface {
   private listeners: Map<keyof AuthToPlayerEvents, EventCallback[]> = new Map();
   private currentState: AuthToPlayerState = 'AUTH_SUCCESS';
-  private backgroundData: { dashboardLoaded: boolean; contentPrepared: boolean; firstStitch?: any; userLearningState?: UserLearningState } = {
+  private backgroundData: { 
+    dashboardLoaded: boolean; 
+    contentPrepared: boolean; 
+    firstStitch?: any; 
+    userLearningState?: UserLearningState;
+    sessionData?: any; // Store full session data with all questions
+  } = {
     dashboardLoaded: false,
     contentPrepared: false
   };
@@ -119,11 +125,17 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   }
 
   private checkTransitionToPlayer(): void {
+    // Guard against duplicate transitions
+    if (this.currentState === 'ACTIVE_LEARNING') {
+      return; // Already transitioned, prevent duplicate events
+    }
+    
     if (this.isAnimationCompleted && this.contentReady && this.backgroundData.userLearningState) {
       this.setState('ACTIVE_LEARNING');
       this.emit('player:ready', { 
         content: this.backgroundData.firstStitch,
-        userLearningState: this.backgroundData.userLearningState
+        userLearningState: this.backgroundData.userLearningState,
+        sessionData: this.backgroundData.sessionData // Include full session data
       });
     } else {
       console.log('⏳ Waiting for animation, content, and user state...', {
@@ -170,6 +182,10 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
         const sessionData = await learningEngineService.initializeLearningSession(userId, learningPathId);
         
         if (sessionData.initialQuestions && sessionData.initialQuestions.length > 0) {
+          // Store full session data
+          this.backgroundData.sessionData = sessionData;
+          
+          // Also store first question for backward compatibility
           const firstQuestion = sessionData.initialQuestions[0];
           this.backgroundData.firstStitch = {
             id: firstQuestion.id,
@@ -183,7 +199,8 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
               ...firstQuestion.metadata,
               sessionId: sessionData.sessionId,
               factId: firstQuestion.factId,
-              boundaryLevel: firstQuestion.boundaryLevel
+              boundaryLevel: firstQuestion.boundaryLevel,
+              totalQuestions: sessionData.initialQuestions.length // Add total questions count
             }
           };
         } else {
@@ -240,7 +257,16 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
       return;
     }
 
-    // Otherwise load it now using LearningEngine
+    // APML Protocol: Check if background initialization is in progress
+    // Don't create duplicate sessions - wait for background process to complete
+    if (this.backgroundData.userLearningState) {
+      console.log('📚 Background initialization in progress, waiting for completion...');
+      // Background process will emit 'loading:content-ready' when done
+      return;
+    }
+
+    // Only as last resort, load content directly (this should rarely happen)
+    console.log('📚 No background process detected, loading content directly');
     this.loadContentFromLearningEngine();
   }
 

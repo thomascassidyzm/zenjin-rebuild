@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard/Dashboard';
 import PlayerCard from './components/PlayerCard/PlayerCard';
@@ -178,9 +178,10 @@ const NavigationHeader: React.FC<{
 interface LearningSessionProps {
   initialQuestionFromBus?: Question;
   sessionIdFromBus?: string;
+  sessionDataFromBus?: any; // Full session data with all questions
 }
 
-const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBus, sessionIdFromBus }) => {
+const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBus, sessionIdFromBus, sessionDataFromBus }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
@@ -195,8 +196,30 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   // Initialize session using LearningEngineService with proper user ID
   useEffect(() => {
     const initializeSession = async () => {
-      if (initialQuestionFromBus && sessionIdFromBus) {
-        // Initialize from props
+      if (sessionDataFromBus && sessionDataFromBus.initialQuestions && sessionDataFromBus.initialQuestions.length > 0) {
+        // Initialize from full session data with all questions
+        const allQuestions = sessionDataFromBus.initialQuestions.map((q: any) => ({
+          id: q.id,
+          text: q.questionText, // LearningEngineService uses questionText
+          correctAnswer: q.correctAnswer,
+          wrongAnswers: q.distractors || [],
+          metadata: {
+            factId: q.metadata?.factId || q.factId || 'unknown',
+            boundaryLevel: q.metadata?.boundaryLevel || q.boundaryLevel || 1,
+            sessionId: sessionDataFromBus.sessionId || sessionIdFromBus,
+            ...q.metadata
+          }
+        }));
+        
+        setQuestions(allQuestions);
+        setSessionId(sessionDataFromBus.sessionId || sessionIdFromBus || `session_${Date.now()}`);
+        setCurrentQuestionIndex(0);
+        setSessionScore({ correct: 0, total: 0 });
+        setSessionComplete(false);
+        setSessionStartTime(Date.now());
+        console.log(`LearningSession initialized from bus with full session data: ${allQuestions.length} questions`);
+      } else if (initialQuestionFromBus && sessionIdFromBus) {
+        // Fallback: Initialize from single question
         setQuestions([initialQuestionFromBus]);
         setSessionId(sessionIdFromBus);
         setCurrentQuestionIndex(0);
@@ -243,7 +266,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
     };
     
     initializeSession();
-  }, [userId, initialQuestionFromBus, sessionIdFromBus]);
+  }, [userId, initialQuestionFromBus, sessionIdFromBus, sessionDataFromBus]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -474,6 +497,16 @@ const AppContent: React.FC = () => {
   // Auth-to-Player Flow Event Bus
   const [authToPlayerState, setAuthToPlayerState] = useState<AuthToPlayerState>('AUTH_SUCCESS');
   const [playerContent, setPlayerContent] = useState<any>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
+
+  // Stable callbacks to prevent unnecessary re-renders
+  const handleAnimationComplete = useCallback(async () => {
+    authToPlayerEventBus.animationCompleted();
+  }, []);
+
+  const handlePlayButtonClicked = useCallback(async () => {
+    authToPlayerEventBus.playButtonClicked();
+  }, []);
 
   // Handle Auth-to-Player flow events
   useEffect(() => {
@@ -486,7 +519,9 @@ const AppContent: React.FC = () => {
     const unsubscribePlayer = authToPlayerEventBus.on('player:ready', (data) => {
       console.log('🎮 Auth-to-Player flow complete, transitioning to ACTIVE_LEARNING');
       console.log('🎮 Player content received:', data.content);
+      console.log('🎮 Session data received:', data.sessionData);
       setPlayerContent(data.content);
+      setSessionData(data.sessionData); // Store session data if needed
       setLaunchComplete(true);
     });
 
@@ -541,7 +576,7 @@ const AppContent: React.FC = () => {
     setSelectedLearningPath(pathId);
     // This should only be called from dashboard for authenticated users who want to start a new session
     // Anonymous users go directly to PreEngagement, authenticated users would already be past this
-    authToPlayerEventBus.playButtonClicked();
+    handlePlayButtonClicked();
   };
 
   // Handle user authentication choice
@@ -717,7 +752,7 @@ const AppContent: React.FC = () => {
         return (
           <PreEngagementCard
             userContext={userContext}
-            onPlayClicked={async () => authToPlayerEventBus.playButtonClicked()}
+            onPlayClicked={handlePlayButtonClicked}
             isLoading={false}
             loadingProgress={0}
           />
@@ -726,7 +761,7 @@ const AppContent: React.FC = () => {
       case 'LOADING_WITH_ANIMATION':
         return (
           <MathLoadingAnimation
-            onAnimationComplete={async () => authToPlayerEventBus.animationCompleted()}
+            onAnimationComplete={handleAnimationComplete}
             loadingProgress={0}
             duration={3000}
           />
@@ -764,7 +799,8 @@ const AppContent: React.FC = () => {
         return (
           <LearningSession 
             initialQuestionFromBus={playerQuestion} 
-            sessionIdFromBus={playerQuestion.metadata?.sessionId} 
+            sessionIdFromBus={playerQuestion.metadata?.sessionId}
+            sessionDataFromBus={sessionData}
           />
         );
       
@@ -773,7 +809,7 @@ const AppContent: React.FC = () => {
         return (
           <PreEngagementCard
             userContext={userContext}
-            onPlayClicked={async () => authToPlayerEventBus.playButtonClicked()}
+            onPlayClicked={handlePlayButtonClicked}
             isLoading={false}
             loadingProgress={0}
           />

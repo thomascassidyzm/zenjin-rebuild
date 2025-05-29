@@ -279,7 +279,7 @@ export class LearningEngineService {
       
       return {
         sessionId,
-        initialQuestions: initialQuestions.slice(0, 3)
+        initialQuestions: initialQuestions
       };
     } catch (error) {
       if (error instanceof LearningEngineError) {
