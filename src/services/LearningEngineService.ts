@@ -580,6 +580,43 @@ export class LearningEngineService {
   }
   
   /**
+   * Complete a learning session
+   * @param sessionId Session identifier
+   * @param sessionResults Session completion results
+   * @returns Completion status
+   */
+  public async completeSession(
+    sessionId: string,
+    sessionResults: any
+  ): Promise<boolean> {
+    this.ensureInitialized();
+    
+    try {
+      const session = this.activeSessions.get(sessionId);
+      if (!session) {
+        throw new LearningEngineError('LE-019', 'Session not found');
+      }
+      
+      // Mark session as complete
+      session.isActive = false;
+      session.endTime = new Date().toISOString();
+      
+      // Log completion
+      this.log(`Session completed: ${sessionId}`);
+      
+      // Clean up session after a delay
+      setTimeout(() => {
+        this.activeSessions.delete(sessionId);
+      }, 5000);
+      
+      return true;
+    } catch (error) {
+      this.log(`Failed to complete session: ${error}`);
+      return false;
+    }
+  }
+  
+  /**
    * Export user learning data or curriculum content
    * @param exportType Export type: user_data, curriculum, or full
    * @param userId User identifier for user_data export
@@ -679,9 +716,8 @@ export class LearningEngineService {
     try {
       // Update distinction manager with performance data
       const performanceData = {
-        isCorrect: response.isCorrect,
-        responseTime: response.responseTime,
-        boundaryLevel: question.boundaryLevel
+        correctFirstAttempt: response.isCorrect,
+        responseTime: response.responseTime
       };
       
       // Use APML-compliant updateBoundaryLevel method

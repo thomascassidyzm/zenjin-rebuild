@@ -336,13 +336,48 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
     }
 
     // Move to next question after delay
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
-        // Session complete
-        setSessionComplete(true);
-        handleSessionCompletion(newScore);
+        // Stitch complete - seamlessly load next stitch
+        console.log('Stitch complete, loading next stitch seamlessly...');
+        
+        // Complete current stitch and rotate tubes
+        await handleSessionCompletion(newScore);
+        
+        // Load next stitch questions without showing completion screen
+        try {
+          const { EngineOrchestrator } = await import('./engines/EngineOrchestrator');
+          const orchestrator = new EngineOrchestrator();
+          
+          // Get next stitch content
+          const nextStitch = await orchestrator.getNextStitch(userId);
+          if (nextStitch && nextStitch.questions) {
+            const playerQuestions = nextStitch.questions.map((q: any, index: number) => ({
+              id: q.id || `stitch-q${index + 1}-${Date.now()}`,
+              text: q.questionText || q.text,
+              correctAnswer: q.correctAnswer,
+              distractor: (q.distractors && q.distractors[0]) || q.distractor || 'Unknown',
+              boundaryLevel: q.boundaryLevel || 1,
+              factId: q.factId || 'unknown',
+              metadata: {
+                factId: q.factId,
+                boundaryLevel: q.boundaryLevel,
+                stitchId: nextStitch.stitchId,
+                sessionId: nextStitch.sessionId || sessionId
+              }
+            }));
+            
+            // Seamlessly continue with new questions
+            setQuestions(playerQuestions);
+            setCurrentQuestionIndex(0);
+            
+            console.log(`Seamlessly transitioned to next stitch: ${nextStitch.stitchId}`);
+          }
+        } catch (error) {
+          console.error('Failed to load next stitch:', error);
+        }
       }
     }, 1500);
   };
@@ -364,45 +399,91 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
       await recordSessionMetrics(sessionMetrics);
       console.log('✅ Session metrics recorded to backend');
       
+      // APML: Automatically complete stitch and rotate tubes
+      const { EngineOrchestrator } = await import('./engines/EngineOrchestrator');
+      const orchestrator = new EngineOrchestrator();
+      
+      // Complete current stitch
+      const currentStitchId = questions[0]?.metadata?.stitchId || 't1-0001-0001';
+      await orchestrator.completeStitch(userId, currentStitchId, {
+        score: finalScore,
+        completionTime
+      });
+      
+      // Rotate tubes automatically
+      await orchestrator.rotateTubes(userId);
+      console.log('🔄 Tubes rotated automatically after stitch completion');
+      
     } catch (error) {
-      console.error('Failed to record session metrics:', error);
+      console.error('Failed to handle session completion:', error);
     }
   };
 
   const resetSession = async () => {
-    // Start fresh session using LearningEngineService
+    // Load the next stitch (tubes already rotated in handleSessionCompletion)
     try {
-      const sessionResult = await learningEngineService.initializeLearningSession(
-        userId,
-        'addition',
-        { maxQuestions: 20 }
-      );
+      const { EngineOrchestrator } = await import('./engines/EngineOrchestrator');
+      const orchestrator = new EngineOrchestrator();
       
-      setSessionId(sessionResult.sessionId);
-      
-      const playerQuestions = sessionResult.initialQuestions.map(q => ({
-        id: q.id,
-        text: q.questionText,
-        correctAnswer: q.correctAnswer,
-        distractor: (q.distractors && q.distractors[0]) || 'Unknown',
-        boundaryLevel: q.boundaryLevel || 1,
-        factId: q.factId || 'unknown',
-        metadata: {
-          factId: q.factId,
-          boundaryLevel: q.boundaryLevel,
-          sessionId: sessionResult.sessionId
-        }
-      }));
-      
-      setQuestions(playerQuestions);
-      setCurrentQuestionIndex(0);
-      setSessionScore({ correct: 0, total: 0 });
-      setSessionComplete(false);
-      setSessionStartTime(Date.now());
-      
-      console.log(`New session started: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
+      // Get next stitch content
+      const nextStitch = await orchestrator.getNextStitch(userId);
+      if (nextStitch && nextStitch.questions) {
+        const playerQuestions = nextStitch.questions.map((q: any, index: number) => ({
+          id: q.id || `stitch-q${index + 1}-${Date.now()}`,
+          text: q.questionText || q.text,
+          correctAnswer: q.correctAnswer,
+          distractor: (q.distractors && q.distractors[0]) || q.distractor || 'Unknown',
+          boundaryLevel: q.boundaryLevel || 1,
+          factId: q.factId || 'unknown',
+          metadata: {
+            factId: q.factId,
+            boundaryLevel: q.boundaryLevel,
+            stitchId: nextStitch.stitchId,
+            sessionId: nextStitch.sessionId || `session_${Date.now()}`
+          }
+        }));
+        
+        setQuestions(playerQuestions);
+        setCurrentQuestionIndex(0);
+        setSessionScore({ correct: 0, total: 0 });
+        setSessionComplete(false);
+        setSessionStartTime(Date.now());
+        
+        console.log(`Loading next stitch: ${nextStitch.stitchId}`);
+      } else {
+        // Fallback: Start new session
+        const sessionResult = await learningEngineService.initializeLearningSession(
+          userId,
+          'addition',
+          { maxQuestions: 20 }
+        );
+        
+        setSessionId(sessionResult.sessionId);
+        
+        const playerQuestions = sessionResult.initialQuestions.map(q => ({
+          id: q.id,
+          text: q.questionText,
+          correctAnswer: q.correctAnswer,
+          distractor: (q.distractors && q.distractors[0]) || 'Unknown',
+          boundaryLevel: q.boundaryLevel || 1,
+          factId: q.factId || 'unknown',
+          metadata: {
+            factId: q.factId,
+            boundaryLevel: q.boundaryLevel,
+            sessionId: sessionResult.sessionId
+          }
+        }));
+        
+        setQuestions(playerQuestions);
+        setCurrentQuestionIndex(0);
+        setSessionScore({ correct: 0, total: 0 });
+        setSessionComplete(false);
+        setSessionStartTime(Date.now());
+        
+        console.log(`New session started: ${sessionResult.sessionId}`);
+      }
     } catch (error) {
-      console.error('Failed to reset session:', error);
+      console.error('Failed to load next stitch:', error);
     }
   };
 
@@ -441,26 +522,6 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
 
   return (
     <div className="flex flex-col flex-1">
-      {/* Session Progress */}
-      <div className="bg-gray-900 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between text-white">
-            <div className="text-sm">
-              Question {currentQuestionIndex + 1} of {questions.length}
-            </div>
-            <div className="text-sm">
-              Score: {sessionScore.correct}/{sessionScore.total}
-            </div>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-            <div 
-              className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Player Card */}
       <div className="flex-1 flex items-center justify-center p-4">
         {currentQuestion ? (
@@ -497,9 +558,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
               </button>
               <button
                 onClick={() => {
-                  // End session and return to dashboard
+                  // End session and show completion screen
                   setSessionComplete(true);
-                  handleSessionCompletion(sessionScore);
+                  // Don't call handleSessionCompletion to avoid tube rotation
                 }}
                 className="bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >

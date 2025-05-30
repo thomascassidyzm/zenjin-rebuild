@@ -564,6 +564,36 @@ export class EngineOrchestrator {
   }
   
   /**
+   * Get the next stitch after tube rotation
+   */
+  async getNextStitch(userId: string = 'default-user'): Promise<any> {
+    try {
+      // Get the active tube (which should be the new one after rotation)
+      const activeTube = this.tripleHelixManager.getActiveTube(userId);
+      const stitchId = activeTube.activeStitchId || 't1-0001-0001';
+      
+      // Generate questions for this stitch
+      const questions = await this.generateQuestionsForStitch(stitchId, 20, userId);
+      
+      return {
+        stitchId,
+        questions,
+        tubeId: activeTube.id,
+        tubeName: activeTube.name,
+        sessionId: `session_${Date.now()}`
+      };
+    } catch (error) {
+      console.error('Failed to get next stitch:', error);
+      // Return hardcoded stitch as fallback
+      return {
+        stitchId: 't1-0001-0001',
+        questions: await this.generateQuestionsForStitch('t1-0001-0001', 20, userId),
+        sessionId: `session_${Date.now()}`
+      };
+    }
+  }
+  
+  /**
    * Get stitch progress for a user (tube-based)
    */
   getStitchProgress(userId: string, stitchId: StitchId) {
