@@ -233,7 +233,22 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
         setSessionComplete(false);
         setSessionStartTime(Date.now());
         setHasInitialized(true);
+        // Reset game mechanics state for new session
+        setFtcPoints(0);
+        setEcPoints(0);
+        setTotalPoints(0);
+        setQuestionQueue([]);
+        setCorrectAnswers(new Set());
         console.log(`LearningSession initialized from bus with full session data: ${allQuestions.length} questions`);
+        console.log('First question:', allQuestions[0]);
+        console.log('Questions set in state');
+        
+        // Verify questions were set properly
+        if (allQuestions.length === 0) {
+          console.error('❌ No questions were converted from session data');
+        } else {
+          console.log('✅ First question:', allQuestions[0]);
+        }
       } else if (initialQuestionFromBus && sessionIdFromBus) {
         // Fallback: Initialize from single question - ensure it matches Question interface
         const fixedQuestion = {
@@ -295,6 +310,17 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   }, [userId, initialQuestionFromBus, sessionIdFromBus, sessionDataFromBus, hasInitialized]);
 
   const currentQuestion = questions[currentQuestionIndex];
+  
+  // Debug logging for questions state changes
+  useEffect(() => {
+    console.log('🔍 Questions state updated:', {
+      questionsLength: questions.length,
+      currentQuestionIndex,
+      hasCurrentQuestion: !!currentQuestion,
+      currentQuestionId: currentQuestion?.id,
+      firstQuestionId: questions[0]?.id
+    });
+  }, [questions, currentQuestionIndex]);
 
   const handleAnswerSelected = async (response: any) => {
     const currentQ = questions[currentQuestionIndex];
@@ -637,6 +663,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
           <div className="text-white text-center">
             <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Loading questions...</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Questions loaded: {questions.length} | Current index: {currentQuestionIndex}
+            </p>
           </div>
         )}
       </div>
