@@ -798,6 +798,15 @@ export class FactRepository implements FactRepositoryInterface {
   }
   
   /**
+   * Checks if a fact exists in the repository
+   * @param factId Fact identifier
+   * @returns True if the fact exists, false otherwise
+   */
+  public factExists(factId: string): boolean {
+    return this.facts.has(factId);
+  }
+  
+  /**
    * Gets question templates for an operation and boundary level
    * @param operation Mathematical operation
    * @param boundaryLevel Boundary level (1-5)

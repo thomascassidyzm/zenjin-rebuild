@@ -89,6 +89,13 @@ export interface FactRepositoryInterface {
    */
   getFactCount(query?: FactQuery): number;
 
+  /**
+   * Checks if a fact exists in the repository
+   * @param factId - Fact identifier
+   * @returns True if the fact exists, false otherwise
+   */
+  factExists(factId: string): boolean;
+
 }
 
 // Export default interface
