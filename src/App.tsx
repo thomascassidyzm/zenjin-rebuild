@@ -421,9 +421,18 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
           </p>
           <button
             onClick={resetSession}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors mb-3"
           >
             Continue Learning
+          </button>
+          <button
+            onClick={() => {
+              // Reset auth-to-player state to allow new sessions
+              window.location.reload(); // Simple reload to reset state
+            }}
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            Return to Dashboard
           </button>
         </div>
       </div>
@@ -473,7 +482,28 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
-                ✓ Complete Session
+                Complete Stitch 20/20
+              </button>
+              <button
+                onClick={() => {
+                  const partialScore = { correct: 15, total: 20 };
+                  setSessionComplete(true);
+                  handleSessionCompletion(partialScore);
+                  setSessionScore(partialScore);
+                }}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
+              >
+                Complete Stitch 15/20
+              </button>
+              <button
+                onClick={() => {
+                  // End session and return to dashboard
+                  setSessionComplete(true);
+                  handleSessionCompletion(sessionScore);
+                }}
+                className="bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
+              >
+                End Session
               </button>
             </div>
           </div>
