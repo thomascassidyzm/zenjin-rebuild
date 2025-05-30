@@ -23,6 +23,7 @@ import { StitchPopulation } from '../engines/StitchPopulation/StitchPopulation';
 import { StitchPreparation } from '../engines/StitchPreparation/StitchPreparation';
 import { StitchCache } from '../engines/StitchCache/StitchCache';
 import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
+import { TripleHelixManager } from '../engines/TripleHelixManager/TripleHelixManager';
 
 // Import component types
 import type { 
@@ -144,6 +145,7 @@ export class LearningEngineService {
   private stitchPreparation: StitchPreparation;
   private stitchCache: StitchCache;
   private liveAidManager: LiveAidManager;
+  private tripleHelixManager: TripleHelixManager;
   
   // Active learning sessions
   private activeSessions: Map<string, LearningSession> = new Map();
@@ -169,15 +171,14 @@ export class LearningEngineService {
       this.contentManager = new ContentManager(this.factRepository);
       this.distinctionManager = new DistinctionManager(this.factRepository);
       this.distractorGenerator = new DistractorGenerator(this.factRepository);
+      
+      // Initialize TripleHelixManager first as it's needed by other components
+      this.tripleHelixManager = new TripleHelixManager();
+      
       this.questionGenerator = new QuestionGenerator(
         this.factRepository,
         this.distinctionManager,
-        // Mock TripleHelixManager - will be replaced with real integration
-        {
-          getActiveLearningPath: (userId: string) => ({ id: 'addition', name: 'Addition', difficulty: 1 }),
-          getUserCurrentStitch: (userId: string) => null,
-          updateUserProgress: () => Promise.resolve()
-        } as any,
+        this.tripleHelixManager as any, // Cast for now due to interface differences
         this.distractorGenerator
       );
       
@@ -191,24 +192,11 @@ export class LearningEngineService {
       );
       this.stitchCache = new StitchCache();
       
-      // LiveAidManager requires TripleHelixManager - temporarily create mock or import real one
-      const mockTripleHelixManager = {
-        getActiveTube: (userId: string) => 'tube1',
-        setActiveTube: (userId: string, tubeId: any) => {},
-        getNextStitchId: (userId: string, tubeId: any) => 't1-0001-0001',
-        initializeUser: async (userId: string) => {},
-        getOrCreateTripleHelix: (userId: string) => ({
-          tube1: { 1: 't1-0001-0001' },
-          tube2: { 1: 't2-0001-0001' },
-          tube3: { 1: 't3-0001-0001' }
-        })
-      };
-      
       this.liveAidManager = new LiveAidManager(
         this.stitchCache,
         this.stitchPreparation,
         this.stitchPopulation,
-        mockTripleHelixManager as any
+        this.tripleHelixManager as any // Cast for now due to interface differences
       );
       
       this.isInitialized = true;
@@ -859,31 +847,31 @@ export class LearningEngineService {
   private generateFirstStitchForNewUser(learningPathId: string): Question[] {
     // First stitch is ALWAYS doubling numbers ending in 0/5 (easiest)
     const doublingQuestions = [
-      { question: 'Double 10', answer: '20', distractor: '19' },
-      { question: 'Double 15', answer: '30', distractor: '31' },
-      { question: 'Double 20', answer: '40', distractor: '39' },
-      { question: 'Double 25', answer: '50', distractor: '51' },
-      { question: 'Double 30', answer: '60', distractor: '59' },
-      { question: 'Double 35', answer: '70', distractor: '71' },
-      { question: 'Double 40', answer: '80', distractor: '79' },
-      { question: 'Double 45', answer: '90', distractor: '91' },
-      { question: 'Double 5', answer: '10', distractor: '11' },
-      { question: 'Double 50', answer: '100', distractor: '99' },
-      { question: 'Half of 20', answer: '10', distractor: '11' },
-      { question: 'Half of 30', answer: '15', distractor: '14' },
-      { question: 'Half of 40', answer: '20', distractor: '21' },
-      { question: 'Half of 50', answer: '25', distractor: '24' },
-      { question: 'Half of 60', answer: '30', distractor: '31' },
-      { question: 'Half of 70', answer: '35', distractor: '34' },
-      { question: 'Half of 80', answer: '40', distractor: '41' },
-      { question: 'Half of 90', answer: '45', distractor: '44' },
-      { question: 'Half of 100', answer: '50', distractor: '51' },
-      { question: 'Half of 10', answer: '5', distractor: '6' }
+      { question: 'Double 10', answer: '20', distractor: '19', factId: 'mult-10-2' },
+      { question: 'Double 15', answer: '30', distractor: '31', factId: 'mult-15-2' },
+      { question: 'Double 20', answer: '40', distractor: '39', factId: 'mult-20-2' },
+      { question: 'Double 25', answer: '50', distractor: '51', factId: 'mult-25-2' },
+      { question: 'Double 30', answer: '60', distractor: '59', factId: 'mult-30-2' },
+      { question: 'Double 35', answer: '70', distractor: '71', factId: 'mult-35-2' },
+      { question: 'Double 40', answer: '80', distractor: '79', factId: 'mult-40-2' },
+      { question: 'Double 45', answer: '90', distractor: '91', factId: 'mult-45-2' },
+      { question: 'Double 5', answer: '10', distractor: '11', factId: 'mult-5-2' },
+      { question: 'Double 50', answer: '100', distractor: '99', factId: 'mult-50-2' },
+      { question: 'Half of 20', answer: '10', distractor: '11', factId: 'div-20-2' },
+      { question: 'Half of 30', answer: '15', distractor: '14', factId: 'div-30-2' },
+      { question: 'Half of 40', answer: '20', distractor: '21', factId: 'div-40-2' },
+      { question: 'Half of 50', answer: '25', distractor: '24', factId: 'div-50-2' },
+      { question: 'Half of 60', answer: '30', distractor: '31', factId: 'div-60-2' },
+      { question: 'Half of 70', answer: '35', distractor: '34', factId: 'div-70-2' },
+      { question: 'Half of 80', answer: '40', distractor: '41', factId: 'div-80-2' },
+      { question: 'Half of 90', answer: '45', distractor: '44', factId: 'div-90-2' },
+      { question: 'Half of 100', answer: '50', distractor: '51', factId: 'div-100-2' },
+      { question: 'Half of 10', answer: '5', distractor: '6', factId: 'div-10-2' }
     ];
 
     const questions: Question[] = doublingQuestions.map((q, index) => ({
       id: `first-stitch-q${index + 1}-${Date.now()}`,
-      factId: `doubling-0-5-endings-${index + 1}`,
+      factId: q.factId,
       questionText: q.question,
       correctAnswer: q.answer,
       distractors: [q.distractor],
