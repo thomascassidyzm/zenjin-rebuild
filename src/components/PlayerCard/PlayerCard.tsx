@@ -154,7 +154,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       // After showing feedback, reset the card
       setTimeout(() => {
         setFeedbackState('idle');
-        // Reset could go here if we want to auto-reset
+        setIsInteractable(true);
+        
+        // Re-present the same question if answer was incorrect
+        if (!response.isCorrect && currentQuestion) {
+          presentQuestion(currentQuestion);
+        }
       }, duration);
       
       return { processed: true, feedbackShown: true };
@@ -269,10 +274,10 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   // Initialize with initial question if provided
   useEffect(() => {
-    if (initialQuestion) {
+    if (initialQuestion && initialQuestion.id !== currentQuestion?.id) {
       presentQuestion(initialQuestion);
     }
-  }, [initialQuestion, presentQuestion]);
+  }, [initialQuestion, presentQuestion, currentQuestion]);
 
   // Clean up timeouts on unmount
   useEffect(() => {

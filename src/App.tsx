@@ -192,6 +192,13 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [hasInitialized, setHasInitialized] = useState(false);
   
+  // Proper game mechanics state
+  const [ftcPoints, setFtcPoints] = useState(0); // First Time Correct points (3 per question)
+  const [ecPoints, setEcPoints] = useState(0);   // Eventually Correct points
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [questionQueue, setQuestionQueue] = useState<Question[]>([]); // Queue for repeated questions
+  const [correctAnswers, setCorrectAnswers] = useState(new Set<string>()); // Track correctly answered questions
+  
   // Backend integration via UserSession context
   const { state: sessionState, recordSessionMetrics } = useUserSession();
   const userId = sessionState.user?.id || sessionState.user?.anonymousId || 'anon_' + Date.now();
@@ -290,11 +297,38 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswerSelected = async (response: any) => {
-    const newScore = {
-      correct: sessionScore.correct + (response.isCorrect ? 1 : 0),
-      total: sessionScore.total + 1
-    };
-    setSessionScore(newScore);
+    const currentQ = questions[currentQuestionIndex];
+    
+    if (response.isCorrect) {
+      // Mark question as correctly answered
+      setCorrectAnswers(prev => new Set(prev).add(currentQ.id));
+      
+      // Award points based on first attempt or not
+      if (response.isFirstAttempt) {
+        setFtcPoints(prev => prev + 3); // 3 points for first-time correct
+        setTotalPoints(prev => prev + 3);
+      } else {
+        setEcPoints(prev => prev + 1); // 1 point for eventually correct
+        setTotalPoints(prev => prev + 1);
+      }
+      
+      // Update score tracking
+      const newScore = {
+        correct: sessionScore.correct + 1,
+        total: sessionScore.total + 1
+      };
+      setSessionScore(newScore);
+    } else {
+      // Wrong answer - add question back to queue for repetition
+      setQuestionQueue(prev => [...prev, currentQ]);
+      
+      // Still increment total attempts
+      const newScore = {
+        correct: sessionScore.correct,
+        total: sessionScore.total + 1
+      };
+      setSessionScore(newScore);
+    }
 
     // Process the response through LearningEngineService if we have session metadata
     const currentQuestion = questions[currentQuestionIndex];
@@ -342,16 +376,31 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
       }
     }
 
-    // Move to next question after delay
-    setTimeout(async () => {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-      } else {
-        // Stitch complete - seamlessly load next stitch
-        console.log('Stitch complete, loading next stitch seamlessly...');
+    // Only move to next question if answer was correct
+    if (response.isCorrect) {
+      setTimeout(async () => {
+        // Check if there are repeated questions in the queue first
+        if (questionQueue.length > 0) {
+          // Take the first question from the queue
+          const nextQuestion = questionQueue[0];
+          setQuestionQueue(prev => prev.slice(1));
+          
+          // Replace current question with the queued one
+          const newQuestions = [...questions];
+          newQuestions[currentQuestionIndex] = nextQuestion;
+          setQuestions(newQuestions);
+        } else if (currentQuestionIndex < questions.length - 1) {
+          // Move to next question in sequence
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        } else if (correctAnswers.size >= 20) {
+          // Stitch complete (all 20 questions answered correctly)
+          console.log('Stitch complete with all 20 questions answered correctly!');
         
         // Complete current stitch and rotate tubes
-        await handleSessionCompletion(newScore);
+        await handleSessionCompletion({
+          correct: correctAnswers.size,
+          total: sessionScore.total
+        });
         
         // Load next stitch questions without showing completion screen
         try {
@@ -379,14 +428,17 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
             // Seamlessly continue with new questions
             setQuestions(playerQuestions);
             setCurrentQuestionIndex(0);
+            setQuestionQueue([]); // Clear queue for new stitch
+            setCorrectAnswers(new Set()); // Reset correct answers for new stitch
             
             console.log(`Seamlessly transitioned to next stitch: ${nextStitch.stitchId}`);
           }
         } catch (error) {
           console.error('Failed to load next stitch:', error);
         }
-      }
-    }, 1500);
+        }
+      }, 1500);
+    }
   };
 
   const handleSessionCompletion = async (finalScore: { correct: number; total: number }) => {
@@ -504,9 +556,14 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
             <span className="text-white text-2xl">✓</span>
           </div>
           <h2 className="text-white text-2xl font-bold mb-2">Session Complete!</h2>
-          <p className="text-gray-300 text-lg mb-6">
+          <p className="text-gray-300 text-lg mb-4">
             You scored {sessionScore.correct} out of {sessionScore.total} ({percentage}%)
           </p>
+          <div className="text-gray-400 text-sm space-y-1 mb-6">
+            <p>FTC Points: {ftcPoints}</p>
+            <p>EC Points: {ecPoints}</p>
+            <p>Total Points: {totalPoints}</p>
+          </div>
           <button
             onClick={resetSession}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors mb-3"
@@ -537,6 +594,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
               key={currentQuestion.id}
               initialQuestion={currentQuestion}
               onAnswerSelected={handleAnswerSelected}
+              points={totalPoints}
             />
             
             {/* Testing Buttons */}
