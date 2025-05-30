@@ -190,6 +190,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   const [questions, setQuestions] = useState<Question[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   // Backend integration via UserSession context
   const { state: sessionState, recordSessionMetrics } = useUserSession();
@@ -197,6 +198,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
 
   // Initialize session using LearningEngineService with proper user ID
   useEffect(() => {
+    // Prevent re-initialization on every render
+    if (hasInitialized) return;
+    
     const initializeSession = async () => {
       if (sessionDataFromBus && sessionDataFromBus.initialQuestions && sessionDataFromBus.initialQuestions.length > 0) {
         // Initialize from full session data with all questions
@@ -221,6 +225,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
         setSessionScore({ correct: 0, total: 0 });
         setSessionComplete(false);
         setSessionStartTime(Date.now());
+        setHasInitialized(true);
         console.log(`LearningSession initialized from bus with full session data: ${allQuestions.length} questions`);
       } else if (initialQuestionFromBus && sessionIdFromBus) {
         // Fallback: Initialize from single question - ensure it matches Question interface
@@ -236,6 +241,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
         setSessionScore({ correct: 0, total: 0 });
         setSessionComplete(false);
         setSessionStartTime(Date.now());
+        setHasInitialized(true);
         console.log(`LearningSession initialized from bus: ${sessionIdFromBus} with 1 question`);
       } else {
         // Initialize by fetching new questions
@@ -271,6 +277,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
           setSessionStartTime(Date.now());
           
           console.log(`LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
+          setHasInitialized(true);
         } catch (error) {
           console.error('Failed to initialize learning session:', error);
         }
@@ -278,7 +285,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
     };
     
     initializeSession();
-  }, [userId, initialQuestionFromBus, sessionIdFromBus, sessionDataFromBus]);
+  }, [userId, initialQuestionFromBus, sessionIdFromBus, sessionDataFromBus, hasInitialized]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
