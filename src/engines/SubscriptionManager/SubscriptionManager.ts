@@ -540,15 +540,5 @@ export class SubscriptionManager implements SubscriptionManagerInterface {
   }
 }
 
-// Create and export singleton instance
-// Note: In a real app, you'd inject proper payment processor and content access controller
-class MockPaymentProcessor {
-  async processPayment(data: any) {
-    return { success: true };
-  }
-  async cancelSubscription(data: any) {
-    return { success: true };
-  }
-}
-
-export const subscriptionManager = new SubscriptionManager(new MockPaymentProcessor());
+// APML-compliant: Export class for proper dependency injection
+export { SubscriptionManager as default };

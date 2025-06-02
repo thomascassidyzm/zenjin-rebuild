@@ -6,7 +6,7 @@
  * Premium Tier: Full progression + offline caching
  */
 
-import { subscriptionManager } from './SubscriptionManager/SubscriptionManager';
+import { SubscriptionManagerInterface } from './SubscriptionManager/SubscriptionManagerInterfaces';
 import { userSessionManager } from '../services/UserSessionManager';
 
 export interface ContentGatingResult {
@@ -34,14 +34,20 @@ export class ContentGatingEngine {
   private cacheExpiry = new Map<string, number>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+  constructor(private subscriptionManager: SubscriptionManagerInterface) {}
+
   /**
    * Check if user can access a specific stitch
    */
   async canAccessStitch(userId: string, stitchId: string, tubeId: string): Promise<ContentGatingResult> {
     try {
       // Get user's subscription status
-      const subscription = await subscriptionManager.getUserSubscription(userId);
-      const isPremium = subscription.tier === 'premium';
+      const subscriptionStatus = this.subscriptionManager.checkSubscriptionStatus(userId);
+      const subscription = subscriptionStatus.hasActiveSubscription ? 
+        this.subscriptionManager.getUserSubscription(userId) : null;
+      
+      // Check if user has premium subscription (any premium plan)
+      const isPremium = subscription?.planId?.includes('premium') || false;
       
       // Get user's current earned logical position (based on skip number progression)
       const earnedLogicalPosition = await this.getUserEarnedLogicalPosition(userId, tubeId);
@@ -103,8 +109,10 @@ export class ContentGatingEngine {
     isPremiumContent: boolean;
     isRepeating: boolean;
   } | null> {
-    const subscription = await subscriptionManager.getUserSubscription(userId);
-    const isPremium = subscription.tier === 'premium';
+    const subscriptionStatus = this.subscriptionManager.checkSubscriptionStatus(userId);
+    const subscription = subscriptionStatus.hasActiveSubscription ? 
+      this.subscriptionManager.getUserSubscription(userId) : null;
+    const isPremium = subscription?.planId?.includes('premium') || false;
     
     if (isPremium) {
       // Premium: get actual next stitch
@@ -119,8 +127,10 @@ export class ContentGatingEngine {
    * Check if user can download content for offline use
    */
   async canDownloadOfflineContent(userId: string): Promise<ContentGatingResult> {
-    const subscription = await subscriptionManager.getUserSubscription(userId);
-    const isPremium = subscription.tier === 'premium';
+    const subscriptionStatus = this.subscriptionManager.checkSubscriptionStatus(userId);
+    const subscription = subscriptionStatus.hasActiveSubscription ? 
+      this.subscriptionManager.getUserSubscription(userId) : null;
+    const isPremium = subscription?.planId?.includes('premium') || false;
     
     if (isPremium) {
       return {
@@ -192,8 +202,10 @@ export class ContentGatingEngine {
       isFullyUnlocked: boolean;
     }>;
   }> {
-    const subscription = await subscriptionManager.getUserSubscription(userId);
-    const isPremium = subscription.tier === 'premium';
+    const subscriptionStatus = this.subscriptionManager.checkSubscriptionStatus(userId);
+    const subscription = subscriptionStatus.hasActiveSubscription ? 
+      this.subscriptionManager.getUserSubscription(userId) : null;
+    const isPremium = subscription?.planId?.includes('premium') || false;
     
     const tubes = await this.getAllTubes();
     const tubeProgress = [];
@@ -457,5 +469,35 @@ export class ContentGatingEngine {
   }
 }
 
-// Export singleton instance
-export const contentGatingEngine = new ContentGatingEngine();
+// APML-compliant: Export class for proper dependency injection
+export { ContentGatingEngine as default };
+
+// Temporary bridge for migration - will be removed
+import { getServiceContainer } from '../services/ServiceContainer';
+export const contentGatingEngine = {
+  async canAccessStitch(...args: any[]) {
+    const container = await getServiceContainer();
+    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
+    return engine.canAccessStitch(...args);
+  },
+  async getNextAccessibleStitch(...args: any[]) {
+    const container = await getServiceContainer();
+    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
+    return engine.getNextAccessibleStitch(...args);
+  },
+  async canDownloadOfflineContent(...args: any[]) {
+    const container = await getServiceContainer();
+    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
+    return engine.canDownloadOfflineContent(...args);
+  },
+  async getDownloadableContent(...args: any[]) {
+    const container = await getServiceContainer();
+    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
+    return engine.getDownloadableContent(...args);
+  },
+  async getUserContentSummary(...args: any[]) {
+    const container = await getServiceContainer();
+    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
+    return engine.getUserContentSummary(...args);
+  }
+};

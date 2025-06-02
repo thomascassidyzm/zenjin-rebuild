@@ -166,26 +166,31 @@ type AuthToPlayerState =
 
 ---
 
-## 🎯 **Next Session Priorities**
+## 🎯 **Next Session Priorities** (UPDATED)
 
 ### Immediate (High Priority)
-1. **Complete Admin User Setup**
-   - Run final SQL scripts
-   - Test admin interface access
+1. **Complete APML v2.2 Service Architecture** 🆕
+   - Implement ServiceContainer following interface contracts ✅
+   - Wire up all services using proper dependency injection
+   - Remove singleton anti-patterns and implement factories
+
+2. **Complete Admin User Setup**
+   - Build and deploy with new DI architecture
+   - Test admin interface access  
    - Verify fact CRUD operations
 
-2. **Test Anonymous User Flow**
+3. **Test Anonymous User Flow**
    - Verify fixed user creation (no more loops)
-   - Test anonymous user experience
+   - Test anonymous user experience with new architecture
    - Confirm no browser hangs
 
 ### Medium Priority  
-3. **Implement User Lifecycle Interfaces**
+4. **Implement User Lifecycle Interfaces**
    - Build UserLifecycleManager service
    - Implement conversion flow UI components
    - Add TTL warning system
 
-4. **Replace Event Bus with State Machine**
+5. **Replace Event Bus with State Machine**
    - Migrate from AuthToPlayerEventBus to AuthToPlayerStateMachine
    - Remove temporary guard rails
    - Test state machine transitions
