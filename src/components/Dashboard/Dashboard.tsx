@@ -21,6 +21,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
+import { Crown } from 'lucide-react';
 
 // Type definitions based on the interface specification
 type LifetimeMetrics = {
@@ -89,6 +90,7 @@ interface DashboardProps {
   onPathSelected?: (pathId: string) => void;
   onAchievementSelected?: (achievementId: string) => void;
   onStartSessionClicked?: (pathId: string) => void;
+  onUpgradeClicked?: () => void;
 }
 
 /**
@@ -388,7 +390,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   initialData,
   onPathSelected,
   onAchievementSelected,
-  onStartSessionClicked
+  onStartSessionClicked,
+  onUpgradeClicked
 }) => {
   // State for dashboard data
   const [dashboardData, setDashboardData] = useState<DashboardData>(initialData);
@@ -495,6 +498,36 @@ const Dashboard: React.FC<DashboardProps> = ({
           streakDays={dashboardData.streakDays}
           lastSessionDate={dashboardData.lastSessionDate}
         />
+
+        {/* Premium Upgrade Banner for Free Users */}
+        {dashboardData.subscriptionType === 'Free' && (
+          <motion.div
+            className="mb-6 p-4 bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-600/30 rounded-lg"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <Crown className="w-8 h-8 text-yellow-500" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold">Unlock Your Full Potential</h3>
+                  <p className="text-gray-300 text-sm mt-1">
+                    Upgrade to Premium for unlimited sessions, advanced analytics, and exclusive challenges!
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onUpgradeClicked}
+                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-gray-900 font-semibold rounded-md hover:from-yellow-600 hover:to-yellow-700 transition-all"
+              >
+                Upgrade Now
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Primary Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

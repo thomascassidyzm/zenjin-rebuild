@@ -25,6 +25,10 @@ import { StitchCache } from '../engines/StitchCache/StitchCache';
 import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
 import { TripleHelixManager } from '../engines/TripleHelixManager/TripleHelixManager';
 
+// Import Content Gating
+import { contentGatingEngine, ContentGatingResult } from '../engines/ContentGatingEngine';
+import { offlineContentManager } from '../engines/OfflineContentManager';
+
 // Import component types
 import type { 
   MathematicalFact, 
@@ -689,6 +693,39 @@ export class LearningEngineService {
     config: SessionConfiguration
   ): Promise<Question[]> {
     try {
+      // First, check content gating for the requested learning path
+      const tubeId = this.extractTubeIdFromPath(learningPathId);
+      const currentStitchId = await this.getCurrentStitchId(userId, tubeId);
+      
+      // Check if user can access this content
+      const accessResult = await contentGatingEngine.canAccessStitch(userId, currentStitchId, tubeId);
+      
+      if (!accessResult.hasAccess) {
+        // If content is gated, use free alternative or throw gating error
+        if (accessResult.freeAlternative) {
+          this.log(`Content gated - using free alternative: ${accessResult.freeAlternative.stitchId}`);
+          return await this.generateQuestionsForStitch(userId, accessResult.freeAlternative.stitchId, config);
+        } else {
+          throw new LearningEngineError(
+            'LE-GATE-001',
+            'Premium subscription required for this content',
+            { 
+              reason: accessResult.reason,
+              suggestedAction: accessResult.suggestedAction,
+              stitchId: currentStitchId,
+              tubeId 
+            }
+          );
+        }
+      }
+
+      // Check if offline content is available (for premium users)
+      const offlineStitch = await offlineContentManager.getOfflineStitch(currentStitchId);
+      if (offlineStitch.isAvailable) {
+        this.log(`Using offline content for stitch: ${currentStitchId}`);
+        return await this.generateQuestionsFromOfflineContent(offlineStitch, config);
+      }
+      
       // Generate questions using the EngineOrchestrator with proper user state
       this.log(`Generating 20-question stitch for learning path: ${learningPathId} using EngineOrchestrator`);
       
@@ -969,6 +1006,118 @@ export class LearningEngineService {
         return 'tube3'; // Division-as-algebra tube
       default:
         return 'tube1'; // Default to tube1
+    }
+  }
+
+  /**
+   * Extract tube ID from learning path
+   * @private
+   */
+  private extractTubeIdFromPath(learningPathId: string): string {
+    // Learning path might be something like "addition" -> map to tube ID
+    switch (learningPathId) {
+      case 'addition':
+      case 'subtraction':
+      case 'doubling':
+      case 'halving':
+        return 't1';
+      case 'multiplication':
+        return 't2';
+      case 'division':
+      case 'algebra':
+        return 't3';
+      default:
+        return 't1'; // Default tube
+    }
+  }
+
+  /**
+   * Get current stitch ID for user in a tube
+   * @private
+   */
+  private async getCurrentStitchId(userId: string, tubeId: string): Promise<string> {
+    // This would normally check user's progression state
+    // For now, simulate getting current position
+    try {
+      const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
+      const orchestrator = new EngineOrchestrator();
+      const currentStitch = await orchestrator.getCurrentStitch(userId, tubeId);
+      return currentStitch?.stitchId || `${tubeId}-0001-0001`;
+    } catch (error) {
+      // Fallback to first stitch
+      return `${tubeId}-0001-0001`;
+    }
+  }
+
+  /**
+   * Generate questions for a specific stitch
+   * @private
+   */
+  private async generateQuestionsForStitch(userId: string, stitchId: string, config: SessionConfiguration): Promise<Question[]> {
+    try {
+      const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
+      const orchestrator = new EngineOrchestrator();
+      
+      // Get stitch content
+      const stitch = await orchestrator.getStitchContent(userId, stitchId);
+      
+      if (!stitch || !stitch.questions) {
+        this.log(`No questions found for stitch: ${stitchId}`);
+        return [];
+      }
+      
+      // Convert to LearningEngine format
+      return stitch.questions.map((q: any, index: number) => ({
+        id: q.id || `${stitchId}-q${index + 1}`,
+        factId: q.factId || 'unknown',
+        questionText: q.questionText || q.text,
+        correctAnswer: q.correctAnswer,
+        distractors: q.distractors || [q.distractor].filter(Boolean),
+        boundaryLevel: q.boundaryLevel || 1,
+        difficulty: q.difficulty || 1,
+        metadata: {
+          stitchId,
+          isRepeating: false, // Set by content gating if user is cycling
+          ...q.metadata
+        }
+      }));
+    } catch (error) {
+      this.log(`Failed to generate questions for stitch ${stitchId}: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Generate questions from offline content
+   * @private
+   */
+  private async generateQuestionsFromOfflineContent(offlineStitch: any, config: SessionConfiguration): Promise<Question[]> {
+    try {
+      const questions: Question[] = [];
+      
+      for (let i = 0; i < Math.min(offlineStitch.facts.length, config.maxQuestions || 20); i++) {
+        const fact = offlineStitch.facts[i];
+        
+        questions.push({
+          id: `offline-${fact.id || i}`,
+          factId: fact.id || `offline-fact-${i}`,
+          questionText: fact.questionText || `What is ${fact.operand1} ${fact.operation} ${fact.operand2}?`,
+          correctAnswer: fact.answer || fact.correctAnswer,
+          distractors: fact.distractors || [String(parseInt(fact.answer) + 1)],
+          boundaryLevel: fact.boundaryLevel || 1,
+          difficulty: fact.difficulty || 1,
+          metadata: {
+            isOffline: true,
+            stitchId: offlineStitch.stitchId,
+            ...fact.metadata
+          }
+        });
+      }
+      
+      return questions;
+    } catch (error) {
+      this.log(`Failed to generate questions from offline content: ${error}`);
+      return [];
     }
   }
 

@@ -22,6 +22,13 @@ import { authToPlayerEventBus, AuthToPlayerState } from './services/AuthToPlayer
 import AdminEntryPoint from './components/AdminEntryPoint';
 import AdminRouter from './components/Admin/AdminRouter';
 import BuildBadge from './components/BuildBadge';
+import SubscriptionUpgrade from './components/SubscriptionUpgrade';
+import SubscriptionManagement from './components/SubscriptionManagement';
+import SubscriptionSuccess from './components/SubscriptionSuccess';
+import SubscriptionCancelled from './components/SubscriptionCancelled';
+import ContentGatingPrompt from './components/ContentGatingPrompt';
+import OfflineContentManager from './components/OfflineContentManager';
+import { contentGatingEngine } from './engines/ContentGatingEngine';
 import './App.css';
 
 // Mock data for initial testing
@@ -70,7 +77,7 @@ const mockDashboardData: DashboardData = {
       pointsAwarded: 500
     }
   ],
-  subscriptionType: "Premium",
+  subscriptionType: "Free",
   username: "TestUser",
   lastSessionDate: "2025-05-22T09:00:00Z",
   streakDays: 7
@@ -720,13 +727,23 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
 
 // App Content Component (needs UserSession context)
 const AppContent: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  // Check URL parameters for page navigation
+  const urlParams = new URLSearchParams(window.location.search);
+  const pageParam = urlParams.get('page');
+  const initialPage = pageParam || 'dashboard';
+  
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [selectedLearningPath, setSelectedLearningPath] = useState('addition');
   const [isOnline, setIsOnline] = useState(true);
   const [connectionType, setConnectionType] = useState('unknown');
   const [launchComplete, setLaunchComplete] = useState(false);
   const [userAuthChoice, setUserAuthChoice] = useState<UserAuthChoice | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [contentGatingPrompt, setContentGatingPrompt] = useState<{
+    type: 'stitch_limit' | 'offline_request' | 'advanced_feature';
+    context: any;
+  } | null>(null);
 
   // Access UserSession context
   const { 
@@ -1090,6 +1107,32 @@ const AppContent: React.FC = () => {
     }
   }
 
+  const handleUpgradeClick = () => {
+    setShowUpgradeModal(true);
+  };
+
+  const handleContentGatingError = async (error: any, userId: string) => {
+    if (error.code === 'LE-GATE-001') {
+      // Content gating error - show appropriate prompt
+      const context = await contentGatingEngine.getUpgradePromptContext(
+        userId, 
+        'stitch_limit'
+      );
+      
+      setContentGatingPrompt({
+        type: 'stitch_limit',
+        context
+      });
+    }
+  };
+
+  const handleContinueFree = async () => {
+    // Close the prompt and continue with free variant
+    setContentGatingPrompt(null);
+    // The LearningEngineService will automatically provide the free alternative
+    setCurrentPage('session');
+  };
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
@@ -1097,6 +1140,7 @@ const AppContent: React.FC = () => {
           <Dashboard
             initialData={mockDashboardData}
             onStartSessionClicked={handleStartSession}
+            onUpgradeClicked={handleUpgradeClick}
           />
         );
       
@@ -1111,6 +1155,48 @@ const AppContent: React.FC = () => {
           console.warn('⚠️ Non-admin user attempted to access admin interface');
           return <Navigate to="/dashboard" replace />;
         }
+      
+      case 'subscription-management':
+        return (
+          <SubscriptionManagement
+            onUpgradeClicked={handleUpgradeClick}
+            onBack={() => setCurrentPage('dashboard')}
+          />
+        );
+      
+      case 'subscription-success':
+        return (
+          <SubscriptionSuccess
+            onContinue={() => {
+              setCurrentPage('dashboard');
+              // Refresh user state to get updated subscription
+              initializeSession();
+            }}
+          />
+        );
+      
+      case 'subscription-cancelled':
+        return (
+          <SubscriptionCancelled
+            onGoBack={() => setCurrentPage('dashboard')}
+            onTryAgain={handleUpgradeClick}
+          />
+        );
+      
+      case 'offline-content':
+        return (
+          <div className="min-h-screen bg-gray-950 text-white p-4 md:p-6">
+            <div className="max-w-4xl mx-auto">
+              <button
+                onClick={() => setCurrentPage('dashboard')}
+                className="text-gray-400 hover:text-white mb-6 inline-flex items-center"
+              >
+                ← Back to Dashboard
+              </button>
+              <OfflineContentManager onUpgradeRequired={handleUpgradeClick} />
+            </div>
+          </div>
+        );
       
       default:
         return <Navigate to="/dashboard" replace />;
@@ -1142,6 +1228,28 @@ const AppContent: React.FC = () => {
         onAdminClick={handleAdminClick}
       />
       {contentToRender}
+      
+      {/* Subscription Upgrade Modal */}
+      {showUpgradeModal && (
+        <SubscriptionUpgrade
+          isModal={true}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
+      
+      {/* Content Gating Prompt */}
+      {contentGatingPrompt && (
+        <ContentGatingPrompt
+          type={contentGatingPrompt.type}
+          context={contentGatingPrompt.context}
+          onUpgrade={() => {
+            setContentGatingPrompt(null);
+            handleUpgradeClick();
+          }}
+          onContinueFree={contentGatingPrompt.type === 'stitch_limit' ? handleContinueFree : undefined}
+          onDismiss={() => setContentGatingPrompt(null)}
+        />
+      )}
     </div>
   );
 

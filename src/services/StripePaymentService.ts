@@ -58,8 +58,8 @@ export class StripePaymentService implements PaymentProcessingInterface {
           planId: request.planId,
           priceId: STRIPE_PRICE_IDS[request.planId as keyof typeof STRIPE_PRICE_IDS],
           customerEmail: request.paymentDetails?.email,
-          successUrl: `${window.location.origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/subscription-cancelled`
+          successUrl: `${window.location.origin}?page=subscription-success&session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}?page=subscription-cancelled`
         })
       });
 
