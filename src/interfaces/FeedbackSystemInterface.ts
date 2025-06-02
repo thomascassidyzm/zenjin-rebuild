@@ -4,38 +4,48 @@
  * Module: UserInterface
  */
 
+
 /**
- * 
-    Defines the contract for the FeedbackSystem component that manages visual and interactive feedback for user actions throughout the application.
-  
+ * Defines the contract for the FeedbackSystem component that manages visual and interactive feedback for user actions throughout the application.
  */
 /**
  * FeedbackTarget
  */
 export interface FeedbackTarget {
-  id: string; // Unique identifier for the target element
-  type?: string; // Type of the target element (e.g., 'button', 'card', 'circle')
+  /** Unique identifier for the target element */
+  id: string;
+  /** Type of the target element (e.g., 'button', 'card', 'circle') */
+  type?: string;
 }
 
 /**
  * FeedbackOptions
  */
 export interface FeedbackOptions {
-  duration?: number; // Duration of the feedback animation in milliseconds
-  intensity?: number; // Intensity of the feedback animation (0.0-1.0)
-  sound?: boolean; // Whether to play sound with the feedback
-  haptic?: boolean; // Whether to use haptic feedback (on supported devices)
-  animation?: string; // Animation style to use
+  /** Duration of the feedback animation in milliseconds */
+  duration?: number;
+  /** Intensity of the feedback animation (0.0-1.0) */
+  intensity?: number;
+  /** Whether to play sound with the feedback */
+  sound?: boolean;
+  /** Whether to use haptic feedback (on supported devices) */
+  haptic?: boolean;
+  /** Animation style to use */
+  animation?: string;
 }
 
 /**
  * FeedbackResult
  */
 export interface FeedbackResult {
-  success: boolean; // Whether the feedback was successfully shown
-  target: string; // ID of the target element
-  feedbackType: string; // Type of feedback that was shown
-  duration: number; // Actual duration of the feedback in milliseconds
+  /** Whether the feedback was successfully shown */
+  success: boolean;
+  /** ID of the target element */
+  target: string;
+  /** Type of feedback that was shown */
+  feedbackType: string;
+  /** Actual duration of the feedback in milliseconds */
+  duration: number;
 }
 
 /**
@@ -44,16 +54,7 @@ export interface FeedbackResult {
 export enum FeedbackSystemErrorCode {
   INVALID_TARGET = 'INVALID_TARGET',
   FEEDBACK_FAILED = 'FEEDBACK_FAILED',
-  INVALID_TARGET = 'INVALID_TARGET',
-  FEEDBACK_FAILED = 'FEEDBACK_FAILED',
-  INVALID_TARGET = 'INVALID_TARGET',
-  FEEDBACK_FAILED = 'FEEDBACK_FAILED',
-  INVALID_TARGET = 'INVALID_TARGET',
-  FEEDBACK_FAILED = 'FEEDBACK_FAILED',
-  INVALID_TARGET = 'INVALID_TARGET',
   INVALID_FEEDBACK_TYPE = 'INVALID_FEEDBACK_TYPE',
-  FEEDBACK_FAILED = 'FEEDBACK_FAILED',
-  INVALID_TARGET = 'INVALID_TARGET',
   NO_ACTIVE_FEEDBACK = 'NO_ACTIVE_FEEDBACK',
 }
 

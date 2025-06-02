@@ -4,40 +4,52 @@
  * Module: OfflineSupport
  */
 
+
 /**
- * 
-    Defines the contract for the SynchronizationManager component that manages data synchronization between local storage and the server.
-  
+ * Defines the contract for the SynchronizationManager component that manages data synchronization between local storage and the server.
  */
 /**
  * SyncStatus
  */
 export interface SyncStatus {
-  lastSyncTime: string; // ISO date string of last successful synchronization
-  pendingChanges: number; // Number of pending changes to be synchronized
-  syncInProgress: boolean; // Whether synchronization is currently in progress
-  lastError?: string; // Description of the last synchronization error
-  connectionStatus: string; // Current connection status ('online', 'offline')
+  /** ISO date string of last successful synchronization */
+  lastSyncTime: string;
+  /** Number of pending changes to be synchronized */
+  pendingChanges: number;
+  /** Whether synchronization is currently in progress */
+  syncInProgress: boolean;
+  /** Description of the last synchronization error */
+  lastError?: string;
+  /** Current connection status ('online', 'offline') */
+  connectionStatus: string;
 }
 
 /**
  * SyncResult
  */
 export interface SyncResult {
-  success: boolean; // Whether the synchronization was successful
-  syncedChanges: number; // Number of changes synchronized
-  conflictsResolved: number; // Number of conflicts resolved
-  timestamp: string; // ISO date string of synchronization
-  error?: string; // Error message if synchronization failed
+  /** Whether the synchronization was successful */
+  success: boolean;
+  /** Number of changes synchronized */
+  syncedChanges: number;
+  /** Number of conflicts resolved */
+  conflictsResolved: number;
+  /** ISO date string of synchronization */
+  timestamp: string;
+  /** Error message if synchronization failed */
+  error?: string;
 }
 
 /**
  * SyncOptions
  */
 export interface SyncOptions {
-  forceSync?: boolean; // Whether to force synchronization even with conflicts
-  syncDirection?: string; // Direction of synchronization ('upload', 'download', 'both')
-  conflictResolution?: string; // Conflict resolution strategy ('server', 'client', 'manual')
+  /** Whether to force synchronization even with conflicts */
+  forceSync?: boolean;
+  /** Direction of synchronization ('upload', 'download', 'both') */
+  syncDirection?: string;
+  /** Conflict resolution strategy ('server', 'client', 'manual') */
+  conflictResolution?: string;
 }
 
 /**
@@ -49,11 +61,8 @@ export enum SynchronizationManagerErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
   INVALID_DATA_TYPE = 'INVALID_DATA_TYPE',
   DATA_NOT_FOUND = 'DATA_NOT_FOUND',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
   CONFLICT_NOT_FOUND = 'CONFLICT_NOT_FOUND',
   INVALID_RESOLUTION = 'INVALID_RESOLUTION',
   INVALID_MERGED_DATA = 'INVALID_MERGED_DATA',

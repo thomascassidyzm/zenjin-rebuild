@@ -4,32 +4,43 @@
  * Module: OfflineSupport
  */
 
+import { undefined } from './undefined';
+
 /**
- * 
-    Defines the contract for the OfflineStorage component that manages local data storage for offline usage.
-  
+ * Defines the contract for the OfflineStorage component that manages local data storage for offline usage.
  */
 /**
  * StorageItem
  */
 export interface StorageItem {
-  key: string; // Unique key for the storage item
-  value: any; // Value of the storage item
-  timestamp: string; // ISO date string of last modification
-  syncStatus: string; // Synchronization status ('synced', 'pending', 'conflict')
-  expirationDate?: string; // ISO date string of expiration
+  /** Unique key for the storage item */
+  key: string;
+  /** Value of the storage item */
+  value: any;
+  /** ISO date string of last modification */
+  timestamp: string;
+  /** Synchronization status ('synced', 'pending', 'conflict') */
+  syncStatus: string;
+  /** ISO date string of expiration */
+  expirationDate?: string;
 }
 
 /**
  * StorageStats
  */
 export interface StorageStats {
-  totalItems: number; // Total number of items in storage
-  totalSize: number; // Total size in bytes
-  syncedItems: number; // Number of synced items
-  pendingItems: number; // Number of pending items
-  conflictItems: number; // Number of items with conflicts
-  lastUpdated: string; // ISO date string of last update
+  /** Total number of items in storage */
+  totalItems: number;
+  /** Total size in bytes */
+  totalSize: number;
+  /** Number of synced items */
+  syncedItems: number;
+  /** Number of pending items */
+  pendingItems: number;
+  /** Number of items with conflicts */
+  conflictItems: number;
+  /** ISO date string of last update */
+  lastUpdated: string;
 }
 
 /**
@@ -38,17 +49,10 @@ export interface StorageStats {
 export enum OfflineStorageErrorCode {
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   ITEM_NOT_FOUND = 'ITEM_NOT_FOUND',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
   STORAGE_ERROR = 'STORAGE_ERROR',
   QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
-  ITEM_NOT_FOUND = 'ITEM_NOT_FOUND',
   REMOVAL_ERROR = 'REMOVAL_ERROR',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
   CLEAR_ERROR = 'CLEAR_ERROR',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
-  ITEM_NOT_FOUND = 'ITEM_NOT_FOUND',
   INVALID_STATUS = 'INVALID_STATUS',
 }
 
@@ -77,7 +81,7 @@ export interface OfflineStorageInterface {
    * @throws STORAGE_ERROR if Error storing the item
    * @throws QUOTA_EXCEEDED if Storage quota exceeded
    */
-  setItem(userId: string, key: string, value: any, options?: { syncStatus?: string; expirationDate?: string }): boolean;
+  setItem(userId: string, key: string, value: any, options?: Record<string, any>): boolean;
 
   /**
    * Removes an item from storage

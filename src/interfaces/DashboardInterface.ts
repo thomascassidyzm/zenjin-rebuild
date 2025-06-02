@@ -4,66 +4,98 @@
  * Module: UserInterface
  */
 
+
 /**
- * 
-    Defines the contract for the Dashboard component that displays lifetime metrics and user progress information.
-  
+ * Defines the contract for the Dashboard component that displays lifetime metrics and user progress information.
  */
 /**
  * LifetimeMetrics
  */
 export interface LifetimeMetrics {
-  totalPoints: number; // Total accumulated points across all sessions
-  totalSessions: number; // Total number of completed sessions
-  averageBlinkSpeed: number; // Average blink speed across all sessions (ms)
-  evolution: number; // Evolution metric (Total Points / Average Blink Speed)
-  globalRanking: number; // User's global ranking position
-  progressPercentage: number; // Overall progress percentage (0-100)
-  ftcPoints: number; // First time correct points accumulated
-  ecPoints: number; // Eventually correct points accumulated
-  basePoints: number; // Base points without multipliers
-  averageBonusMultiplier: number; // Average bonus multiplier across sessions
+  /** Total accumulated points across all sessions */
+  totalPoints: number;
+  /** Total number of completed sessions */
+  totalSessions: number;
+  /** Average blink speed across all sessions (ms) */
+  averageBlinkSpeed: number;
+  /** Evolution metric (Total Points / Average Blink Speed) */
+  evolution: number;
+  /** User's global ranking position */
+  globalRanking: number;
+  /** Overall progress percentage (0-100) */
+  progressPercentage: number;
+  /** First time correct points accumulated */
+  ftcPoints: number;
+  /** Eventually correct points accumulated */
+  ecPoints: number;
+  /** Base points without multipliers */
+  basePoints: number;
+  /** Average bonus multiplier across sessions */
+  averageBonusMultiplier: number;
 }
 
 /**
  * LearningPathProgress
  */
 export interface LearningPathProgress {
-  pathId: string; // Identifier for the learning path
-  pathName: string; // Display name for the learning path
-  currentLevel: number; // Current level within the path
-  maxLevel: number; // Maximum level available in the path
-  completedStitches: number; // Number of completed stitches in this path
-  totalStitches: number; // Total number of stitches in this path
-  progressPercentage: number; // Progress percentage for this path (0-100)
-  active: boolean; // Whether this path is currently active in the rotation
+  /** Identifier for the learning path */
+  pathId: string;
+  /** Display name for the learning path */
+  pathName: string;
+  /** Current level within the path */
+  currentLevel: number;
+  /** Maximum level available in the path */
+  maxLevel: number;
+  /** Number of completed stitches in this path */
+  completedStitches: number;
+  /** Total number of stitches in this path */
+  totalStitches: number;
+  /** Progress percentage for this path (0-100) */
+  progressPercentage: number;
+  /** Whether this path is currently active in the rotation */
+  active: boolean;
 }
 
 /**
  * Achievement
  */
 export interface Achievement {
-  id: string; // Unique identifier for the achievement
-  name: string; // Display name for the achievement
-  description: string; // Description of how the achievement was earned
-  dateEarned: string; // ISO date string when the achievement was earned
-  iconUrl: string; // URL to the achievement icon
-  level?: number; // Achievement level (for multi-level achievements)
-  pointsAwarded?: number; // Points awarded for this achievement
+  /** Unique identifier for the achievement */
+  id: string;
+  /** Display name for the achievement */
+  name: string;
+  /** Description of how the achievement was earned */
+  description: string;
+  /** ISO date string when the achievement was earned */
+  dateEarned: string;
+  /** URL to the achievement icon */
+  iconUrl: string;
+  /** Achievement level (for multi-level achievements) */
+  level?: number;
+  /** Points awarded for this achievement */
+  pointsAwarded?: number;
 }
 
 /**
  * DashboardData
  */
 export interface DashboardData {
-  lifetimeMetrics: LifetimeMetrics; // User's lifetime metrics
-  learningPaths: any[]; // Array of LearningPathProgress objects
-  recentAchievements: any[]; // Array of recent Achievement objects
-  subscriptionType: string; // User's subscription type (Anonymous, Free, Premium)
-  username: string; // User's display name
-  avatarUrl?: string; // URL to user's avatar image
-  lastSessionDate?: string; // ISO date string of the last completed session
-  streakDays?: number; // Current streak of consecutive days with sessions
+  /** User's lifetime metrics */
+  lifetimeMetrics: LifetimeMetrics;
+  /** Array of LearningPathProgress objects */
+  learningPaths: any[];
+  /** Array of recent Achievement objects */
+  recentAchievements: any[];
+  /** User's subscription type (Anonymous, Free, Premium) */
+  subscriptionType: string;
+  /** User's display name */
+  username: string;
+  /** URL to user's avatar image */
+  avatarUrl?: string;
+  /** ISO date string of the last completed session */
+  lastSessionDate?: string;
+  /** Current streak of consecutive days with sessions */
+  streakDays?: number;
 }
 
 /**
@@ -91,7 +123,7 @@ export interface DashboardInterface {
    * @throws INVALID_DATA if The dashboard data is invalid or incomplete
    * @throws DISPLAY_FAILED if Failed to display the dashboard due to rendering issues
    */
-  showDashboard(dashboardData: DashboardData, options?: { animation?: string; highlightMetric?: string }): boolean;
+  showDashboard(dashboardData: DashboardData, options?: Record<string, any>): boolean;
 
   /**
    * Updates a specific metric on the dashboard
@@ -102,7 +134,7 @@ export interface DashboardInterface {
    * @throws INVALID_METRIC if The specified metric does not exist
    * @throws UPDATE_FAILED if Failed to update the metric
    */
-  updateMetric(metricName: string, metricValue: any, options?: { animate?: boolean; highlight?: boolean }): boolean;
+  updateMetric(metricName: string, metricValue: any, options?: Record<string, any>): boolean;
 
   /**
    * Displays a notification for a newly earned achievement
@@ -112,7 +144,7 @@ export interface DashboardInterface {
    * @throws INVALID_ACHIEVEMENT if The achievement data is invalid
    * @throws NOTIFICATION_FAILED if Failed to display the notification
    */
-  showAchievementNotification(achievement: Achievement, options?: { duration?: number; sound?: boolean }): boolean;
+  showAchievementNotification(achievement: Achievement, options?: Record<string, any>): boolean;
 
   /**
    * Refreshes the dashboard data

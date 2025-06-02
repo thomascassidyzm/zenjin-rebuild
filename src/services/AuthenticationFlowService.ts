@@ -13,13 +13,21 @@ import {
 } from '../interfaces/AuthenticationFlowInterface';
 import { AuthenticatedUserContext } from '../interfaces/AuthToPlayerInterface';
 import { authToPlayerEventBus } from './AuthToPlayerEventBus';
+import { AdminUserDetectionService } from './AdminUserDetectionService';
 
 export class AuthenticationFlowService implements AuthenticationFlowInterface {
+  private adminDetectionService: AdminUserDetectionService;
+
+  constructor() {
+    this.adminDetectionService = new AdminUserDetectionService();
+  }
+
   /**
    * Handle authentication completion with guaranteed user data availability
-   * APML-compliant implementation with no async dependencies
+   * APML-compliant implementation with admin detection integration
+   * Hook point: after_successful_authentication (enhanced with admin status)
    */
-  onAuthenticationComplete(result: AuthenticationResult, method: AuthenticationMethod): void {
+  async onAuthenticationComplete(result: AuthenticationResult, method: AuthenticationMethod): Promise<void> {
     console.log(`🔐 Authentication completed via ${method}:`, result);
     
     if (!result.success || !result.user) {
@@ -30,13 +38,41 @@ export class AuthenticationFlowService implements AuthenticationFlowInterface {
     // Validate user data completeness (APML contract requirement)
     this.validateUserData(result.user);
     
-    // Create APML-compliant user context
-    const userContext = this.createUserContext(result.user);
-    
-    console.log('✅ Starting Auth-to-Player flow with validated context:', userContext);
-    
-    // Initialize Auth-to-Player flow with complete user context
-    authToPlayerEventBus.startFlow(userContext);
+    try {
+      // ENHANCEMENT: Admin detection during authentication flow
+      // Performance requirement: add max 50ms to login time
+      console.log('🔍 Enhancing authentication result with admin detection...');
+      const enhancedResult = await this.adminDetectionService.enhanceAuthenticationResult(result);
+      
+      if (!enhancedResult.success) {
+        throw new Error(enhancedResult.error || 'Enhanced authentication failed');
+      }
+      
+      // Persist admin status in session state
+      if (enhancedResult.adminAccess) {
+        const { userSessionManager } = await import('./UserSessionManager');
+        userSessionManager.updateUserAdminStatus(enhancedResult.adminAccess);
+      }
+
+      // Create APML-compliant user context with admin status
+      const userContext = this.createUserContext(enhancedResult.user!);
+      
+      console.log('✅ Starting Auth-to-Player flow with admin-enhanced context:', {
+        ...userContext,
+        hasAdminAccess: enhancedResult.adminAccess?.is_admin || false
+      });
+      
+      // Initialize Auth-to-Player flow with admin-enhanced user context
+      authToPlayerEventBus.startFlow(userContext);
+      
+    } catch (error) {
+      console.warn('⚠️ Admin detection failed, proceeding with regular authentication:', error);
+      
+      // Fallback: proceed with regular session (as per APML error handling)
+      const userContext = this.createUserContext(result.user);
+      console.log('✅ Starting Auth-to-Player flow with regular context (admin detection failed)');
+      authToPlayerEventBus.startFlow(userContext);
+    }
   }
   
   /**

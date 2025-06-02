@@ -97,6 +97,14 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       const shuffled = [...answers].sort(() => Math.random() - 0.5);
       setAnswerOptions(shuffled);
       
+      console.log('🎮 PlayerCard presenting question:', {
+        id: question.id,
+        text: question.text,
+        correctAnswer: question.correctAnswer,
+        distractor: question.distractor,
+        shuffledOptions: shuffled
+      });
+      
       // Set the current question
       setCurrentQuestion(question);
       
@@ -274,6 +282,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
   // Initialize with initial question if provided
   useEffect(() => {
+    console.log('🎮 PlayerCard initialQuestion effect:', {
+      hasInitialQuestion: !!initialQuestion,
+      initialQuestionId: initialQuestion?.id,
+      currentQuestionId: currentQuestion?.id,
+      shouldPresent: initialQuestion && initialQuestion.id !== currentQuestion?.id
+    });
     if (initialQuestion && initialQuestion.id !== currentQuestion?.id) {
       presentQuestion(initialQuestion);
     }
@@ -364,6 +378,15 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
     );
   };
+
+  console.log('🎮 PlayerCard render state:', {
+    hasCurrentQuestion: !!currentQuestion,
+    currentQuestionId: currentQuestion?.id,
+    answerOptionsLength: answerOptions.length,
+    answerOptions,
+    feedbackState,
+    isInteractable
+  });
 
   return (
     <div 

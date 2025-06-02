@@ -19,6 +19,7 @@ import { Question } from './interfaces/PlayerCardInterface';
 import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
 import { authToPlayerEventBus, AuthToPlayerState } from './services/AuthToPlayerEventBus';
+import AdminEntryPoint from './components/AdminEntryPoint';
 import BuildBadge from './components/BuildBadge';
 import './App.css';
 
@@ -125,7 +126,9 @@ const NavigationHeader: React.FC<{
   isOnline: boolean;
   connectionType: string;
   backendConnected?: boolean;
-}> = ({ currentPage, onNavigate, isOnline, connectionType, backendConnected = false }) => {
+  userSession?: any;
+  onAdminClick?: () => void;
+}> = ({ currentPage, onNavigate, isOnline, connectionType, backendConnected = false, userSession, onAdminClick }) => {
   return (
     <header className="bg-gray-900 shadow-lg border-b border-gray-700">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -168,6 +171,15 @@ const NavigationHeader: React.FC<{
                 <span className="hidden sm:inline text-sm">{item.label}</span>
               </button>
             ))}
+            
+            {/* Admin Entry Point - conditionally rendered based on admin status */}
+            {userSession && onAdminClick && (
+              <AdminEntryPoint
+                userSession={userSession}
+                onAdminClick={onAdminClick}
+                position="header"
+              />
+            )}
             </nav>
           </div>
         </div>
@@ -627,10 +639,17 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
             <div className="mt-4 text-center flex gap-2 justify-center">
               <button
                 onClick={() => {
-                  const flawlessScore = { correct: 20, total: 20 };
+                  // Simulate answering all 20 questions correctly
+                  for (let i = 0; i < 20; i++) {
+                    const questionId = questions[i]?.id;
+                    if (questionId) {
+                      setCorrectAnswers(prev => new Set(prev).add(questionId));
+                    }
+                  }
+                  setFtcPoints(20 * 3); // 3 points per question
+                  setTotalPoints(60);
+                  setSessionScore({ correct: 20, total: 20 });
                   setSessionComplete(true);
-                  handleSessionCompletion(flawlessScore);
-                  setSessionScore(flawlessScore);
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
@@ -638,14 +657,19 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
               </button>
               <button
                 onClick={() => {
-                  const partialScore = { correct: 15, total: 20 };
-                  setSessionComplete(true);
-                  handleSessionCompletion(partialScore);
-                  setSessionScore(partialScore);
+                  // Simulate getting current question correct
+                  const response = {
+                    questionId: currentQuestion.id,
+                    selectedAnswer: currentQuestion.correctAnswer,
+                    isCorrect: true,
+                    responseTime: 2000,
+                    isFirstAttempt: !correctAnswers.has(currentQuestion.id)
+                  };
+                  handleAnswerSelected(response);
                 }}
                 className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
-                Complete Stitch 15/20
+                Answer Correct
               </button>
               <button
                 onClick={() => {
@@ -780,6 +804,14 @@ const AppContent: React.FC = () => {
     handlePlayButtonClicked();
   };
 
+  // Handle admin interface access
+  const handleAdminClick = useCallback(() => {
+    console.log('🔧 Admin interface access requested');
+    // TODO: Implement admin interface navigation
+    // For now, just log that admin access was requested
+    alert('Admin interface coming soon! Admin status detected.');
+  }, []);
+
   // Handle user authentication choice
   const handleAuthChoice = async (choice: UserAuthChoice): Promise<void> => {
     setUserAuthChoice(choice);
@@ -842,8 +874,8 @@ const AppContent: React.FC = () => {
         const result = await authenticationFlowService.handleOTPAuthentication(email, otp);
         
         if (result.success && result.user) {
-          // Handle authentication completion with guaranteed user data
-          authenticationFlowService.onAuthenticationComplete(result, 'OTP');
+          // Handle authentication completion with guaranteed user data (now with admin detection)
+          await authenticationFlowService.onAuthenticationComplete(result, 'OTP');
           return true;
         } else {
           setAuthError(result.error || 'OTP verification failed');
@@ -863,8 +895,8 @@ const AppContent: React.FC = () => {
         const result = await authenticationFlowService.handlePasswordAuthentication(email, password);
         
         if (result.success && result.user) {
-          // Handle authentication completion with guaranteed user data
-          authenticationFlowService.onAuthenticationComplete(result, 'PASSWORD');
+          // Handle authentication completion with guaranteed user data (now with admin detection)
+          await authenticationFlowService.onAuthenticationComplete(result, 'PASSWORD');
           return true;
         } else {
           setAuthError(result.error || 'Password authentication failed');
@@ -1078,6 +1110,8 @@ const AppContent: React.FC = () => {
         isOnline={effectiveOnlineStatus}
         connectionType={connectionType}
         backendConnected={hasBackendConnection}
+        userSession={sessionState}
+        onAdminClick={handleAdminClick}
       />
       {contentToRender}
     </div>

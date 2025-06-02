@@ -43,13 +43,12 @@ export class MetricsCalculator implements MetricsCalculatorInterface {
   /**
    * Constants for calculations
    */
-  private readonly FTC_POINTS_PER_ANSWER = 10;  // Points per first-time correct answer
-  private readonly EC_POINTS_PER_ANSWER = 3;    // Points per eventually correct answer
-  private readonly MAX_BONUS_MULTIPLIER = 1.5;  // Maximum bonus multiplier
-  private readonly MIN_BONUS_MULTIPLIER = 1.0;  // Minimum bonus multiplier
-  private readonly CONSISTENCY_WEIGHT = 0.4;    // Weight of consistency in bonus calculation
-  private readonly ACCURACY_WEIGHT = 0.4;       // Weight of accuracy in bonus calculation
-  private readonly SPEED_WEIGHT = 0.2;          // Weight of speed in bonus calculation
+  private readonly FTC_POINTS_PER_ANSWER = 3;   // Points per first-time correct answer (FIXED: was 10)
+  private readonly EC_POINTS_PER_ANSWER = 1;    // Points per eventually correct answer (FIXED: was 3)
+  private readonly MAX_BONUS_MULTIPLIER = 30.0; // Maximum bonus multiplier (FIXED: was 1.5)
+  private readonly MIN_BONUS_MULTIPLIER = 2.0;  // Minimum bonus multiplier (FIXED: was 1.0)
+  // REMOVED: CONSISTENCY_WEIGHT, ACCURACY_WEIGHT, SPEED_WEIGHT - now using MAX() system
+  private readonly EASTER_EGG_MODE = true;      // Hide threshold details for discovery
   private readonly TARGET_BLINK_SPEED = 10000;  // Target blink speed in milliseconds
 
   /**
@@ -85,7 +84,13 @@ export class MetricsCalculator implements MetricsCalculatorInterface {
       const speed = this.calculateSpeed(sessionData);
 
       // Calculate bonus multiplier
-      const bonusMultiplier = this.calculateBonusMultiplier(consistency, accuracy, speed);
+      // Calculate individual bonus multipliers using Easter Egg thresholds
+      const consistencyMultiplier = this.calculateConsistencyBonus(sessionData);
+      const excellenceMultiplier = this.calculateExcellenceBonus(sessionData);
+      const speedMultiplier = this.calculateSpeedBonus(sessionData);
+      
+      // Apply MAX() bonus system
+      const bonusMultiplier = this.calculateBonusMultiplier(consistencyMultiplier, excellenceMultiplier, speedMultiplier);
 
       // Calculate blink speed
       const blinkSpeed = this.calculateBlinkSpeed(sessionData.duration, sessionData.ftcCount);
@@ -105,6 +110,9 @@ export class MetricsCalculator implements MetricsCalculatorInterface {
         accuracy,
         speed,
         bonusMultiplier,
+        consistencyMultiplier,
+        excellenceMultiplier,
+        speedMultiplier,
         blinkSpeed,
         totalPoints
       };
@@ -222,29 +230,23 @@ export class MetricsCalculator implements MetricsCalculatorInterface {
    * @returns Calculated bonus multiplier
    * @throws INVALID_SCORE if one or more scores are invalid
    */
-  calculateBonusMultiplier(consistency: number, accuracy: number, speed: number): number {
-    // Validate scores
-    if (consistency < 0 || consistency > 1 || 
-        accuracy < 0 || accuracy > 1 || 
-        speed < 0 || speed > 1) {
-      throw new MetricsError(
-        ErrorCode.INVALID_SCORE,
-        'Scores must be between 0.0 and 1.0'
-      );
+  calculateBonusMultiplier(consistencyMultiplier: number, excellenceMultiplier: number, speedMultiplier: number): number {
+    // Validate multipliers are within valid range
+    const multipliers = [consistencyMultiplier, excellenceMultiplier, speedMultiplier];
+    for (const multiplier of multipliers) {
+      if (multiplier < this.MIN_BONUS_MULTIPLIER || multiplier > this.MAX_BONUS_MULTIPLIER) {
+        throw new MetricsError(
+          ErrorCode.INVALID_SCORE,
+          `Bonus multipliers must be between ${this.MIN_BONUS_MULTIPLIER} and ${this.MAX_BONUS_MULTIPLIER}`
+        );
+      }
     }
     
-    // Calculate weighted sum of scores
-    const weightedSum = 
-      (consistency * this.CONSISTENCY_WEIGHT) +
-      (accuracy * this.ACCURACY_WEIGHT) +
-      (speed * this.SPEED_WEIGHT);
+    // FIXED: Use MAX() system instead of weighted average
+    const maxBonus = Math.max(consistencyMultiplier, excellenceMultiplier, speedMultiplier);
     
-    // Scale to bonus multiplier range
-    const range = this.MAX_BONUS_MULTIPLIER - this.MIN_BONUS_MULTIPLIER;
-    const bonus = this.MIN_BONUS_MULTIPLIER + (weightedSum * range);
-    
-    // Round to 2 decimal places for clean display
-    return Math.round(bonus * 100) / 100;
+    // Round to 1 decimal place for clean display
+    return Math.round(maxBonus * 10) / 10;
   }
 
   /**
@@ -321,5 +323,50 @@ export class MetricsCalculator implements MetricsCalculatorInterface {
     
     // Round to 2 decimal places for clean display
     return Math.round(evolutionScaled * 100) / 100;
+  }
+
+  /**
+   * Calculate consistency bonus based on valid sessions (Easter Egg thresholds)
+   * Note: This is a simplified implementation - full version would track sessions over time
+   */
+  private calculateConsistencyBonus(sessionData: SessionData): number {
+    // For now, return base multiplier since we don't have session history tracking yet
+    // TODO: Implement ConsistencyTracker integration
+    return this.MIN_BONUS_MULTIPLIER;
+  }
+
+  /**
+   * Calculate excellence bonus based on FTC percentage (Easter Egg thresholds)
+   */
+  private calculateExcellenceBonus(sessionData: SessionData): number {
+    if (sessionData.questionCount === 0) return this.MIN_BONUS_MULTIPLIER;
+    
+    const ftcPercentage = (sessionData.ftcCount / sessionData.questionCount) * 100;
+    
+    // Easter Egg thresholds (hidden from UI)
+    if (ftcPercentage >= 100) return 30.0;  // Perfect session
+    if (ftcPercentage >= 95) return 10.0;   // Near perfect
+    if (ftcPercentage >= 90) return 5.0;    // Excellent
+    if (ftcPercentage >= 80) return 2.0;    // Good
+    
+    return this.MIN_BONUS_MULTIPLIER;
+  }
+
+  /**
+   * Calculate speed bonus based on blink speed (Easter Egg thresholds)
+   */
+  private calculateSpeedBonus(sessionData: SessionData): number {
+    if (sessionData.ftcCount === 0 || sessionData.duration === 0) {
+      return this.MIN_BONUS_MULTIPLIER;
+    }
+    
+    const blinkSpeed = sessionData.duration / sessionData.ftcCount; // ms per FTC answer
+    
+    // Easter Egg thresholds (hidden from UI)
+    if (blinkSpeed <= 1000) return 30.0;   // Under 1 second per FTC
+    if (blinkSpeed <= 2000) return 10.0;   // Under 2 seconds per FTC  
+    if (blinkSpeed <= 3000) return 2.0;    // Under 3 seconds per FTC
+    
+    return this.MIN_BONUS_MULTIPLIER;
   }
 }

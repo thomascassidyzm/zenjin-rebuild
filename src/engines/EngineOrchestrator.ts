@@ -167,6 +167,41 @@ class TempTripleHelixManager implements TripleHelixManagerInterface {
       tube3: { prepared: true, stitchCount: state.tubes.tube3.totalStitches }
     };
   }
+  
+  getNextStitchId(userId: string, tubeId: TubeId): StitchId {
+    const state = this.userStates.get(userId);
+    if (!state) throw new Error('USER_NOT_FOUND');
+    
+    const tube = state.tubes[tubeId];
+    if (!tube) throw new Error('TUBE_NOT_FOUND');
+    
+    // For now, return the active stitch ID or generate a default one
+    if (tube.activeStitchId) {
+      return tube.activeStitchId;
+    }
+    
+    // Generate a default stitch ID based on tube
+    const conceptMap: Record<TubeId, string> = {
+      tube1: 'add',
+      tube2: 'mult', 
+      tube3: 'sub'
+    };
+    
+    return `${tubeId}-0001-${conceptMap[tubeId]}` as StitchId;
+  }
+  
+  setActiveTube(userId: string, tubeId: TubeId): void {
+    const state = this.userStates.get(userId);
+    if (!state) throw new Error('USER_NOT_FOUND');
+    
+    state.activeTube = tubeId;
+  }
+  
+  async initializeUser(userId: string): Promise<void> {
+    if (!this.userStates.has(userId)) {
+      this.initializeTripleHelix(userId);
+    }
+  }
 }
 
 /**
@@ -510,8 +545,31 @@ export class EngineOrchestrator {
    */
   async generateQuestionsForStitch(stitchId: StitchId, count: number = 20, userId: string = 'default-user'): Promise<PlayerCardQuestion[]> {
     try {
-      // This would use QuestionGeneratorInterface in full implementation
-      // For now, fallback to multiple question generation
+      // Check if Live Aid is enabled and try to get pre-cached questions
+      if (this.liveAidEnabled && this.liveAidManager) {
+        try {
+          const readyStitch = await this.liveAidManager.getReadyStitch(userId);
+          
+          // Convert ReadyQuestion[] to PlayerCardQuestion[]
+          const playerCardQuestions = readyStitch.questions.map(q => ({
+            id: q.questionId,
+            factId: q.metadata.factId,
+            text: q.questionText,
+            correctAnswer: q.correctAnswer,
+            distractor: q.distractor,
+            boundaryLevel: q.metadata.boundaryLevel
+          }));
+          
+          console.log(`Live Aid: Retrieved ${playerCardQuestions.length} pre-cached questions for stitch ${stitchId}`);
+          return playerCardQuestions;
+          
+        } catch (error) {
+          console.warn(`Live Aid cache miss for stitch ${stitchId}, falling back to synchronous generation:`, error);
+        }
+      }
+      
+      // Fallback: Original synchronous question generation loop
+      console.log(`Synchronous generation: Creating ${count} questions for stitch ${stitchId}`);
       const questions: PlayerCardQuestion[] = [];
       
       for (let i = 0; i < count; i++) {

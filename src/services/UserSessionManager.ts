@@ -701,6 +701,67 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
     const updatedSessions = [metrics, ...recentSessions].slice(0, 10); // Keep last 10 sessions
     return updatedSessions;
   }
+
+  /**
+   * Update user admin status in session state
+   * Used during authentication to persist admin access information
+   */
+  updateUserAdminStatus(adminAccess: import('../interfaces/UserSessionManagerInterface').AdminAccess): void {
+    if (!this._state.user) {
+      console.warn('Cannot update admin status: no user in session');
+      return;
+    }
+
+    // Update user metadata with admin access information
+    const updatedUser = {
+      ...this._state.user,
+      metadata: {
+        ...this._state.user.metadata,
+        admin_access: adminAccess
+      }
+    };
+
+    // Update session state with enhanced user object
+    this.updateState({ user: updatedUser });
+
+    console.log(`🔐 User admin status updated in session:`, {
+      userId: updatedUser.id,
+      isAdmin: adminAccess.is_admin,
+      role: adminAccess.role
+    });
+
+    // Emit event to notify admin status change
+    this.emit('adminStatusChanged', {
+      userId: updatedUser.id,
+      adminAccess,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Get current user admin status from session
+   */
+  getUserAdminStatus(): import('../interfaces/UserSessionManagerInterface').AdminAccess | null {
+    return this._state.user?.metadata?.admin_access || null;
+  }
+
+  /**
+   * Check if current user has admin access
+   */
+  isCurrentUserAdmin(): boolean {
+    const adminAccess = this.getUserAdminStatus();
+    return adminAccess?.is_admin === true;
+  }
+
+  /**
+   * Check if current user has specific admin permission
+   */
+  hasAdminPermission(permission: string): boolean {
+    const adminAccess = this.getUserAdminStatus();
+    if (!adminAccess?.is_admin) return false;
+    
+    return adminAccess.permissions?.includes(permission) === true;
+  }
 }
 
 // Create singleton instance for application use

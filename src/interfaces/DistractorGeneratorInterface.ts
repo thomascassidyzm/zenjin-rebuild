@@ -4,29 +4,36 @@
  * Module: LearningEngine
  */
 
+
 /**
- * 
-    Defines the contract for the DistractorGenerator component that generates appropriate distractors based on the boundary level and mathematical fact.
-  
+ * Defines the contract for the DistractorGenerator component that generates appropriate distractors based on the boundary level and mathematical fact.
  */
 /**
  * DistractorRequest
  */
 export interface DistractorRequest {
-  factId: string; // Mathematical fact identifier
-  boundaryLevel: number; // Boundary level (1-5)
-  correctAnswer: string; // The correct answer
-  count?: number; // Number of distractors to generate
+  /** Mathematical fact identifier */
+  factId: string;
+  /** Boundary level (1-5) */
+  boundaryLevel: number;
+  /** The correct answer */
+  correctAnswer: string;
+  /** Number of distractors to generate */
+  count?: number;
 }
 
 /**
  * Distractor
  */
 export interface Distractor {
-  value: string; // The distractor value
-  boundaryLevel: number; // The boundary level this distractor targets
-  explanation?: string; // Explanation of why this distractor was chosen
-  difficulty?: number; // Difficulty rating (0.0-1.0)
+  /** The distractor value */
+  value: string;
+  /** The boundary level this distractor targets */
+  boundaryLevel: number;
+  /** Explanation of why this distractor was chosen */
+  explanation?: string;
+  /** Difficulty rating (0.0-1.0) */
+  difficulty?: number;
 }
 
 /**
@@ -36,14 +43,7 @@ export enum DistractorGeneratorErrorCode {
   INVALID_FACT = 'INVALID_FACT',
   INVALID_BOUNDARY_LEVEL = 'INVALID_BOUNDARY_LEVEL',
   GENERATION_FAILED = 'GENERATION_FAILED',
-  INVALID_FACT = 'INVALID_FACT',
-  INVALID_BOUNDARY_LEVEL = 'INVALID_BOUNDARY_LEVEL',
-  GENERATION_FAILED = 'GENERATION_FAILED',
-  INVALID_FACT = 'INVALID_FACT',
   INVALID_DISTRACTOR = 'INVALID_DISTRACTOR',
-  INVALID_BOUNDARY_LEVEL = 'INVALID_BOUNDARY_LEVEL',
-  INVALID_FACT = 'INVALID_FACT',
-  INVALID_BOUNDARY_LEVEL = 'INVALID_BOUNDARY_LEVEL',
 }
 
 /**
@@ -66,9 +66,9 @@ export interface DistractorGeneratorInterface {
    * @returns Array of generated distractors
    * @throws INVALID_FACT if The specified fact is invalid or not found
    * @throws INVALID_BOUNDARY_LEVEL if The specified boundary level is invalid
-   * @throws GENERATION_FAILED if Failed to generate distractors
+   * @throws GENERATION_FAILED if Failed to generate a distractor
    */
-  generateMultipleDistractors(request: DistractorRequest): Distractor[];
+  generateMultipleDistractors(request: DistractorRequest): any[];
 
   /**
    * Gets an explanation for why a distractor was chosen

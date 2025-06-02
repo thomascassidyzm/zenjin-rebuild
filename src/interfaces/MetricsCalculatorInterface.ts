@@ -4,36 +4,51 @@
  * Module: MetricsSystem
  */
 
+import { undefined } from './undefined';
+
 /**
- * 
-    Defines the contract for the MetricsCalculator component that performs calculations for various metrics in the system.
-  
+ * Defines the contract for the MetricsCalculator component that performs calculations for various metrics in the system.
  */
 /**
  * SessionData
  */
 export interface SessionData {
-  duration: number; // Session duration in milliseconds
-  questionCount: number; // Number of questions answered
-  ftcCount: number; // Number of first-time correct answers
-  ecCount: number; // Number of eventually correct answers
-  incorrectCount: number; // Number of incorrect answers
-  responseTimeData?: number[]; // Array of response times in milliseconds
+  /** Session duration in milliseconds */
+  duration: number;
+  /** Number of questions answered */
+  questionCount: number;
+  /** Number of first-time correct answers */
+  ftcCount: number;
+  /** Number of eventually correct answers */
+  ecCount: number;
+  /** Number of incorrect answers */
+  incorrectCount: number;
+  /** Array of response times in milliseconds */
+  responseTimeData?: number[];
 }
 
 /**
  * MetricsResult
  */
 export interface MetricsResult {
-  ftcPoints: number; // First-time correct points
-  ecPoints: number; // Eventually correct points
-  basePoints: number; // Base points (FTC + EC)
-  consistency: number; // Consistency score (0.0-1.0)
-  accuracy: number; // Accuracy score (0.0-1.0)
-  speed: number; // Speed score (0.0-1.0)
-  bonusMultiplier: number; // Bonus multiplier
-  blinkSpeed: number; // Blink speed (ms per FTC answer)
-  totalPoints: number; // Total points (base × bonus)
+  /** First-time correct points */
+  ftcPoints: number;
+  /** Eventually correct points */
+  ecPoints: number;
+  /** Base points (FTC + EC) */
+  basePoints: number;
+  /** Consistency score (0.0-1.0) */
+  consistency: number;
+  /** Accuracy score (0.0-1.0) */
+  accuracy: number;
+  /** Speed score (0.0-1.0) */
+  speed: number;
+  /** Bonus multiplier */
+  bonusMultiplier: number;
+  /** Blink speed (ms per FTC answer) */
+  blinkSpeed: number;
+  /** Total points (base × bonus) */
+  totalPoints: number;
 }
 
 /**
@@ -107,7 +122,7 @@ export interface MetricsCalculatorInterface {
    * @returns Calculated Evolution metric
    * @throws INVALID_POINTS if The points value is invalid
    * @throws INVALID_BLINK_SPEED if The blink speed is invalid
-   * @throws DIVISION_BY_ZERO if Cannot calculate Evolution with zero blink speed
+   * @throws DIVISION_BY_ZERO if Cannot calculate blink speed with zero FTC answers
    */
   calculateEvolution(totalPoints: number, blinkSpeed: number): number;
 

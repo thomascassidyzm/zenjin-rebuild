@@ -4,10 +4,9 @@
  * Module: undefined
  */
 
+
 /**
- * 
-    Provide an administrative interface for managing mathematical facts and curriculum content
-  
+ * Provide an administrative interface for managing mathematical facts and curriculum content
  */
 /**
  * ContentManagerInterface
@@ -58,7 +57,7 @@ export interface ContentManagerInterface {
    * @param relationshipTypes - Types of relationships to generate
    * @returns Number of facts updated with new relationships
    */
-  generateFactRelationships(factIds?: string[], relationshipTypes?: string[]): number;
+  generateFactRelationships(factIds?: any[], relationshipTypes?: any[]): number;
 
   /**
    * Automatically calculates difficulty ratings for facts
@@ -66,14 +65,14 @@ export interface ContentManagerInterface {
    * @param algorithm - Difficulty calculation algorithm to use
    * @returns Number of facts updated with new difficulty ratings
    */
-  generateDifficultyRatings(factIds?: string[], algorithm?: string): number;
+  generateDifficultyRatings(factIds?: any[], algorithm?: string): number;
 
   /**
    * Lists available curriculum sets
    * @param tags - Filter by tags
    * @returns Available curriculum sets
    */
-  listCurriculumSets(tags?: string[]): CurriculumMetadata[];
+  listCurriculumSets(tags?: any[]): any[];
 
   /**
    * Gets a specific curriculum set

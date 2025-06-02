@@ -4,37 +4,52 @@
  * Module: SubscriptionSystem
  */
 
+
 /**
- * 
-    Defines the contract for the SubscriptionManager component that manages user subscriptions and content access.
-  
+ * Defines the contract for the SubscriptionManager component that manages user subscriptions and content access.
  */
 /**
  * SubscriptionPlan
  */
 export interface SubscriptionPlan {
-  id: string; // Unique identifier for the subscription plan
-  name: string; // Name of the subscription plan
-  description?: string; // Description of the subscription plan
-  price: number; // Price of the subscription plan
-  currency: string; // Currency code (e.g., 'USD', 'EUR')
-  billingCycle: string; // Billing cycle ('monthly', 'quarterly', 'annual')
-  features?: string[]; // List of features included in the plan
+  /** Unique identifier for the subscription plan */
+  id: string;
+  /** Name of the subscription plan */
+  name: string;
+  /** Description of the subscription plan */
+  description?: string;
+  /** Price of the subscription plan */
+  price: number;
+  /** Currency code (e.g., 'USD', 'EUR') */
+  currency: string;
+  /** Billing cycle ('monthly', 'quarterly', 'annual') */
+  billingCycle: string;
+  /** List of features included in the plan */
+  features?: string[];
 }
 
 /**
  * UserSubscription
  */
 export interface UserSubscription {
-  userId: string; // User identifier
-  planId: string; // Subscription plan identifier
-  status: string; // Subscription status ('active', 'canceled', 'expired', 'trial')
-  startDate: string; // ISO date string of subscription start
-  endDate?: string; // ISO date string of subscription end
-  autoRenew: boolean; // Whether the subscription auto-renews
-  paymentMethod?: string; // Payment method identifier
-  lastBillingDate?: string; // ISO date string of last billing
-  nextBillingDate?: string; // ISO date string of next billing
+  /** User identifier */
+  userId: string;
+  /** Subscription plan identifier */
+  planId: string;
+  /** Subscription status ('active', 'canceled', 'expired', 'trial') */
+  status: string;
+  /** ISO date string of subscription start */
+  startDate: string;
+  /** ISO date string of subscription end */
+  endDate?: string;
+  /** Whether the subscription auto-renews */
+  autoRenew: boolean;
+  /** Payment method identifier */
+  paymentMethod?: string;
+  /** ISO date string of last billing */
+  lastBillingDate?: string;
+  /** ISO date string of next billing */
+  nextBillingDate?: string;
 }
 
 /**
@@ -43,20 +58,12 @@ export interface UserSubscription {
 export enum SubscriptionManagerErrorCode {
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   NO_SUBSCRIPTION = 'NO_SUBSCRIPTION',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
   PLAN_NOT_FOUND = 'PLAN_NOT_FOUND',
   PAYMENT_METHOD_INVALID = 'PAYMENT_METHOD_INVALID',
   SUBSCRIPTION_EXISTS = 'SUBSCRIPTION_EXISTS',
   CREATION_FAILED = 'CREATION_FAILED',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
-  NO_SUBSCRIPTION = 'NO_SUBSCRIPTION',
   CANCELLATION_FAILED = 'CANCELLATION_FAILED',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
-  NO_SUBSCRIPTION = 'NO_SUBSCRIPTION',
-  PLAN_NOT_FOUND = 'PLAN_NOT_FOUND',
-  PAYMENT_METHOD_INVALID = 'PAYMENT_METHOD_INVALID',
   UPDATE_FAILED = 'UPDATE_FAILED',
-  USER_NOT_FOUND = 'USER_NOT_FOUND',
 }
 
 /**
@@ -67,7 +74,7 @@ export interface SubscriptionManagerInterface {
    * Gets all available subscription plans
    * @returns Array of subscription plans
    */
-  getSubscriptionPlans(): SubscriptionPlan[];
+  getSubscriptionPlans(): any[];
 
   /**
    * Gets the current subscription for a user
@@ -115,7 +122,7 @@ export interface SubscriptionManagerInterface {
    * @throws PAYMENT_METHOD_INVALID if The payment method is invalid
    * @throws UPDATE_FAILED if Failed to update the subscription
    */
-  updateSubscription(userId: string, updates: { planId?: string; autoRenew?: boolean; paymentMethod?: string }): UserSubscription;
+  updateSubscription(userId: string, updates: Record<string, any>): UserSubscription;
 
   /**
    * Checks if a user has an active subscription

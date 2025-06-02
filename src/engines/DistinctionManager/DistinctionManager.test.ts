@@ -4,13 +4,14 @@
  * Unit tests for the DistinctionManager component
  */
 
+import { describe, it, expect, beforeEach } from 'vitest';
 import { 
   DistinctionManager,
   DistinctionManagerError,
   DistinctionManagerErrorCode,
   PerformanceData
 } from './DistinctionManager';
-import { FactRepositoryInterface } from './interfaces/FactRepositoryInterface';
+import { FactRepositoryInterface, MathematicalFact, FactQuery } from '../../interfaces/FactRepositoryInterface';
 
 // Mock implementation of FactRepositoryInterface for testing
 class MockFactRepository implements FactRepositoryInterface {
@@ -20,6 +21,70 @@ class MockFactRepository implements FactRepositoryInterface {
     'mult-7-8', 'mult-6-6', 'mult-9-9',
     'div-10-2', 'div-12-3', 'div-15-5'
   ]);
+
+  private facts: Map<string, MathematicalFact> = new Map([
+    ['add-1-1', { id: 'add-1-1', operation: 'addition', operands: [1, 1], result: 2, difficulty: 0.1 }],
+    ['add-2-2', { id: 'add-2-2', operation: 'addition', operands: [2, 2], result: 4, difficulty: 0.15 }],
+    ['add-3-3', { id: 'add-3-3', operation: 'addition', operands: [3, 3], result: 6, difficulty: 0.2 }],
+    ['sub-5-2', { id: 'sub-5-2', operation: 'subtraction', operands: [5, 2], result: 3, difficulty: 0.2 }],
+    ['sub-8-3', { id: 'sub-8-3', operation: 'subtraction', operands: [8, 3], result: 5, difficulty: 0.25 }],
+    ['sub-9-4', { id: 'sub-9-4', operation: 'subtraction', operands: [9, 4], result: 5, difficulty: 0.25 }],
+    ['mult-7-8', { id: 'mult-7-8', operation: 'multiplication', operands: [7, 8], result: 56, difficulty: 0.5 }],
+    ['mult-6-6', { id: 'mult-6-6', operation: 'multiplication', operands: [6, 6], result: 36, difficulty: 0.4 }],
+    ['mult-9-9', { id: 'mult-9-9', operation: 'multiplication', operands: [9, 9], result: 81, difficulty: 0.6 }],
+    ['div-10-2', { id: 'div-10-2', operation: 'division', operands: [10, 2], result: 5, difficulty: 0.3 }],
+    ['div-12-3', { id: 'div-12-3', operation: 'division', operands: [12, 3], result: 4, difficulty: 0.35 }],
+    ['div-15-5', { id: 'div-15-5', operation: 'division', operands: [15, 5], result: 3, difficulty: 0.4 }]
+  ]);
+
+  getFactById(factId: string): MathematicalFact {
+    const fact = this.facts.get(factId);
+    if (!fact) {
+      throw new Error(`FACT_NOT_FOUND - The specified fact was not found: ${factId}`);
+    }
+    return fact;
+  }
+
+  queryFacts(query: FactQuery): MathematicalFact[] {
+    let results = Array.from(this.facts.values());
+    
+    if (query.operation) {
+      results = results.filter(fact => fact.operation === query.operation);
+    }
+    
+    if (query.difficulty) {
+      const min = query.difficulty.min ?? 0;
+      const max = query.difficulty.max ?? 1;
+      results = results.filter(fact => (fact.difficulty ?? 0.5) >= min && (fact.difficulty ?? 0.5) <= max);
+    }
+    
+    if (query.tags) {
+      results = results.filter(fact => 
+        query.tags!.some(tag => fact.tags?.includes(tag))
+      );
+    }
+    
+    const offset = query.offset || 0;
+    const limit = query.limit || 100;
+    
+    return results.slice(offset, offset + limit);
+  }
+
+  getRelatedFacts(factId: string, limit?: number): MathematicalFact[] {
+    // For testing, just return an empty array
+    return [];
+  }
+
+  getFactsByOperation(operation: string): MathematicalFact[] {
+    return Array.from(this.facts.values()).filter(fact => fact.operation === operation);
+  }
+
+  getFactCount(query?: FactQuery): number {
+    if (!query) {
+      return this.facts.size;
+    }
+    return this.queryFacts(query).length;
+  }
 
   factExists(factId: string): boolean {
     return this.validFacts.has(factId);
@@ -87,7 +152,7 @@ describe('DistinctionManager', () => {
     it('should return the correct error code for invalid levels', () => {
       try {
         distinctionManager.getBoundaryLevelDescription(0);
-        fail('Expected error was not thrown');
+        throw new Error('Expected error was not thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(DistinctionManagerError);
         expect((error as DistinctionManagerError).code).toBe(DistinctionManagerErrorCode.INVALID_LEVEL);

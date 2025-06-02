@@ -1,36 +1,67 @@
 /**
  * FactRepositoryInterface.ts
  * Generated from APML Interface Definition
- * Module: LearningEngine
+ * Module: ContentRepository
  */
 
+import { FactIdRegistryInterface } from './FactIdRegistryInterface';
+import { DistinctionManagerInterface } from './DistinctionManagerInterface';
+
 /**
- * 
-    Defines the contract for the FactRepository component that stores and retrieves mathematical facts used in the learning process.
-  
+ * Atomic unit of knowledge with concept metadata
  */
-/**
- * MathematicalFact
- */
-export interface MathematicalFact {
-  id: string; // Unique identifier for the fact
-  operation: string; // Mathematical operation (e.g., 'addition', 'multiplication')
-  operands: number[]; // Operands involved in the fact
-  result: number; // Result of the operation
-  difficulty?: number; // Inherent difficulty rating (0.0-1.0)
-  relatedFactIds?: string[]; // IDs of related facts
-  tags?: string[]; // Tags for categorization
+export interface Fact {
+  /** Unique fact identifier */
+  id: string;
+  /** Type of mathematical concept */
+  concept_type: string;
+  /** Concept-specific parameters */
+  parameters: Record<string, any>;
+  /** Correct answer for this fact */
+  answer: any;
+  metadata: {
+    difficulty: number;
+    tags: string[];
+    /** Fact IDs that should be mastered first */
+    prerequisites: string[];
+    last_updated: string;
+  };
 }
 
 /**
- * FactQuery
+ * Criteria for querying facts by concept
  */
-export interface FactQuery {
-  operation?: string; // Filter by operation
-  difficulty?: Record<string, any>; // Filter by difficulty range
-  tags?: string[]; // Filter by tags
-  limit?: number; // Maximum number of results
-  offset?: number; // Result offset for pagination
+export interface FactQueryCriteria {
+  concept_type: string;
+  /** Partial match on concept parameters */
+  parameters: Record<string, any>;
+  tags: string[];
+  difficulty_range: {
+    min: number;
+    max: number;
+  };
+  limit: number;
+  offset: number;
+}
+
+/**
+ * Result of a fact query operation
+ */
+export interface FactQueryResult {
+  facts: Fact[];
+  /** Total facts matching criteria */
+  total: number;
+  /** Whether more results are available */
+  has_more: boolean;
+}
+
+/**
+ * Result of fact validation
+ */
+export interface FactValidationResult {
+  is_valid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
 /**
@@ -38,9 +69,10 @@ export interface FactQuery {
  */
 export enum FactRepositoryErrorCode {
   FACT_NOT_FOUND = 'FACT_NOT_FOUND',
-  INVALID_QUERY = 'INVALID_QUERY',
-  FACT_NOT_FOUND = 'FACT_NOT_FOUND',
-  INVALID_OPERATION = 'INVALID_OPERATION',
+  INVALID_CONCEPT_TYPE = 'INVALID_CONCEPT_TYPE',
+  INVALID_PARAMETERS = 'INVALID_PARAMETERS',
+  DUPLICATE_FACT = 'DUPLICATE_FACT',
+  REPOSITORY_ERROR = 'REPOSITORY_ERROR',
   INVALID_QUERY = 'INVALID_QUERY',
 }
 
@@ -49,52 +81,66 @@ export enum FactRepositoryErrorCode {
  */
 export interface FactRepositoryInterface {
   /**
-   * Gets a mathematical fact by its identifier
-   * @param factId - Fact identifier
-   * @returns The mathematical fact
-   * @throws FACT_NOT_FOUND if The specified fact was not found
+   * Get a fact by its unique identifier
+   * @param fact_id - fact_id
+   * @returns Result
+   * @throws FACT_NOT_FOUND if Specified fact does not exist
    */
-  getFactById(factId: string): MathematicalFact;
+  getFactById(fact_id: string): Fact;
 
   /**
-   * Queries mathematical facts based on criteria
-   * @param query - Query criteria
-   * @returns Array of matching facts
-   * @throws INVALID_QUERY if The query is invalid
+   * Query facts by concept type and parameters
+   * @param criteria - criteria
+   * @returns Result
+   * @throws INVALID_QUERY if Query criteria are invalid
+   * @throws INVALID_CONCEPT_TYPE if Concept type is not recognized
    */
-  queryFacts(query: FactQuery): MathematicalFact[];
+  queryFacts(criteria: FactQueryCriteria): FactQueryResult;
 
   /**
-   * Gets facts related to a specific fact
-   * @param factId - Fact identifier
-   * @param limit - Maximum number of related facts to return
-   * @returns Array of related facts
-   * @throws FACT_NOT_FOUND if The specified fact was not found
+   * Check if a fact exists in the repository - CRITICAL MISSING METHOD
+   * @param fact_id - fact_id
+   * @returns True if fact exists, false otherwise
    */
-  getRelatedFacts(factId: string, limit?: number): MathematicalFact[];
+  factExists(fact_id: string): boolean;
 
   /**
-   * Gets facts for a specific mathematical operation
-   * @param operation - Mathematical operation
-   * @returns Array of facts for the operation
-   * @throws INVALID_OPERATION if The specified operation is invalid
+   * Get multiple facts by their IDs (batch operation)
+   * @param fact_ids - fact_ids
+   * @returns Result
+   * @throws FACT_NOT_FOUND if Specified fact does not exist
    */
-  getFactsByOperation(operation: string): MathematicalFact[];
+  getFactsByIds(fact_ids: any[]): any[];
 
   /**
-   * Gets the total count of facts in the repository
-   * @param query - Optional query criteria
-   * @returns Number of facts matching the criteria
-   * @throws INVALID_QUERY if The query is invalid
+   * Validate a fact's structure and content
+   * @param fact - fact
+   * @returns Result
    */
-  getFactCount(query?: FactQuery): number;
+  validateFact(fact: Fact): FactValidationResult;
 
   /**
-   * Checks if a fact exists in the repository
-   * @param factId - Fact identifier
-   * @returns True if the fact exists, false otherwise
+   * Check if facts are available for a given concept
+   * @param concept_type - concept_type
+   * @param parameters - parameters
+   * @returns Result
+   * @throws INVALID_CONCEPT_TYPE if Concept type is not recognized
    */
-  factExists(factId: string): boolean;
+  hasFactsForConcept(concept_type: string, parameters: Record<string, any>): boolean;
+
+  /**
+   * Get all available concept types
+   * @returns Result
+   */
+  getAvailableConceptTypes(): any[];
+
+  /**
+   * Get expected parameters for a concept type
+   * @param concept_type - concept_type
+   * @returns JSON Schema for concept parameters
+   * @throws INVALID_CONCEPT_TYPE if Concept type is not recognized
+   */
+  getConceptParameterSchema(concept_type: string): Record<string, any>;
 
 }
 

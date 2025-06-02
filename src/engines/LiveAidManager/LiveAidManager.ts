@@ -485,6 +485,40 @@ export class LiveAidManager implements LiveAidManagerInterface {
   }
 
   /**
+   * Gets a complete ready stitch (20 questions) from the Live Aid pipeline
+   * Core performance method for replacing synchronous question generation
+   */
+  async getReadyStitch(userId: string, tubeId?: TubeId): Promise<ReadyStitch> {
+    try {
+      // Determine target tube (default to current LIVE tube)
+      const targetTubeId = tubeId || this.getCurrentLiveTube(this.getLiveAidState(userId));
+      
+      // Get ready stitch from cache
+      const readyStitch = this.stitchCache.getReadyStitch(userId, targetTubeId);
+      
+      // Update performance metrics
+      this.updatePerformanceMetrics();
+      
+      return readyStitch;
+      
+    } catch (error) {
+      console.error(`Failed to get ready stitch for ${userId}:${tubeId}:`, error);
+      
+      // If no ready stitch available, trigger emergency preparation
+      if (error.message.includes('CACHE_MISS') || error.message.includes('STITCH_NOT_READY')) {
+        const systemState = this.getLiveAidState(userId);
+        const targetTubeId = tubeId || this.getCurrentLiveTube(systemState);
+        const nextStitchId = this.tripleHelixManager.getNextStitchId(userId, targetTubeId);
+        
+        const emergencyResult = await this.emergencyPreparation(userId, targetTubeId, nextStitchId);
+        return emergencyResult.readyStitch;
+      }
+      
+      throw new Error(`${LiveAidManagerErrorCode.BACKGROUND_PREPARATION_FAILED}: ${error.message}`);
+    }
+  }
+
+  /**
    * Handles system degradation scenarios
    */
   handleSystemDegradation(userId: string, degradationType: string): {

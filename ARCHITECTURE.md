@@ -444,3 +444,186 @@ The architecture is designed to be:
 - **Testable**: Well-defined interfaces and data flows
 
 This design enables the vision of "Netflix for Maths" - where learners simply press play and the system handles all the complexity of adaptive, personalized learning progression.
+
+## Admin Interface Integration
+
+### Role-Based Access Control Architecture
+
+The admin system integrates seamlessly with the main application through a three-tier permission model that ensures secure, auditable administrative access without disrupting the core learning experience.
+
+#### Admin Role Hierarchy
+
+```typescript
+type AdminRole = 'super_admin' | 'content_admin' | 'user_admin';
+
+const rolePermissions = {
+  super_admin: [
+    'read_stats', 'read_content', 'read_users', 'write_content', 
+    'write_users', 'delete_content', 'delete_users', 'manage_system'
+  ],
+  content_admin: [
+    'read_stats', 'read_content', 'read_users', 'write_content', 'delete_content'
+  ],
+  user_admin: [
+    'read_stats', 'read_users'
+  ]
+};
+```
+
+### Admin Interface Components
+
+#### 1. Admin Dashboard
+- **System Overview**: Real-time metrics (users, facts, stitches, sessions)
+- **System Health**: Database status, performance monitoring
+- **Recent Activity**: Admin actions, user registrations, content changes
+- **Quick Actions**: Direct access to management functions
+
+#### 2. Content Management
+- **Facts Manager**: CRUD operations for mathematical facts
+- **Stitches Manager**: Learning progression recipe definitions
+- **Tube Positions**: Default learning path configuration
+- **Bulk Operations**: Import/export, batch content updates
+
+#### 3. User Management  
+- **User Overview**: Search, filter, view user accounts
+- **Progress Tracking**: Individual learning progression analysis
+- **Account Management**: Profile editing, subscription management
+- **Session History**: Detailed learning analytics per user
+
+#### 4. Analytics & Reporting
+- **Learning Metrics**: FTC rates, completion statistics, progress velocity
+- **Content Performance**: Stitch effectiveness, boundary level analysis
+- **User Engagement**: Session patterns, retention analytics
+- **System Performance**: Response times, error rates, usage metrics
+
+### Admin Integration Flow
+
+```mermaid
+graph TD
+    A[User Authentication] --> B{Check Admin Status}
+    B -->|Is Admin| C[Show Admin Entry Point]
+    B -->|Regular User| D[Hide Admin Features]
+    C --> E[User Clicks Admin Access]
+    E --> F[Verify Permissions]
+    F --> G[Generate Admin Session Token]
+    G --> H[Open Admin Interface]
+    H --> I[Admin Work Session]
+    I --> J[Return to Main App]
+    J --> K[Clear Admin Session State]
+```
+
+### Security Architecture
+
+#### Manual Admin Creation Only
+Admin users can **only** be created manually through direct database access, ensuring complete security control:
+
+```sql
+-- Example: Create super admin (replace with actual user ID)
+INSERT INTO admin_users (
+  user_id, role, permissions, created_by, notes
+) VALUES (
+  '11111111-1111-1111-1111-111111111111',
+  'super_admin',
+  '["read_stats","read_content","read_users","write_content","write_users","delete_content","delete_users","manage_system"]'::jsonb,
+  'system',
+  'Initial super admin created during setup'
+);
+```
+
+#### Comprehensive Audit Trail
+All admin actions are automatically logged for compliance and security:
+
+```typescript
+interface AdminActivityLog {
+  admin_user_id: string;
+  action: 'view_dashboard' | 'edit_user' | 'create_content' | 'delete_content';
+  target_type?: 'user' | 'fact' | 'stitch' | 'system';
+  target_id?: string;
+  details: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  timestamp: Date;
+}
+```
+
+### Admin Database Schema Extensions
+
+#### admin_users Table
+```sql
+CREATE TABLE admin_users (
+  user_id UUID PRIMARY KEY REFERENCES app_users(id),
+  role VARCHAR(50) NOT NULL CHECK (role IN ('super_admin', 'content_admin', 'user_admin')),
+  permissions JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  created_by UUID NOT NULL REFERENCES app_users(id),
+  last_admin_activity TIMESTAMP WITH TIME ZONE NULL,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  notes TEXT NULL
+);
+```
+
+#### admin_activity_log Table
+```sql
+CREATE TABLE admin_activity_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_user_id UUID NOT NULL REFERENCES admin_users(user_id),
+  action VARCHAR(100) NOT NULL,
+  target_type VARCHAR(50) NULL,
+  target_id VARCHAR(255) NULL,
+  details JSONB NOT NULL DEFAULT '{}',
+  ip_address INET NULL,
+  user_agent TEXT NULL,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+```
+
+### Admin API Architecture
+
+The admin interface communicates with the backend through secure, permission-controlled API endpoints:
+
+```typescript
+interface AdminApiRoutes {
+  '/api/admin/stats': SystemStats;           // Dashboard metrics
+  '/api/admin/users': AdminUserData[];       // User management  
+  '/api/admin/facts': MathematicalFact[];    // Content management
+  '/api/admin/stitches': StitchDefinition[]; // Learning progressions
+  '/api/admin/analytics': AnalyticsData;     // Comprehensive reporting
+}
+
+interface AdminApiSecurity {
+  authentication: 'Bearer JWT token with admin claims';
+  authorization: 'Permission-based access control per endpoint';
+  audit_logging: 'All requests logged with user context';
+  rate_limiting: 'Protection against abuse and automated attacks';
+}
+```
+
+### Performance & Integration Considerations
+
+#### Minimal Impact on Core Experience
+- Admin features load separately from main application
+- No impact on question generation or user session performance
+- Admin API calls isolated from learning content delivery
+- Cache separation between admin and user-facing data
+
+#### Seamless User Experience Integration
+- Admin entry point appears conditionally in main navigation
+- Smooth transitions between admin interface and main app
+- Preserved user session context during admin activities
+- Consistent design language with main application
+
+### Testing Strategy for Admin Features
+
+#### Security Testing
+1. **Access Control**: Verify permission enforcement at all levels
+2. **Session Management**: Test admin session timeouts and cleanup
+3. **Audit Logging**: Ensure all admin actions are properly recorded
+4. **Manual Creation**: Verify admin users can only be created manually
+
+#### Integration Testing
+1. **UI Integration**: Admin entry points show/hide correctly
+2. **Navigation Flow**: Smooth transitions between admin and main app
+3. **Data Consistency**: Admin changes reflect immediately in main app
+4. **Performance Impact**: Admin usage doesn't affect core user experience
+
+This integrated admin architecture ensures that Zenjin Maths can be professionally managed and maintained while preserving the seamless, zero-decision-fatigue learning experience that defines the platform's core value proposition.

@@ -4,44 +4,61 @@
  * Module: UserInterface
  */
 
+import { undefined } from './undefined';
+
 /**
- * 
-    Defines the contract for the ThemeManager component that manages the visual theme of the application, including colors, animations, and styling.
-  
+ * Defines the contract for the ThemeManager component that manages the visual theme of the application, including colors, animations, and styling.
  */
 /**
  * ThemeColors
  */
 export interface ThemeColors {
-  primary: string; // Primary color (hex code)
-  secondary: string; // Secondary color (hex code)
-  background: string; // Background color (hex code)
-  text: string; // Text color (hex code)
-  accent?: string; // Accent color (hex code)
-  success?: string; // Success color (hex code)
-  error?: string; // Error color (hex code)
-  neutral?: string; // Neutral color (hex code)
+  /** Primary color (hex code) */
+  primary: string;
+  /** Secondary color (hex code) */
+  secondary: string;
+  /** Background color (hex code) */
+  background: string;
+  /** Text color (hex code) */
+  text: string;
+  /** Accent color (hex code) */
+  accent?: string;
+  /** Success color (hex code) */
+  success?: string;
+  /** Error color (hex code) */
+  error?: string;
+  /** Neutral color (hex code) */
+  neutral?: string;
 }
 
 /**
  * ThemeAnimation
  */
 export interface ThemeAnimation {
-  enabled: boolean; // Whether animations are enabled
-  speed?: number; // Animation speed multiplier (1.0 is normal)
-  bubblesDensity?: number; // Density of background bubbles animation
-  bubblesSpeed?: number; // Speed of background bubbles animation
+  /** Whether animations are enabled */
+  enabled: boolean;
+  /** Animation speed multiplier (1.0 is normal) */
+  speed?: number;
+  /** Density of background bubbles animation */
+  bubblesDensity?: number;
+  /** Speed of background bubbles animation */
+  bubblesSpeed?: number;
 }
 
 /**
  * ThemeConfig
  */
 export interface ThemeConfig {
-  colors: ThemeColors; // Theme color configuration
-  animation: ThemeAnimation; // Theme animation configuration
-  fontFamily?: string; // Primary font family
-  borderRadius?: number; // Border radius for UI elements in pixels
-  spacing?: number; // Base spacing unit in pixels
+  /** Theme color configuration */
+  colors: ThemeColors;
+  /** Theme animation configuration */
+  animation: ThemeAnimation;
+  /** Primary font family */
+  fontFamily?: string;
+  /** Border radius for UI elements in pixels */
+  borderRadius?: number;
+  /** Base spacing unit in pixels */
+  spacing?: number;
 }
 
 /**
@@ -56,7 +73,6 @@ export enum ThemeManagerErrorCode {
   ANIMATION_START_FAILED = 'ANIMATION_START_FAILED',
   ANIMATION_STOP_FAILED = 'ANIMATION_STOP_FAILED',
   NO_ACTIVE_ANIMATION = 'NO_ACTIVE_ANIMATION',
-  NO_ACTIVE_THEME = 'NO_ACTIVE_THEME',
 }
 
 /**
@@ -94,7 +110,7 @@ export interface ThemeManagerInterface {
    * @returns Whether the animation was successfully started
    * @throws ANIMATION_START_FAILED if Failed to start the animation
    */
-  startBackgroundAnimation(options?: { density?: number; speed?: number }): boolean;
+  startBackgroundAnimation(options?: Record<string, any>): boolean;
 
   /**
    * Stops the background bubbles animation

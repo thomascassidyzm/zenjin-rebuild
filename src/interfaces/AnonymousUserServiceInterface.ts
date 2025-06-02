@@ -1,26 +1,27 @@
 /**
- * Anonymous User Service Interface
- * Generated from AnonymousUserServiceInterface.apml
- * 
- * APML-Compliant service adapter for anonymous user creation
+ * AnonymousUserServiceInterface.ts
+ * Generated from APML Interface Definition
+ * Module: Authentication
  */
 
-export type ServiceMode = 'Online' | 'Offline' | 'Hybrid';
+import { UserApplicationState } from './UserApplicationState';
+import { AuthSession } from './AuthSession';
 
-export type ErrorCodes = 
-  | 'SERVICE_UNAVAILABLE' 
-  | 'DATABASE_ERROR' 
-  | 'USER_CREATION_FAILED'
-  | 'STATE_INITIALIZATION_FAILED' 
-  | 'TOKEN_GENERATION_FAILED'
-  | 'OFFLINE_STORAGE_FAILED' 
-  | 'VALIDATION_FAILED';
+/**
+ * Defines contract for anonymous user creation services with multiple implementation strategies.
+ * Enables seamless switching between online backend services and offline local fallbacks.
+ */
+/**
+ * Service operation mode for anonymous user creation
+ */
+export interface ServiceMode {
+}
 
 export interface AnonymousUser {
   id: string;
   anonymousId: string;
   displayName: string;
-  userType: 'anonymous';
+  userType: string;
   subscriptionTier: string;
   isLocal: boolean;
   expiresAt?: string;
@@ -29,7 +30,7 @@ export interface AnonymousUser {
 
 export interface AnonymousSession {
   accessToken: string;
-  userType: 'anonymous';
+  userType: string;
   isLocal: boolean;
   expiresAt?: number;
 }
@@ -45,10 +46,12 @@ export interface AnonymousUserCreationResult {
   success: boolean;
   user?: AnonymousUser;
   session?: AnonymousSession;
-  initialState?: any; // UserApplicationState type to be imported
+  initialState?: UserApplicationState;
+  /** Indicates which mode was used */
   mode: ServiceMode;
   error?: string;
-  errorCode?: ErrorCodes;
+  errorCode?: string;
+  /** True if offline mode was used */
   isOffline: boolean;
 }
 
@@ -68,22 +71,17 @@ export interface ServiceStatus {
 }
 
 /**
- * Anonymous User Service Interface Contract
- * Defines service adapter pattern for external anonymous user creation
+ * Error codes for AnonymousUserServiceInterface
  */
-export interface AnonymousUserServiceInterface {
-  /**
-   * Create new anonymous user with session
-   */
-  createAnonymousUser(request: AnonymousUserCreationRequest): Promise<AnonymousUserCreationResult>;
-  
-  /**
-   * Validate existing anonymous session token
-   */
-  validateAnonymousSession(token: string): Promise<SessionValidationResult>;
-  
-  /**
-   * Check current service availability and mode
-   */
-  getServiceStatus(): ServiceStatus;
+export enum AnonymousUserServiceErrorCode {
+  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+  DATABASE_ERROR = 'DATABASE_ERROR',
+  USER_CREATION_FAILED = 'USER_CREATION_FAILED',
+  STATE_INITIALIZATION_FAILED = 'STATE_INITIALIZATION_FAILED',
+  TOKEN_GENERATION_FAILED = 'TOKEN_GENERATION_FAILED',
+  OFFLINE_STORAGE_FAILED = 'OFFLINE_STORAGE_FAILED',
+  VALIDATION_FAILED = 'VALIDATION_FAILED',
 }
+
+// Export default interface
+export default AnonymousUserServiceInterface;

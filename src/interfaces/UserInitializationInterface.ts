@@ -1,118 +1,101 @@
 /**
  * UserInitializationInterface.ts
- * TypeScript implementation of UserInitializationInterface.apml
- * Generated following APML-to-TypeScript bridge patterns
+ * Generated from APML Interface Definition
+ * Module: BackendServices
  */
 
-// Data Structures
-export interface UserInitializationResult {
-  success: boolean;
-  user: UserRecord | null;
-  userState: UserStateRecord | null;
-  error: string | null;
-  errorCode: string | null;
-}
+import { UserRecord } from './UserRecord';
+import { UserStateRecord } from './UserStateRecord';
+import { TripleHelixState } from './TripleHelixState';
+import { ProgressMetrics } from './ProgressMetrics';
 
-export interface UserExistenceResult {
-  exists: boolean;
-  requiresInitialization: boolean;
-  user: UserRecord | null;
-  error: string | null;
-}
-
-export interface UserInitializationStatus {
-  userExists: boolean;
-  userStateExists: boolean;
-  isFullyInitialized: boolean;
-  missingComponents: string[];
+/**
+ * Define interface contracts for initializing new users in the database after authentication.
+ * Following External Service Integration Protocol for backend user creation.
+ */
+/**
+ * Type of user account
+ */
+export interface UserType {
 }
 
 export interface UserRecord {
+  /** User's unique identifier */
   id: string;
+  /** User's email address */
   email: string;
+  /** User's display name */
   displayName: string;
-  userType: 'registered' | 'anonymous';
+  /** Type of user account */
+  userType: UserType;
+  /** User's subscription level */
   subscriptionTier: string;
+  /** ISO timestamp of record creation */
   createdAt: string;
 }
 
 export interface UserStateRecord {
+  /** Associated user identifier */
   userId: string;
+  /** User's learning positions */
   stitchPositions: Record<string, any>;
+  /** User's Triple Helix progress */
   tripleHelixState: TripleHelixState;
+  /** Spaced repetition data */
   spacedRepetitionState: Record<string, any>;
+  /** User's progress statistics */
   progressMetrics: ProgressMetrics;
+  /** State version for optimistic locking */
   version: number;
+  /** ISO timestamp of last sync */
   lastSyncTime: string;
 }
 
-// Supporting types
-export interface TripleHelixState {
-  currentTube: number;
-  activeSessions: any[];
-  completedGroupings: Record<string, any>;
-  sessionProgress: Record<string, any>;
+export interface UserInitializationResult {
+  /** Whether initialization completed successfully */
+  success: boolean;
+  /** Created user record or null if failed */
+  user?: UserRecord;
+  /** Created user state record or null if failed */
+  userState?: UserStateRecord;
+  /** Error message if initialization failed */
+  error?: string;
+  /** Error code for programmatic handling */
+  errorCode?: string;
 }
 
-export interface ProgressMetrics {
-  totalStitchesCompleted: number;
-  totalTimeSpent: number;
-  currentStreak: number;
-  longestStreak: number;
-  averageAccuracy: number;
+export interface UserExistenceResult {
+  /** Whether user exists in database */
+  exists: boolean;
+  /** Whether user needs to be created */
+  requiresInitialization: boolean;
+  /** User record if exists */
+  user?: UserRecord;
+  /** Error message if check failed */
+  error?: string;
 }
 
-// Error codes enumeration
+export interface UserInitializationStatus {
+  /** User record exists in database */
+  userExists: boolean;
+  /** User state record exists in database */
+  userStateExists: boolean;
+  /** Both user and state records exist */
+  isFullyInitialized: boolean;
+  /** List of missing components */
+  missingComponents: string[];
+}
+
+/**
+ * Error codes for UserInitializationInterface
+ */
 export enum UserInitializationErrorCode {
   USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
   AUTHENTICATION_FAILED = 'AUTHENTICATION_FAILED',
   PERMISSION_DENIED = 'PERMISSION_DENIED',
   DATABASE_ERROR = 'DATABASE_ERROR',
-  VALIDATION_ERROR = 'VALIDATION_ERROR'
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
 }
 
-// Service adapter interface contract
-export interface UserInitializationServiceInterface {
-  /**
-   * Creates complete user record with initial state in database
-   */
-  initializeNewUser(
-    userId: string,
-    email: string,
-    displayName?: string,
-    userType?: 'registered' | 'anonymous'
-  ): Promise<UserInitializationResult>;
-
-  /**
-   * Verifies user exists in database, creates if missing
-   */
-  ensureUserExists(
-    userId: string,
-    accessToken: string
-  ): Promise<UserExistenceResult>;
-
-  /**
-   * Checks current initialization status without side effects
-   */
-  getUserInitializationStatus(
-    userId: string
-  ): Promise<UserInitializationStatus>;
-}
-
-// APML-compliant service adapter requirements
-export interface UserInitializationAdapterRequirements {
-  // Must isolate external service behavior from application logic
-  isolateServiceBehavior: boolean;
-  
-  // Must provide consistent interface regardless of backend implementation
-  consistentInterface: boolean;
-  
-  // Must handle all documented error states gracefully
-  gracefulErrorHandling: boolean;
-  
-  // Must support offline/online mode detection
-  offlineOnlineSupport: boolean;
-  
-  // Must provide immediate feedback on operation status
-  immediateFeedback: boolean;
-}
+// Export default interface
+export default UserInitializationInterface;
