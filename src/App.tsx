@@ -832,6 +832,16 @@ const AppContent: React.FC = () => {
   }, []);
 
   const handleNavigate = (page: string) => {
+    // If we're in ACTIVE_LEARNING state, exit the learning session first
+    if (authToPlayerState === 'ACTIVE_LEARNING') {
+      console.log('🚪 Exiting learning session to navigate to:', page);
+      // Reset to AUTH_SUCCESS state to clear authToPlayerContent and enable normal navigation
+      setAuthToPlayerState('AUTH_SUCCESS');
+      // Clear any player content
+      setPlayerContent(null);
+      setSessionData(null);
+    }
+    
     setCurrentPage(page);
   };
 
