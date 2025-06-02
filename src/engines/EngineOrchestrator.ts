@@ -240,6 +240,13 @@ export class EngineOrchestrator {
   }
   
   /**
+   * Initialize a user if they don't exist
+   */
+  async initializeUser(userId: string): Promise<void> {
+    await this.tripleHelixManager.initializeUser(userId);
+  }
+
+  /**
    * Generate a question for a user using tube-based architecture
    */
   async generateQuestion(userId: string = 'default-user'): Promise<PlayerCardQuestion> {

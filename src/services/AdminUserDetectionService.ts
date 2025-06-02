@@ -9,7 +9,7 @@
  */
 
 import { AdminAccess, User } from '../interfaces/UserSessionManagerInterface';
-import { BackendServiceOrchestrator } from './BackendServiceOrchestrator';
+import { createClient } from '@supabase/supabase-js';
 
 export interface AdminStatusResult {
   isAdmin: boolean;
@@ -30,12 +30,21 @@ export interface EnhancedAuthResult {
 }
 
 export class AdminUserDetectionService {
-  private backendOrchestrator: BackendServiceOrchestrator;
+  private supabase: any;
   private adminStatusCache: Map<string, { data: AdminStatusResult; timestamp: number }>;
   private readonly CACHE_TTL = 15 * 60 * 1000; // 15 minutes as per APML specs
 
   constructor() {
-    this.backendOrchestrator = new BackendServiceOrchestrator();
+    // Initialize Supabase client
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('⚠️ Supabase credentials not found in environment');
+    } else {
+      this.supabase = createClient(supabaseUrl, supabaseKey);
+    }
+    
     this.adminStatusCache = new Map();
   }
 
@@ -103,18 +112,23 @@ export class AdminUserDetectionService {
     }
 
     try {
-      // Query admin_users table
-      const response = await this.backendOrchestrator.query({
-        table: 'admin_users',
-        select: 'role, permissions, last_admin_activity, is_active',
-        filter: { user_id: userId, is_active: true }
-      });
-
-      if (!response.success) {
-        throw new Error(`Database query failed: ${response.error}`);
+      if (!this.supabase) {
+        throw new Error('Supabase client not initialized');
       }
 
-      const adminUser = response.data?.[0];
+      // Query admin_users table
+      const { data, error } = await this.supabase
+        .from('admin_users')
+        .select('role, permissions, last_admin_activity, is_active')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+        throw new Error(`Database query failed: ${error.message}`);
+      }
+
+      const adminUser = data;
       const result: AdminStatusResult = {
         isAdmin: !!adminUser,
         adminData: adminUser ? {

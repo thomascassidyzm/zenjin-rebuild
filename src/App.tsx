@@ -20,6 +20,7 @@ import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
 import { authToPlayerEventBus, AuthToPlayerState } from './services/AuthToPlayerEventBus';
 import AdminEntryPoint from './components/AdminEntryPoint';
+import AdminRouter from './components/Admin/AdminRouter';
 import BuildBadge from './components/BuildBadge';
 import './App.css';
 
@@ -652,7 +653,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
             {/* Testing Buttons */}
             <div className="mt-4 text-center flex gap-2 justify-center">
               <button
-                onClick={() => {
+                onClick={async () => {
                   // Simulate answering all 20 questions correctly
                   for (let i = 0; i < 20; i++) {
                     const questionId = questions[i]?.id;
@@ -662,8 +663,14 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
                   }
                   setFtcPoints(20 * 3); // 3 points per question
                   setTotalPoints(60);
-                  setSessionScore({ correct: 20, total: 20 });
-                  setSessionComplete(true);
+                  const finalScore = { correct: 20, total: 20 };
+                  setSessionScore(finalScore);
+                  
+                  // Handle completion to rotate tubes
+                  await handleSessionCompletion(finalScore);
+                  
+                  // Load next stitch automatically without showing summary
+                  await resetSession();
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded transition-colors"
               >
@@ -821,9 +828,7 @@ const AppContent: React.FC = () => {
   // Handle admin interface access
   const handleAdminClick = useCallback(() => {
     console.log('🔧 Admin interface access requested');
-    // TODO: Implement admin interface navigation
-    // For now, just log that admin access was requested
-    alert('Admin interface coming soon! Admin status detected.');
+    setCurrentPage('admin');
   }, []);
 
   // Handle user authentication choice
@@ -1097,6 +1102,15 @@ const AppContent: React.FC = () => {
       
       case 'project-status':
         return <ProjectStatusDashboard />;
+      
+      case 'admin':
+        // Check if user has admin access before showing admin interface
+        if (sessionState.user?.metadata?.admin_access?.is_admin) {
+          return <AdminRouter />;
+        } else {
+          console.warn('⚠️ Non-admin user attempted to access admin interface');
+          return <Navigate to="/dashboard" replace />;
+        }
       
       default:
         return <Navigate to="/dashboard" replace />;

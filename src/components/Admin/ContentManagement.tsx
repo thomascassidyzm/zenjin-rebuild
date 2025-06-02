@@ -49,6 +49,8 @@ export const ContentManagement: React.FC<ContentManagementProps> = ({ onBack }) 
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOperation, setSelectedOperation] = useState('all');
+  const [editingFact, setEditingFact] = useState<Fact | null>(null);
+  const [showFactForm, setShowFactForm] = useState(false);
 
   useEffect(() => {
     loadContent();
@@ -58,43 +60,17 @@ export const ContentManagement: React.FC<ContentManagementProps> = ({ onBack }) 
     setLoading(true);
     try {
       if (activeTab === 'facts') {
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/admin/facts');
-        // const data = await response.json();
+        // Use actual API call
+        const response = await fetch('/api/admin/facts');
+        const data = await response.json();
         
-        // Mock data for now
-        setFacts([
-          {
-            id: 'double-5',
-            statement: 'Double 5',
-            answer: '10',
-            operation_type: 'double',
-            operand1: 5,
-            operand2: 2,
-            difficulty_level: 1,
-            metadata: { tags: ['doubling', 'fundamental'] }
-          },
-          {
-            id: 'half-20',
-            statement: 'Half of 20',
-            answer: '10',
-            operation_type: 'half',
-            operand1: 20,
-            operand2: 2,
-            difficulty_level: 2,
-            metadata: { tags: ['halving', 'fundamental'] }
-          },
-          {
-            id: 'mult-6-4',
-            statement: '6 × 4',
-            answer: '24',
-            operation_type: 'multiplication',
-            operand1: 6,
-            operand2: 4,
-            difficulty_level: 3,
-            metadata: { tags: ['times-table'] }
-          }
-        ]);
+        if (response.ok) {
+          setFacts(data);
+        } else {
+          console.error('Failed to load facts:', data.error);
+          // Fallback to empty array on error
+          setFacts([]);
+        }
       } else if (activeTab === 'stitches') {
         // Mock stitches data
         setStitches([
@@ -132,6 +108,78 @@ export const ContentManagement: React.FC<ContentManagementProps> = ({ onBack }) 
     return matchesSearch && matchesOperation;
   });
 
+  const handleCreateFact = async (factData: Omit<Fact, 'id'>) => {
+    try {
+      const response = await fetch('/api/admin/facts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(factData)
+      });
+      
+      if (response.ok) {
+        const newFact = await response.json();
+        setFacts([...facts, newFact]);
+        setShowFactForm(false);
+        console.log('✅ Fact created successfully');
+      } else {
+        const error = await response.json();
+        console.error('Failed to create fact:', error);
+        alert('Failed to create fact: ' + error.error);
+      }
+    } catch (error) {
+      console.error('Error creating fact:', error);
+      alert('Error creating fact');
+    }
+  };
+
+  const handleUpdateFact = async (id: string, factData: Partial<Fact>) => {
+    try {
+      const response = await fetch('/api/admin/facts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...factData })
+      });
+      
+      if (response.ok) {
+        const updatedFact = await response.json();
+        setFacts(facts.map(f => f.id === id ? updatedFact : f));
+        setEditingFact(null);
+        console.log('✅ Fact updated successfully');
+      } else {
+        const error = await response.json();
+        console.error('Failed to update fact:', error);
+        alert('Failed to update fact: ' + error.error);
+      }
+    } catch (error) {
+      console.error('Error updating fact:', error);
+      alert('Error updating fact');
+    }
+  };
+
+  const handleDeleteFact = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this fact?')) return;
+    
+    try {
+      const response = await fetch('/api/admin/facts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      
+      if (response.ok) {
+        setFacts(facts.filter(f => f.id !== id));
+        console.log('✅ Fact deleted successfully');
+      } else {
+        const error = await response.json();
+        console.error('Failed to delete fact:', error);
+        alert('Failed to delete fact: ' + error.error);
+      }
+    } catch (error) {
+      console.error('Error deleting fact:', error);
+      alert('Error deleting fact');
+    }
+  };
+
   const operationTypes = ['all', 'double', 'half', 'multiplication', 'addition', 'subtraction', 'division'];
 
   const renderFactsTab = () => (
@@ -151,7 +199,10 @@ export const ContentManagement: React.FC<ContentManagementProps> = ({ onBack }) 
             <Download className="w-4 h-4 mr-2" />
             Export Facts
           </button>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+          <button 
+            onClick={() => setShowFactForm(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Fact
           </button>
@@ -235,13 +286,24 @@ export const ContentManagement: React.FC<ContentManagementProps> = ({ onBack }) 
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
-                    <button className="text-blue-600 hover:text-blue-900">
+                    <button 
+                      onClick={() => {
+                        alert(`Fact Details:\n\nID: ${fact.id}\nStatement: ${fact.statement}\nAnswer: ${fact.answer}\nOperation: ${fact.operation_type}\nDifficulty: ${fact.difficulty_level}\n\nOperands: ${fact.operand1} and ${fact.operand2}`);
+                      }}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="text-indigo-600 hover:text-indigo-900">
+                    <button 
+                      onClick={() => setEditingFact(fact)}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
                       <Edit3 className="w-4 h-4" />
                     </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button 
+                      onClick={() => handleDeleteFact(fact.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -251,6 +313,125 @@ export const ContentManagement: React.FC<ContentManagementProps> = ({ onBack }) 
           </tbody>
         </table>
       </div>
+
+      {/* Create/Edit Fact Modal */}
+      {(showFactForm || editingFact) && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium mb-4">
+              {editingFact ? 'Edit Fact' : 'Create New Fact'}
+            </h3>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const factData = {
+                  statement: formData.get('statement') as string,
+                  answer: formData.get('answer') as string,
+                  operation_type: formData.get('operation_type') as string,
+                  operand1: Number(formData.get('operand1')),
+                  operand2: Number(formData.get('operand2')),
+                  difficulty_level: Number(formData.get('difficulty_level')),
+                  metadata: {}
+                };
+                
+                if (editingFact) {
+                  handleUpdateFact(editingFact.id, factData);
+                } else {
+                  handleCreateFact(factData);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Statement</label>
+                <input
+                  name="statement"
+                  type="text"
+                  defaultValue={editingFact?.statement}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Answer</label>
+                <input
+                  name="answer"
+                  type="text"
+                  defaultValue={editingFact?.answer}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Operation Type</label>
+                <select
+                  name="operation_type"
+                  defaultValue={editingFact?.operation_type || 'addition'}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                >
+                  <option value="addition">Addition</option>
+                  <option value="subtraction">Subtraction</option>
+                  <option value="multiplication">Multiplication</option>
+                  <option value="division">Division</option>
+                  <option value="double">Double</option>
+                  <option value="half">Half</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Operand 1</label>
+                  <input
+                    name="operand1"
+                    type="number"
+                    defaultValue={editingFact?.operand1 || 0}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Operand 2</label>
+                  <input
+                    name="operand2"
+                    type="number"
+                    defaultValue={editingFact?.operand2 || 0}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Difficulty Level</label>
+                <input
+                  name="difficulty_level"
+                  type="number"
+                  min="1"
+                  max="5"
+                  defaultValue={editingFact?.difficulty_level || 1}
+                  required
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFactForm(false);
+                    setEditingFact(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  {editingFact ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
