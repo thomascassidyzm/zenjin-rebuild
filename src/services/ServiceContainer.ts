@@ -282,7 +282,7 @@ export class ServiceContainer implements ServiceContainerInterface {
     }
   }
 
-  private createInstance<T>(factory: ServiceFactory<T>, dependencies: any[], context: DIContextInterface): T {
+  private createInstance<T>(factory: ServiceFactory<T>, dependencies: any[], context: DIContextInterface): T | Promise<T> {
     // Create mock resolver for factory
     const resolver: ServiceResolutionInterface = {
       resolve: <U>(serviceType: ServiceType) => this.resolveWithContext<U>(serviceType, context),
@@ -336,10 +336,7 @@ export class ServiceContainer implements ServiceContainerInterface {
    * Register default factories for all service types
    */
   private registerDefaultFactories(): void {
-    // Import actual service classes
-    const { SubscriptionManager } = require('../engines/SubscriptionManager/SubscriptionManager');
-    const { ContentGatingEngine } = require('../engines/ContentGatingEngine');
-    const { EngineOrchestrator } = require('../engines/EngineOrchestrator');
+    // Use ES6 dynamic imports instead of require() for browser compatibility
     
     // Register PaymentProcessor factory
     this.register('PaymentProcessor', {
@@ -350,8 +347,8 @@ export class ServiceContainer implements ServiceContainerInterface {
 
     // Register UserSessionManager factory  
     this.register('UserSessionManager', {
-      create: () => {
-        const { userSessionManager } = require('../services/UserSessionManager');
+      create: async () => {
+        const { userSessionManager } = await import('../services/UserSessionManager');
         return userSessionManager;
       },
       getDependencies: () => [],
@@ -360,7 +357,8 @@ export class ServiceContainer implements ServiceContainerInterface {
 
     // Register SubscriptionManager factory
     this.register('SubscriptionManager', {
-      create: (resolver) => {
+      create: async (resolver) => {
+        const { SubscriptionManager } = await import('../engines/SubscriptionManager/SubscriptionManager');
         const paymentProcessor = resolver.resolve('PaymentProcessor');
         return new SubscriptionManager(paymentProcessor);
       },
@@ -370,8 +368,8 @@ export class ServiceContainer implements ServiceContainerInterface {
 
     // Register LearningEngineService factory
     this.register('LearningEngineService', {
-      create: (resolver) => {
-        const { learningEngineService } = require('../services/LearningEngineService');
+      create: async (resolver) => {
+        const { learningEngineService } = await import('../services/LearningEngineService');
         return learningEngineService;
       },
       getDependencies: () => ['UserSessionManager'],
@@ -380,7 +378,8 @@ export class ServiceContainer implements ServiceContainerInterface {
 
     // Register ContentGatingEngine factory
     this.register('ContentGatingEngine', {
-      create: (resolver) => {
+      create: async (resolver) => {
+        const { ContentGatingEngine } = await import('../engines/ContentGatingEngine');
         const subscriptionManager = resolver.resolve('SubscriptionManager');
         return new ContentGatingEngine(subscriptionManager);
       },
@@ -390,7 +389,8 @@ export class ServiceContainer implements ServiceContainerInterface {
 
     // Register EngineOrchestrator factory
     this.register('EngineOrchestrator', {
-      create: (resolver) => {
+      create: async (resolver) => {
+        const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
         // For now, create with traditional approach
         // Later we'll update EngineOrchestrator to accept injected dependencies
         return new EngineOrchestrator(false); // disable LiveAid for now

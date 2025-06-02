@@ -718,6 +718,14 @@ export class SupabaseAuth {
   }
 
   /**
+   * Get admin client for elevated database operations
+   */
+  async getAdminClient(): Promise<SupabaseClient | null> {
+    await this.ensureInitialized();
+    return this.adminSupabase;
+  }
+
+  /**
    * Transform Supabase user to our user format
    */
   private transformSupabaseUser(user: User): any {

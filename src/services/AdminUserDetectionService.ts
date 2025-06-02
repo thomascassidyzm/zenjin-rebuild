@@ -9,7 +9,7 @@
  */
 
 import { AdminAccess, User } from '../interfaces/UserSessionManagerInterface';
-import { createClient } from '@supabase/supabase-js';
+import { backendServiceOrchestrator } from './BackendServiceOrchestrator';
 
 export interface AdminStatusResult {
   isAdmin: boolean;
@@ -30,21 +30,10 @@ export interface EnhancedAuthResult {
 }
 
 export class AdminUserDetectionService {
-  private supabase: any;
   private adminStatusCache: Map<string, { data: AdminStatusResult; timestamp: number }>;
   private readonly CACHE_TTL = 15 * 60 * 1000; // 15 minutes as per APML specs
 
   constructor() {
-    // Initialize Supabase client
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.warn('⚠️ Supabase credentials not found in environment');
-    } else {
-      this.supabase = createClient(supabaseUrl, supabaseKey);
-    }
-    
     this.adminStatusCache = new Map();
   }
 
@@ -112,12 +101,15 @@ export class AdminUserDetectionService {
     }
 
     try {
-      if (!this.supabase) {
-        throw new Error('Supabase client not initialized');
+      // Use admin client for elevated permissions to query admin_users table
+      const authService = backendServiceOrchestrator.getAuthService();
+      const adminClient = await authService.getAdminClient();
+      if (!adminClient) {
+        throw new Error('Admin Supabase client not available');
       }
 
-      // Query admin_users table
-      const { data, error } = await this.supabase
+      // Query admin_users table with admin privileges
+      const { data, error } = await adminClient
         .from('admin_users')
         .select('role, permissions, last_admin_activity, is_active')
         .eq('user_id', userId)

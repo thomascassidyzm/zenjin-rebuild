@@ -311,6 +311,13 @@ export class BackendServiceOrchestrator {
   }
 
   /**
+   * Get auth service instance for advanced operations
+   */
+  getAuthService(): SupabaseAuth {
+    return this.auth;
+  }
+
+  /**
    * Check the status of all backend services
    */
   getServiceStatus(): BackendServiceStatus {
