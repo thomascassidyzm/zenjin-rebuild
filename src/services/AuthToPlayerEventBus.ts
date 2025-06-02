@@ -39,6 +39,7 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   private contentReady = false;
   private userStateInitializer: UserStateInitializer;
   private currentUserContext?: UserContext;
+  private isCreatingUser = false; // Guard against duplicate user creation
 
   constructor() {
     this.userStateInitializer = new UserStateInitializer();
@@ -369,11 +370,38 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
    * Simple approach - only called when needed
    */
   private async createPendingAnonymousUser(): Promise<void> {
+    // Guard against duplicate user creation
+    if (this.isCreatingUser) {
+      console.log('⚠️ Already creating user, skipping duplicate request');
+      return;
+    }
+    
+    // Check if user already exists (not pending)
+    if (this.currentUserContext?.userId && this.currentUserContext.userId !== 'pending-creation') {
+      console.log('✅ User already exists:', this.currentUserContext.userId);
+      return;
+    }
+    
+    this.isCreatingUser = true;
+    
     try {
       console.log('🔄 Creating anonymous user during loading...');
       
       // Import UserSessionManager to avoid circular dependencies
       const { userSessionManager } = await import('./UserSessionManager');
+      
+      // Check if user already exists in session
+      const existingState = userSessionManager.state;
+      if (existingState.user && existingState.isAuthenticated) {
+        console.log('✅ User already exists in session:', existingState.user.id);
+        // Update context with existing user
+        this.currentUserContext = {
+          userType: 'anonymous',
+          userId: existingState.user.anonymousId || existingState.user.id,
+          userName: existingState.user.displayName
+        };
+        return;
+      }
       
       // Create the anonymous user
       await userSessionManager.createAnonymousUser();
@@ -392,6 +420,8 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     } catch (error) {
       console.error('❌ Failed to create anonymous user during loading:', error);
       // Continue with pending context - learning will work with offline fallback
+    } finally {
+      this.isCreatingUser = false;
     }
   }
 

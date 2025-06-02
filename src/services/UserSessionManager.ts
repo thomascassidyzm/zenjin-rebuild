@@ -57,6 +57,7 @@ import { configurationService } from './ConfigurationService';
  */
 export class UserSessionManager extends SimpleEventEmitter implements UserSessionManagerInterface {
   private _state: UserSessionState;
+  private isCreatingAnonymousUser = false; // Guard against duplicate creation
 
   constructor() {
     super();
@@ -151,6 +152,19 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
    * Uses APML-compliant service adapter with proper fallback handling
    */
   async createAnonymousUser(deviceId?: string): Promise<boolean> {
+    // Guard against duplicate creation
+    if (this.isCreatingAnonymousUser) {
+      console.log('⚠️ Already creating anonymous user, ignoring duplicate request');
+      return false;
+    }
+    
+    // Check if already authenticated
+    if (this._state.isAuthenticated && this._state.user) {
+      console.log('✅ User already authenticated:', this._state.user.id);
+      return true;
+    }
+    
+    this.isCreatingAnonymousUser = true;
     this.updateState({ isLoading: true, error: null });
 
     try {
@@ -202,6 +216,8 @@ export class UserSessionManager extends SimpleEventEmitter implements UserSessio
         error: errorMessage 
       });
       return false;
+    } finally {
+      this.isCreatingAnonymousUser = false;
     }
   }
 
