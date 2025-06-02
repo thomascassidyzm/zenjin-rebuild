@@ -286,9 +286,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       hasInitialQuestion: !!initialQuestion,
       initialQuestionId: initialQuestion?.id,
       currentQuestionId: currentQuestion?.id,
-      shouldPresent: initialQuestion && initialQuestion.id !== currentQuestion?.id
+      shouldPresent: initialQuestion && (!currentQuestion || initialQuestion.id !== currentQuestion.id)
     });
-    if (initialQuestion && initialQuestion.id !== currentQuestion?.id) {
+    if (initialQuestion && (!currentQuestion || initialQuestion.id !== currentQuestion.id)) {
       presentQuestion(initialQuestion);
     }
   }, [initialQuestion, presentQuestion, currentQuestion]);
