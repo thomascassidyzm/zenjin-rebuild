@@ -1,8 +1,8 @@
 // src/App.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard/Dashboard';
-import PlayerCard from './components/PlayerCard/PlayerCard';
+import PlayerCard, { PlayerCardHandle } from './components/PlayerCard/PlayerCard';
 import { ProjectStatusDashboard } from './components/ProjectStatusDashboard';
 import LaunchInterface from './components/LaunchInterface';
 import LoadingInterface from './components/LoadingInterface';
@@ -204,6 +204,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [hasInitialized, setHasInitialized] = useState(false);
   
+  // Ref to PlayerCard for imperative control
+  const playerCardRef = useRef<PlayerCardHandle>(null);
+  
   // Proper game mechanics state
   const [ftcPoints, setFtcPoints] = useState(0); // First Time Correct points (3 per question)
   const [ecPoints, setEcPoints] = useState(0);   // Eventually Correct points
@@ -333,6 +336,17 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
       firstQuestionId: questions[0]?.id
     });
   }, [questions, currentQuestionIndex]);
+  
+  // Present question when it changes (APML proper flow)
+  useEffect(() => {
+    if (currentQuestion && playerCardRef.current) {
+      console.log('📝 Presenting question to PlayerCard:', currentQuestion.id);
+      const presented = playerCardRef.current.presentQuestion(currentQuestion);
+      if (!presented) {
+        console.error('❌ Failed to present question');
+      }
+    }
+  }, [currentQuestion]);
 
   const handleAnswerSelected = async (response: any) => {
     const currentQ = questions[currentQuestionIndex];
@@ -629,8 +643,8 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
         {currentQuestion ? (
           <div className="w-full max-w-md">
             <PlayerCard
+              ref={playerCardRef}
               key={currentQuestion.id}
-              initialQuestion={currentQuestion}
               onAnswerSelected={handleAnswerSelected}
               points={totalPoints}
             />

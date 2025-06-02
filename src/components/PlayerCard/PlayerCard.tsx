@@ -2,7 +2,7 @@
 // Core interactive component that presents questions with binary choices and provides feedback
 // based on distinction-based learning principles
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './playerCardAnimations.css';
 
@@ -30,6 +30,14 @@ interface PlayerCardProps {
   points?: number; // Current points to display
 }
 
+// Expose methods that parent can call
+export interface PlayerCardHandle {
+  presentQuestion: (question: Question, options?: PresentationOptions) => boolean;
+  handleResponse: (response: Response, feedbackOptions?: FeedbackOptions) => { processed: boolean; feedbackShown: boolean };
+  handleTimeout: (questionId: string) => { processed: boolean; feedbackShown: boolean };
+  reset: () => boolean;
+}
+
 /**
  * PlayerCard Component
  * 
@@ -37,11 +45,11 @@ interface PlayerCardProps {
  * mathematical questions with binary choices (one correct answer and one distractor)
  * and provides visual feedback based on user responses to reinforce distinction-based learning.
  */
-const PlayerCard: React.FC<PlayerCardProps> = ({ 
+const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({ 
   onAnswerSelected,
   initialQuestion,
   points = 0
-}) => {
+}, ref) => {
   // State for current question
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(initialQuestion || null);
   
@@ -280,18 +288,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
     }
   }, [currentQuestion, isInteractable, onAnswerSelected, handleResponse, attemptedQuestions]);
 
-  // Initialize with initial question if provided
-  useEffect(() => {
-    console.log('🎮 PlayerCard initialQuestion effect:', {
-      hasInitialQuestion: !!initialQuestion,
-      initialQuestionId: initialQuestion?.id,
-      currentQuestionId: currentQuestion?.id,
-      shouldPresent: initialQuestion && (!currentQuestion || initialQuestion.id !== currentQuestion.id)
-    });
-    if (initialQuestion && (!currentQuestion || initialQuestion.id !== currentQuestion.id)) {
-      presentQuestion(initialQuestion);
-    }
-  }, [initialQuestion, presentQuestion, currentQuestion]);
+  // Expose component methods via ref
+  useImperativeHandle(ref, () => ({
+    presentQuestion,
+    handleResponse,
+    handleTimeout,
+    reset
+  }), [presentQuestion, handleResponse, handleTimeout, reset]);
 
   // Clean up timeouts on unmount
   useEffect(() => {
@@ -479,7 +482,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PlayerCard.displayName = 'PlayerCard';
 
 export default PlayerCard;
 

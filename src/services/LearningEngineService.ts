@@ -689,17 +689,45 @@ export class LearningEngineService {
     config: SessionConfiguration
   ): Promise<Question[]> {
     try {
-      // Generate questions for the learning path concept
-      this.log(`Generating 20-question stitch for learning path: ${learningPathId}`);
+      // Generate questions using the EngineOrchestrator with proper user state
+      this.log(`Generating 20-question stitch for learning path: ${learningPathId} using EngineOrchestrator`);
       
-      // For now, use hard-coded first stitch for all users to establish working baseline
-      // TODO: Implement Live Aid Architecture integration after basic flow is validated
-      this.log(`Generating hard-coded first stitch for ${learningPathId} (Live Aid disabled for now)`);
-      return this.generateFirstStitchForNewUser(learningPathId);
+      // Import EngineOrchestrator dynamically to avoid circular dependencies
+      const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
+      const orchestrator = new EngineOrchestrator(true); // Enable Live Aid
+      
+      // Initialize user if needed (will use default tube positions if no state exists)
+      await orchestrator.initializeUser(userId);
+      
+      // Get the next stitch with real questions from the fact repository
+      const stitchData = await orchestrator.getNextStitch(userId);
+      
+      this.log(`Generated stitch ${stitchData.stitchId} with ${stitchData.questions.length} questions from fact repository`);
+      
+      // Convert PlayerCardQuestion[] to LearningEngineService Question[]
+      const questions: Question[] = stitchData.questions.map((q: any, index: number) => ({
+        id: q.id || `${stitchData.stitchId}-q${index + 1}-${Date.now()}`,
+        factId: q.factId,
+        questionText: q.text || q.questionText,
+        correctAnswer: q.correctAnswer,
+        distractors: [q.distractor], // Convert single distractor to array
+        boundaryLevel: q.boundaryLevel || 1,
+        difficulty: q.difficulty || 1,
+        metadata: {
+          learningPathId,
+          stitchId: stitchData.stitchId,
+          tubeId: stitchData.tubeId,
+          tubeName: stitchData.tubeName,
+          ...q.metadata
+        }
+      }));
+      
+      return questions;
       
     } catch (error) {
-      this.log(`Failed to generate stitch questions: ${error} - using hard-coded first stitch`);
-      // For any error, use the hard-coded first stitch (same for all new users)
+      this.log(`Failed to generate stitch questions via EngineOrchestrator: ${error}`);
+      // Fallback to hard-coded questions only if orchestrator fails
+      this.log(`Using hard-coded first stitch as emergency fallback`);
       return this.generateFirstStitchForNewUser(learningPathId);
     }
   }
