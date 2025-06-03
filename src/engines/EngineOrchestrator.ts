@@ -235,7 +235,12 @@ export class EngineOrchestrator {
     if (learningEngineService) {
       this.learningEngineService = learningEngineService;
     } else {
-      throw new Error('LearningEngineService is required');
+      // Temporary fallback for backward compatibility
+      // This will be removed once App.tsx is updated to use service container
+      console.warn('EngineOrchestrator created without LearningEngineService - using legacy singleton');
+      // Import the legacy singleton - this has circular dependency issues but works for backward compatibility
+      const { learningEngineService: legacyService } = require('../services/LearningEngineService');
+      this.learningEngineService = legacyService;
     }
     
     // Optional Live Aid Architecture initialization
@@ -910,5 +915,4 @@ export class EngineOrchestrator {
   }
 }
 
-// Create a singleton instance with optional Live Aid
-export const engineOrchestrator = new EngineOrchestrator(true); // Enable Live Aid for Netflix-like performance
+// Note: EngineOrchestrator should be retrieved from the service container, not created as a singleton

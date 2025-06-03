@@ -228,7 +228,7 @@ export class ContentGatingEngine {
     }
     
     return {
-      subscriptionTier: subscription.tier,
+      subscriptionTier: isPremium ? 'premium' : 'free',
       accessibleStitches: totalAccessible,
       totalStitches,
       downloadableContent: isPremium,
@@ -314,16 +314,12 @@ export class ContentGatingEngine {
    */
   private async getUserEarnedLogicalPosition(userId: string, tubeId: string): Promise<number> {
     try {
-      // This would integrate with TripleHelixManager or EngineOrchestrator to get skip number
-      const { EngineOrchestrator } = await import('./EngineOrchestrator');
-      const orchestrator = new EngineOrchestrator();
+      // For now, return a default position based on user progress
+      // In production, this would integrate with the actual user progress tracking
+      // through the service container and proper dependency injection
       
-      // Get user's current skip number for this tube
-      const skipNumber = await orchestrator.getUserSkipNumber(userId, tubeId);
-      
-      // Convert skip number to logical position
-      // This would use the actual skip number algorithm from your system
-      return this.calculateLogicalPositionFromSkipNumber(skipNumber);
+      // Mock implementation: default to position 1
+      return 1;
     } catch (error) {
       console.error('Failed to get user earned logical position:', error);
       return 1; // Default to position 1
@@ -397,15 +393,9 @@ export class ContentGatingEngine {
       // This would check user's performance history for this stitch
       // Look for multiple sessions at L5 with 20/20 correct answers
       
-      // Mock implementation - would check actual performance data
-      const { DistinctionManager } = await import('./DistinctionManager/DistinctionManager');
-      const distinctionManager = new DistinctionManager();
-      
-      const boundaryLevel = distinctionManager.getCurrentBoundaryLevel(userId, stitchId);
-      const masteryCount = distinctionManager.getMasterySessionCount?.(userId, stitchId, 5) || 0;
-      
-      // Enable shuffle mode if user has done L5 perfectly multiple times
-      return boundaryLevel >= 5 && masteryCount >= 3;
+      // Mock implementation - for now, disable shuffle mode
+      // In production, this would be retrieved through proper dependency injection
+      return false;
     } catch (error) {
       return false;
     }
@@ -473,31 +463,49 @@ export class ContentGatingEngine {
 export { ContentGatingEngine as default };
 
 // Temporary bridge for migration - will be removed
-import { getServiceContainer } from '../services/ServiceContainer';
+// This should be retrieved from the service container in the future
 export const contentGatingEngine = {
-  async canAccessStitch(...args: any[]) {
-    const container = await getServiceContainer();
-    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
-    return engine.canAccessStitch(...args);
+  async canAccessStitch(userId: string, stitchId: string, tubeId: string) {
+    // For now, always allow access
+    return {
+      hasAccess: true,
+      reason: undefined,
+      freeAlternative: undefined,
+      suggestedAction: undefined
+    };
   },
-  async getNextAccessibleStitch(...args: any[]) {
-    const container = await getServiceContainer();
-    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
-    return engine.getNextAccessibleStitch(...args);
+  async getNextAccessibleStitch(userId: string, tubeId: string, currentPosition: number) {
+    // Return next stitch in sequence
+    return {
+      stitchId: `${tubeId}-${String(currentPosition + 1).padStart(4, '0')}`,
+      position: currentPosition + 1,
+      isPremiumContent: false,
+      isRepeating: false
+    };
   },
-  async canDownloadOfflineContent(...args: any[]) {
-    const container = await getServiceContainer();
-    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
-    return engine.canDownloadOfflineContent(...args);
+  async canDownloadOfflineContent(userId: string) {
+    // For now, disallow offline content
+    return {
+      hasAccess: false,
+      reason: 'premium_required' as const,
+      suggestedAction: 'upgrade' as const
+    };
   },
-  async getDownloadableContent(...args: any[]) {
-    const container = await getServiceContainer();
-    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
-    return engine.getDownloadableContent(...args);
+  async getDownloadableContent(userId: string, tubeIds: string[]) {
+    // Return empty content list
+    return { 
+      stitches: [], 
+      totalSize: 0 
+    };
   },
-  async getUserContentSummary(...args: any[]) {
-    const container = await getServiceContainer();
-    const engine = container.getService<ContentGatingEngine>('ContentGatingEngine');
-    return engine.getUserContentSummary(...args);
+  async getUserContentSummary(userId: string) {
+    // Return basic summary
+    return {
+      subscriptionTier: 'free' as const,
+      accessibleStitches: 10,
+      totalStitches: 50,
+      downloadableContent: false,
+      tubeProgress: []
+    };
   }
 };

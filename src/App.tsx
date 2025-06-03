@@ -28,6 +28,7 @@ import SubscriptionSuccess from './components/SubscriptionSuccess';
 import SubscriptionCancelled from './components/SubscriptionCancelled';
 import ContentGatingPrompt from './components/ContentGatingPrompt';
 import OfflineContentManager from './components/OfflineContentManager';
+import UserSettings from './components/UserSettings';
 import { contentGatingEngine } from './engines/ContentGatingEngine';
 import { initializeServiceContainer, isServiceContainerInitialized, getService } from './services/AppServiceContainer';
 import './App.css';
@@ -167,7 +168,8 @@ const NavigationHeader: React.FC<{
             {[
               { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: 'Dashboard' },
               { id: 'session', icon: '▶', label: 'Play', title: 'Play Session' },
-              { id: 'project-status', icon: '📊', label: 'Status', title: 'Project Status' }
+              { id: 'project-status', icon: '📊', label: 'Status', title: 'Project Status' },
+              { id: 'settings', icon: '⚙', label: 'Settings', title: 'User Settings' }
             ].map((item) => (
               <button
                 key={item.id}
@@ -1316,6 +1318,15 @@ const AppContent: React.FC = () => {
                 ← Back to Dashboard
               </button>
               <OfflineContentManager onUpgradeRequired={handleUpgradeClick} />
+            </div>
+          </div>
+        );
+      
+      case 'settings':
+        return (
+          <div className="min-h-screen bg-gray-950 text-white p-4 md:p-6">
+            <div className="max-w-4xl mx-auto">
+              <UserSettings onClose={() => setCurrentPage('dashboard')} />
             </div>
           </div>
         );

@@ -18,7 +18,7 @@ export interface ServiceResolutionInterface {
    * @param serviceType - The service type to resolve
    * @returns Properly configured service instance
    */
-  resolve<T>(serviceType: ServiceType): T;
+  resolve<T>(serviceType: ServiceType): T | Promise<T>;
   
   /**
    * Check if a service can be resolved
@@ -43,7 +43,7 @@ export interface ServiceFactory<T> {
    * Create service instance with resolved dependencies
    * @param resolver - Service resolver for dependencies
    */
-  create(resolver: ServiceResolutionInterface): T;
+  create(resolver: ServiceResolutionInterface): T | Promise<T>;
   
   /**
    * Define service dependencies that must be resolved first
@@ -133,7 +133,7 @@ export interface ServiceContainerInterface extends ServiceResolutionInterface {
    * Get service with type safety
    * @param serviceType - The service type to resolve
    */
-  getService<T>(serviceType: ServiceType): T;
+  getService<T>(serviceType: ServiceType): Promise<T>;
   
   /**
    * Create a scoped container for request/session-specific services

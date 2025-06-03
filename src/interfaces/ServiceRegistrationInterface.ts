@@ -12,25 +12,6 @@ import { ServiceType, ServiceContainerInterface } from './ServiceContainerInterf
  * Defines how each service type should be registered
  */
 export interface ServiceRegistrationContract {
-  // Core Engine Services
-  SubscriptionManager: {
-    dependencies: ['PaymentProcessor'];
-    lifetime: 'singleton';
-    interfaces: ['SubscriptionManagerInterface'];
-  };
-  
-  ContentGatingEngine: {
-    dependencies: ['SubscriptionManager'];
-    lifetime: 'singleton';
-    interfaces: ['ContentGatingEngineInterface'];
-  };
-  
-  EngineOrchestrator: {
-    dependencies: ['ContentGatingEngine', 'LearningEngineService'];
-    lifetime: 'singleton';
-    interfaces: ['EngineOrchestratorInterface'];
-  };
-  
   // Infrastructure Services
   PaymentProcessor: {
     dependencies: [];
@@ -44,10 +25,99 @@ export interface ServiceRegistrationContract {
     interfaces: ['UserSessionManagerInterface'];
   };
   
+  // Core Engine Components
+  FactRepository: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  ContentManager: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  DistinctionManager: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  DistractorGenerator: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  TripleHelixManager: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  QuestionGenerator: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  // Live Aid Components
+  StitchPopulation: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  StitchPreparation: {
+    dependencies: ['FactRepository', 'DistinctionManager', 'DistractorGenerator', 'QuestionGenerator'];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  StitchCache: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  LiveAidManager: {
+    dependencies: ['StitchPopulation', 'StitchPreparation', 'StitchCache'];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
+  // Business Services
+  SubscriptionManager: {
+    dependencies: ['PaymentProcessor'];
+    lifetime: 'singleton';
+    interfaces: ['SubscriptionManagerInterface'];
+  };
+  
+  OfflineContentManager: {
+    dependencies: [];
+    lifetime: 'singleton';
+    interfaces: [];
+  };
+  
   LearningEngineService: {
-    dependencies: ['UserSessionManager'];
+    dependencies: ['FactRepository', 'ContentManager', 'QuestionGenerator', 'DistractorGenerator', 'DistinctionManager', 'TripleHelixManager', 'StitchPopulation', 'StitchPreparation', 'StitchCache', 'LiveAidManager', 'ContentGatingEngine', 'OfflineContentManager'];
     lifetime: 'singleton';
     interfaces: ['LearningEngineServiceInterface'];
+  };
+  
+  // Application Services
+  ContentGatingEngine: {
+    dependencies: ['SubscriptionManager'];
+    lifetime: 'singleton';
+    interfaces: ['ContentGatingEngineInterface'];
+  };
+  
+  // Orchestration Services
+  EngineOrchestrator: {
+    dependencies: ['ContentGatingEngine', 'LearningEngineService'];
+    lifetime: 'singleton';
+    interfaces: ['EngineOrchestratorInterface'];
   };
 }
 
@@ -249,6 +319,68 @@ export const DEFAULT_SERVICE_REGISTRATION: ServiceRegistrationContract = {
     interfaces: ['UserSessionManagerInterface']
   },
   
+  // Core Engine Components (no dependencies)
+  FactRepository: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  ContentManager: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  DistinctionManager: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  DistractorGenerator: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  TripleHelixManager: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  QuestionGenerator: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  // Live Aid Components
+  StitchPopulation: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  StitchPreparation: {
+    dependencies: ['FactRepository', 'DistinctionManager', 'DistractorGenerator', 'QuestionGenerator'],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  StitchCache: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
+  LiveAidManager: {
+    dependencies: ['StitchPopulation', 'StitchPreparation', 'StitchCache'],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
   // Business layer (depends on infrastructure)
   SubscriptionManager: {
     dependencies: ['PaymentProcessor'],
@@ -256,8 +388,28 @@ export const DEFAULT_SERVICE_REGISTRATION: ServiceRegistrationContract = {
     interfaces: ['SubscriptionManagerInterface']
   },
   
+  // Offline Content Manager
+  OfflineContentManager: {
+    dependencies: [],
+    lifetime: 'singleton',
+    interfaces: []
+  },
+  
   LearningEngineService: {
-    dependencies: ['UserSessionManager'],
+    dependencies: [
+      'FactRepository',
+      'ContentManager',
+      'QuestionGenerator',
+      'DistractorGenerator',
+      'DistinctionManager',
+      'TripleHelixManager',
+      'StitchPopulation',
+      'StitchPreparation',
+      'StitchCache',
+      'LiveAidManager',
+      'ContentGatingEngine',
+      'OfflineContentManager'
+    ],
     lifetime: 'singleton',
     interfaces: ['LearningEngineServiceInterface']
   },

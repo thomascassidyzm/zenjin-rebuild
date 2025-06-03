@@ -21,6 +21,9 @@ import {
   ServiceDependencyGraphInterface
 } from '../interfaces/ServiceRegistrationInterface';
 
+// Import V2 service factories
+import { serviceFactories } from './ServiceFactoriesV2';
+
 /**
  * Dependency Graph Implementation
  * Validates service dependencies and provides creation order
@@ -215,7 +218,7 @@ export class ServiceContainer implements ServiceContainerInterface {
     console.log('✅ Service container built successfully');
   }
 
-  getService<T>(serviceType: ServiceType): T {
+  async getService<T>(serviceType: ServiceType): Promise<T> {
     if (!this.isBuilt) {
       throw new Error('Container must be built before resolving services');
     }
@@ -223,7 +226,7 @@ export class ServiceContainer implements ServiceContainerInterface {
     return this.resolve<T>(serviceType);
   }
 
-  resolve<T>(serviceType: ServiceType): T {
+  async resolve<T>(serviceType: ServiceType): Promise<T> {
     // Check if already instantiated (singleton)
     if (this.instances.has(serviceType)) {
       return this.instances.get(serviceType);
@@ -233,7 +236,7 @@ export class ServiceContainer implements ServiceContainerInterface {
     return this.resolveWithContext<T>(serviceType, context);
   }
 
-  private resolveWithContext<T>(serviceType: ServiceType, context: DIContextInterface): T {
+  private async resolveWithContext<T>(serviceType: ServiceType, context: DIContextInterface): Promise<T> {
     // Check for circular dependency
     if (context.hasCircularDependency(serviceType)) {
       throw new Error(`Circular dependency detected: ${context.getResolutionStack().join(' -> ')} -> ${serviceType}`);
@@ -258,24 +261,44 @@ export class ServiceContainer implements ServiceContainerInterface {
       // Resolve dependencies
       const dependencies: any[] = [];
       for (const depType of config.dependencies) {
-        const dependency = this.resolveWithContext(depType, context);
+        const dependency = await this.resolveWithContext(depType, context);
         dependencies.push(dependency);
       }
 
       // Create instance
-      const instance = this.createInstance(factory, dependencies, context);
+      const instanceOrPromise = this.createInstance(factory, dependencies, context);
+      
+      // Handle async factories
+      if (instanceOrPromise instanceof Promise) {
+        const instance = await instanceOrPromise;
+        
+        // Cache if singleton
+        if (config.lifetime === 'singleton') {
+          this.instances.set(serviceType, instance);
+        }
 
-      // Cache if singleton
-      if (config.lifetime === 'singleton') {
-        this.instances.set(serviceType, instance);
+        // Notify lifecycle listeners
+        this.lifecycleListeners.forEach(listener => 
+          listener.onServiceCreated(serviceType, instance)
+        );
+
+        return instance;
+      } else {
+        // Synchronous factory
+        const instance = instanceOrPromise;
+        
+        // Cache if singleton
+        if (config.lifetime === 'singleton') {
+          this.instances.set(serviceType, instance);
+        }
+
+        // Notify lifecycle listeners
+        this.lifecycleListeners.forEach(listener => 
+          listener.onServiceCreated(serviceType, instance)
+        );
+
+        return instance;
       }
-
-      // Notify lifecycle listeners
-      this.lifecycleListeners.forEach(listener => 
-        listener.onServiceCreated(serviceType, instance)
-      );
-
-      return instance;
     } finally {
       // Remove from resolution stack
       context.popResolution();
@@ -285,7 +308,7 @@ export class ServiceContainer implements ServiceContainerInterface {
   private createInstance<T>(factory: ServiceFactory<T>, dependencies: any[], context: DIContextInterface): T | Promise<T> {
     // Create mock resolver for factory
     const resolver: ServiceResolutionInterface = {
-      resolve: <U>(serviceType: ServiceType) => this.resolveWithContext<U>(serviceType, context),
+      resolve: async <U>(serviceType: ServiceType) => this.resolveWithContext<U>(serviceType, context),
       canResolve: (serviceType: ServiceType) => this.configurations.has(serviceType),
       register: () => { throw new Error('Cannot register services during resolution'); }
     };
@@ -336,83 +359,17 @@ export class ServiceContainer implements ServiceContainerInterface {
    * Register default factories for all service types
    */
   private registerDefaultFactories(): void {
-    // Use ES6 dynamic imports instead of require() for browser compatibility
-    
-    // Register PaymentProcessor factory
-    this.register('PaymentProcessor', {
-      create: () => new MockPaymentProcessor(),
-      getDependencies: () => [],
-      isSingleton: () => true
-    });
-
-    // Register UserSessionManager factory  
-    this.register('UserSessionManager', {
-      create: async () => {
-        const { userSessionManager } = await import('../services/UserSessionManager');
-        return userSessionManager;
-      },
-      getDependencies: () => [],
-      isSingleton: () => true
-    });
-
-    // Register SubscriptionManager factory
-    this.register('SubscriptionManager', {
-      create: async (resolver) => {
-        const { SubscriptionManager } = await import('../engines/SubscriptionManager/SubscriptionManager');
-        const paymentProcessor = resolver.resolve('PaymentProcessor');
-        return new SubscriptionManager(paymentProcessor);
-      },
-      getDependencies: () => ['PaymentProcessor'],
-      isSingleton: () => true
-    });
-
-    // Register LearningEngineService factory
-    this.register('LearningEngineService', {
-      create: async (resolver) => {
-        const { learningEngineService } = await import('../services/LearningEngineService');
-        return learningEngineService;
-      },
-      getDependencies: () => ['UserSessionManager'],
-      isSingleton: () => true
-    });
-
-    // Register ContentGatingEngine factory
-    this.register('ContentGatingEngine', {
-      create: async (resolver) => {
-        const { ContentGatingEngine } = await import('../engines/ContentGatingEngine');
-        const subscriptionManager = resolver.resolve('SubscriptionManager');
-        return new ContentGatingEngine(subscriptionManager);
-      },
-      getDependencies: () => ['SubscriptionManager'],
-      isSingleton: () => true
-    });
-
-    // Register EngineOrchestrator factory
-    this.register('EngineOrchestrator', {
-      create: async (resolver) => {
-        const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
-        // For now, create with traditional approach
-        // Later we'll update EngineOrchestrator to accept injected dependencies
-        return new EngineOrchestrator(false); // disable LiveAid for now
-      },
-      getDependencies: () => ['ContentGatingEngine', 'LearningEngineService'],
-      isSingleton: () => true
-    });
+    // Register all factories from ServiceFactoriesV2
+    for (const [serviceType, factory] of Object.entries(serviceFactories)) {
+      this.register(serviceType as ServiceType, {
+        create: async (resolver) => factory.createInstance(resolver),
+        getDependencies: () => factory.dependencies,
+        isSingleton: () => factory.lifetime === 'singleton'
+      });
+    }
   }
 }
 
-/**
- * Mock Payment Processor for development
- */
-class MockPaymentProcessor {
-  async processPayment(data: any): Promise<{ success: boolean; errorMessage?: string }> {
-    return { success: true };
-  }
-  
-  async cancelSubscription(data: any): Promise<{ success: boolean; errorMessage?: string }> {
-    return { success: true };
-  }
-}
 
 /**
  * Create configured service container with default registrations

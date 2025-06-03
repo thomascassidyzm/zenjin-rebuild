@@ -107,6 +107,10 @@ export const UserSessionProvider: React.FC<{ children: ReactNode }> = ({ childre
       return await userSessionManager.updateUserState(changes);
     },
 
+    updatePassword: async (currentPassword: string | null, newPassword: string): Promise<boolean> => {
+      return await userSessionManager.updatePassword(currentPassword, newPassword);
+    },
+
     recordSessionMetrics: async (metrics: SessionMetrics): Promise<boolean> => {
       return await userSessionManager.recordSessionMetrics(metrics);
     },
