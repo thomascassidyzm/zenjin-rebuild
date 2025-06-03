@@ -1,0 +1,202 @@
+# SynchronizationManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: OfflineSupport
+# Converted from XML APML format
+
+interface_metadata:
+  name: "SynchronizationManagerInterface"
+  version: "1.1.0"
+  module: "OfflineSupport"
+  dependencies:
+    - "[object Object]"
+  description: |
+    Defines the contract for the SynchronizationManager component that manages data synchronization between local storage and the server.
+
+types:
+  SyncStatus:
+    description: "SyncStatus"
+    properties:
+      lastSyncTime:
+        type: "string"
+        required: true
+        description: "ISO date string of last successful synchronization"
+      pendingChanges:
+        type: "number"
+        required: true
+        description: "Number of pending changes to be synchronized"
+      syncInProgress:
+        type: "boolean"
+        required: true
+        description: "Whether synchronization is currently in progress"
+      lastError:
+        type: "string"
+        required: false
+        description: "Description of the last synchronization error"
+      connectionStatus:
+        type: "string"
+        required: true
+        description: "Current connection status ('online', 'offline')"
+  SyncResult:
+    description: "SyncResult"
+    properties:
+      success:
+        type: "boolean"
+        required: true
+        description: "Whether the synchronization was successful"
+      syncedChanges:
+        type: "number"
+        required: true
+        description: "Number of changes synchronized"
+      conflictsResolved:
+        type: "number"
+        required: true
+        description: "Number of conflicts resolved"
+      timestamp:
+        type: "string"
+        required: true
+        description: "ISO date string of synchronization"
+      error:
+        type: "string"
+        required: false
+        description: "Error message if synchronization failed"
+  SyncOptions:
+    description: "SyncOptions"
+    properties:
+      forceSync:
+        type: "boolean"
+        required: false
+        description: "Whether to force synchronization even with conflicts"
+        default: false
+      syncDirection:
+        type: "string"
+        required: false
+        description: "Direction of synchronization ('upload', 'download', 'both')"
+        default: both
+      conflictResolution:
+        type: "string"
+        required: false
+        description: "Conflict resolution strategy ('server', 'client', 'manual')"
+        default: server
+
+errors:
+  USER_NOT_FOUND:
+    code: "S_001"
+    message: "The specified user was not found"
+  SYNC_IN_PROGRESS:
+    code: "S_002"
+    message: "Synchronization is already in progress"
+  NETWORK_ERROR:
+    code: "S_003"
+    message: "Network error occurred during synchronization"
+  SERVER_ERROR:
+    code: "S_004"
+    message: "Server error occurred during synchronization"
+  CONFLICT_ERROR:
+    code: "S_005"
+    message: "Unresolved conflicts prevented synchronization"
+  INVALID_DATA_TYPE:
+    code: "S_006"
+    message: "The specified data type is invalid"
+  DATA_NOT_FOUND:
+    code: "S_007"
+    message: "The specified data was not found"
+  CONFLICT_NOT_FOUND:
+    code: "S_008"
+    message: "The specified conflict was not found"
+  INVALID_RESOLUTION:
+    code: "S_009"
+    message: "The specified resolution is invalid"
+  INVALID_MERGED_DATA:
+    code: "S_010"
+    message: "The merged data is invalid"
+
+interface:
+  SynchronizationManagerInterface:
+    methods:
+      synchronize:
+        description: "Initiates data synchronization between local storage and the server"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          options:
+            type: "SyncOptions"
+            required: false
+            description: "Synchronization options"
+        returns:
+          type: "SyncResult"
+          description: "Synchronization result"
+        errors:
+          - "USER_NOT_FOUND"
+          - "SYNC_IN_PROGRESS"
+          - "NETWORK_ERROR"
+          - "SERVER_ERROR"
+          - "CONFLICT_ERROR"
+        async: true
+      getSyncStatus:
+        description: "Gets the current synchronization status"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "SyncStatus"
+          description: "Current synchronization status"
+        errors:
+          - "USER_NOT_FOUND"
+      markForSync:
+        description: "Marks specific data for synchronization"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          dataType:
+            type: "string"
+            required: true
+            description: "Type of data to mark ('progress', 'metrics', 'settings')"
+          dataId:
+            type: "string"
+            required: true
+            description: "Identifier of the data to mark"
+        returns:
+          type: "boolean"
+          description: "Whether the data was successfully marked for synchronization"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_DATA_TYPE"
+          - "DATA_NOT_FOUND"
+      resolveConflict:
+        description: "Resolves a synchronization conflict"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          conflictId:
+            type: "string"
+            required: true
+            description: "Conflict identifier"
+          resolution:
+            type: "string"
+            required: true
+            description: "Resolution choice ('server', 'client', 'merged')"
+          mergedData:
+            type: "object"
+            required: false
+            description: "Merged data if resolution is 'merged'"
+        returns:
+          type: "boolean"
+          description: "Whether the conflict was successfully resolved"
+        errors:
+          - "USER_NOT_FOUND"
+          - "CONFLICT_NOT_FOUND"
+          - "INVALID_RESOLUTION"
+          - "INVALID_MERGED_DATA"
+      getConnectionStatus:
+        description: "Gets the current connection status"
+        returns:
+          type: "string"
+          description: "Current connection status ('online', 'offline')"

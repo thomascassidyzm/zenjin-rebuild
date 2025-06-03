@@ -1,0 +1,259 @@
+# Anonymous User Service Interface
+# APML Version: 2.2
+# Interface for anonymous user creation services with multiple implementation strategies
+
+interface_metadata:
+  name: AnonymousUserServiceInterface
+  version: 1.0.0
+  module: Authentication
+  description: |
+    Defines contract for anonymous user creation services with multiple implementation strategies.
+    Enables seamless switching between online backend services and offline local fallbacks.
+  dependencies:
+    - UserApplicationState
+    - AuthSession
+  context_boundary:
+    size: medium
+    token_estimate: 3000
+    description: Service adapter pattern for external anonymous user creation with defined fallback behaviors
+
+types:
+  ServiceMode:
+    type: enum
+    values:
+      - Online
+      - Offline
+      - Hybrid
+    description: Service operation mode for anonymous user creation
+
+  AnonymousUser:
+    type: object
+    properties:
+      id:
+        type: string
+        required: true
+      anonymousId:
+        type: string
+        required: true
+      displayName:
+        type: string
+        required: true
+      userType:
+        type: string
+        required: true
+        value: anonymous
+      subscriptionTier:
+        type: string
+        required: true
+      isLocal:
+        type: boolean
+        required: true
+      expiresAt:
+        type: string
+        required: false
+      createdAt:
+        type: string
+        required: true
+
+  AnonymousSession:
+    type: object
+    properties:
+      accessToken:
+        type: string
+        required: true
+      userType:
+        type: string
+        required: true
+        value: anonymous
+      isLocal:
+        type: boolean
+        required: true
+      expiresAt:
+        type: number
+        required: false
+
+  AnonymousUserCreationRequest:
+    type: object
+    properties:
+      deviceId:
+        type: string
+        required: false
+      mode:
+        type: ServiceMode
+        required: false
+        default: Hybrid
+      initialSessionData:
+        type: object
+        required: false
+      ttlHours:
+        type: number
+        required: false
+        default: 168
+
+  AnonymousUserCreationResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      user:
+        type: AnonymousUser
+        required: false
+      session:
+        type: AnonymousSession
+        required: false
+      initialState:
+        type: UserApplicationState
+        required: false
+      mode:
+        type: ServiceMode
+        required: true
+        description: Indicates which mode was used
+      error:
+        type: string
+        required: false
+      errorCode:
+        type: string
+        required: false
+      isOffline:
+        type: boolean
+        required: true
+        description: True if offline mode was used
+
+  SessionValidationResult:
+    type: object
+    properties:
+      isValid:
+        type: boolean
+        required: true
+      userId:
+        type: string
+        required: false
+      expiresAt:
+        type: number
+        required: false
+      isOffline:
+        type: boolean
+        required: true
+      error:
+        type: string
+        required: false
+
+  ServiceStatus:
+    type: object
+    properties:
+      isOnline:
+        type: boolean
+        required: true
+      mode:
+        type: ServiceMode
+        required: true
+      lastCheck:
+        type: string
+        required: true
+      responseTime:
+        type: number
+        required: false
+
+errors:
+  SERVICE_UNAVAILABLE:
+    code: SERVICE_UNAVAILABLE
+    message: Service is temporarily unavailable
+  DATABASE_ERROR:
+    code: DATABASE_ERROR
+    message: Database operation failed
+  USER_CREATION_FAILED:
+    code: USER_CREATION_FAILED
+    message: Failed to create anonymous user
+  STATE_INITIALIZATION_FAILED:
+    code: STATE_INITIALIZATION_FAILED
+    message: Failed to initialize user state
+  TOKEN_GENERATION_FAILED:
+    code: TOKEN_GENERATION_FAILED
+    message: Failed to generate access token
+  OFFLINE_STORAGE_FAILED:
+    code: OFFLINE_STORAGE_FAILED
+    message: Failed to store data offline
+  VALIDATION_FAILED:
+    code: VALIDATION_FAILED
+    message: Session validation failed
+
+interface:
+  createAnonymousUser:
+    description: Create new anonymous user with session
+    parameters:
+      request:
+        type: AnonymousUserCreationRequest
+        required: true
+    returns:
+      type: AnonymousUserCreationResult
+    errors:
+      - SERVICE_UNAVAILABLE
+      - DATABASE_ERROR
+      - USER_CREATION_FAILED
+      - STATE_INITIALIZATION_FAILED
+      - TOKEN_GENERATION_FAILED
+      - OFFLINE_STORAGE_FAILED
+    behavior:
+      on_success: Returns complete user data with session and initial state
+      on_failure: Returns error details with specific error codes for different failure types
+      invariants:
+        - Must always return a valid result object
+        - Success=true requires user, session, and initialState
+        - Success=false requires error and errorCode
+
+  validateAnonymousSession:
+    description: Validate existing anonymous session token
+    parameters:
+      token:
+        type: string
+        required: true
+    returns:
+      type: SessionValidationResult
+    errors:
+      - VALIDATION_FAILED
+    behavior:
+      description: Validates session token and returns validation result
+
+  getServiceStatus:
+    description: Check current service availability and mode
+    parameters: {}
+    returns:
+      type: ServiceStatus
+    behavior:
+      description: Returns current service status without throwing errors
+
+service_modes:
+  Online:
+    description: Creates anonymous users via backend API with persistent storage
+  Offline:
+    description: Creates anonymous users locally with temporary storage
+  Hybrid:
+    description: Attempts online creation, falls back to offline on failure
+
+validation_criteria:
+  - id: AUS001
+    description: Online mode must successfully create users when backend is available
+    test: tests/anonymous-user-service/online-creation.test.ts
+  - id: AUS002
+    description: Offline mode must create local users when backend is unavailable
+    test: tests/anonymous-user-service/offline-fallback.test.ts
+  - id: AUS003
+    description: Hybrid mode must attempt online first, then fall back to offline
+    test: tests/anonymous-user-service/hybrid-mode.test.ts
+  - id: AUS004
+    description: Session validation must work for both online and offline tokens
+    test: tests/anonymous-user-service/session-validation.test.ts
+  - id: AUS005
+    description: All error modes must return appropriate error codes without throwing
+    test: tests/anonymous-user-service/error-handling.test.ts
+
+integration_requirements:
+  - name: StateCompatibility
+    description: Both online and offline modes must produce compatible UserApplicationState
+  - name: SessionCompatibility
+    description: Both modes must produce sessions compatible with existing auth system
+  - name: GracefulDegradation
+    description: Service must never fail completely - offline mode always available
+  - name: TransparentFallback
+    description: Caller should not need to know which mode was used

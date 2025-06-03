@@ -1,0 +1,263 @@
+# FactRepositoryInterface.apml
+# APML v2.2 Interface Definition
+# Module: ContentRepository
+# Purpose: Manage facts with concept-based querying for dynamic content generation
+
+interface_metadata:
+  name: "FactRepositoryInterface"
+  version: "1.0.0"
+  module: "ContentRepository"
+  dependencies:
+    - "FactIdRegistryInterface"
+    - "DistinctionManagerInterface"
+  critical_methods:
+    - "factExists - The missing method causing bugs!"
+    - "queryFacts - Concept-based dynamic querying"
+
+types:
+  Fact:
+    description: "Atomic unit of knowledge with concept metadata"
+    properties:
+      id:
+        type: "string"
+        description: "Unique fact identifier"
+      concept_type:
+        type: "string"
+        description: "Type of mathematical concept"
+        examples: ["multiplication", "addition", "fraction", "percentage"]
+      parameters:
+        type: "object"
+        description: "Concept-specific parameters"
+        examples:
+          multiplication: "{operand1: 6, operand2: 7}"
+          fraction: "{numerator1: 1, denominator1: 2, operation: 'add', numerator2: 1, denominator2: 4}"
+      answer:
+        type: "any"
+        description: "Correct answer for this fact"
+      metadata:
+        type: "object"
+        nullable: true
+        properties:
+          difficulty:
+            type: "number"
+            nullable: true
+          tags:
+            type: "array"
+            items:
+              type: "string"
+            nullable: true
+          prerequisites:
+            type: "array"
+            items:
+              type: "string"
+            description: "Fact IDs that should be mastered first"
+            nullable: true
+          last_updated:
+            type: "string"
+            format: "iso8601"
+            nullable: true
+
+  FactQueryCriteria:
+    description: "Criteria for querying facts by concept"
+    properties:
+      concept_type:
+        type: "string"
+        nullable: true
+      parameters:
+        type: "object"
+        description: "Partial match on concept parameters"
+        nullable: true
+      tags:
+        type: "array"
+        items:
+          type: "string"
+        nullable: true
+      difficulty_range:
+        type: "object"
+        nullable: true
+        properties:
+          min:
+            type: "number"
+          max:
+            type: "number"
+      limit:
+        type: "integer"
+        default: 100
+        nullable: true
+      offset:
+        type: "integer"
+        default: 0
+        nullable: true
+
+  FactQueryResult:
+    description: "Result of a fact query operation"
+    properties:
+      facts:
+        type: "array"
+        items:
+          type: "Fact"
+      total:
+        type: "integer"
+        description: "Total facts matching criteria"
+      has_more:
+        type: "boolean"
+        description: "Whether more results are available"
+
+  FactValidationResult:
+    description: "Result of fact validation"
+    properties:
+      is_valid:
+        type: "boolean"
+      errors:
+        type: "array"
+        items:
+          type: "string"
+        nullable: true
+      warnings:
+        type: "array"
+        items:
+          type: "string"
+        nullable: true
+
+errors:
+  FACT_NOT_FOUND:
+    code: "FR_001"
+    message: "Specified fact does not exist"
+  INVALID_CONCEPT_TYPE:
+    code: "FR_002"
+    message: "Concept type is not recognized"
+  INVALID_PARAMETERS:
+    code: "FR_003"
+    message: "Parameters do not match concept schema"
+  DUPLICATE_FACT:
+    code: "FR_004"
+    message: "Fact already exists with same parameters"
+  REPOSITORY_ERROR:
+    code: "FR_005"
+    message: "Repository operation failed"
+  INVALID_QUERY:
+    code: "FR_006"
+    message: "Query criteria are invalid"
+
+interface:
+  FactRepositoryInterface:
+    methods:
+      getFactById:
+        description: "Get a fact by its unique identifier"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+        returns:
+          type: "Fact"
+        errors:
+          - "FACT_NOT_FOUND"
+          
+      queryFacts:
+        description: "Query facts by concept type and parameters"
+        parameters:
+          criteria:
+            type: "FactQueryCriteria"
+            required: true
+        returns:
+          type: "FactQueryResult"
+        errors:
+          - "INVALID_QUERY"
+          - "INVALID_CONCEPT_TYPE"
+        example: |
+          # Get all multiplication facts where one operand is 6
+          queryFacts({
+            concept_type: "multiplication",
+            parameters: { operand1: 6 }
+          })
+          
+      factExists:
+        description: "Check if a fact exists in the repository - CRITICAL MISSING METHOD"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+        returns:
+          type: "boolean"
+          description: "True if fact exists, false otherwise"
+        notes: "This is the method that was missing and causing bugs!"
+        
+      getFactsByIds:
+        description: "Get multiple facts by their IDs (batch operation)"
+        parameters:
+          fact_ids:
+            type: "array"
+            items:
+              type: "string"
+            required: true
+        returns:
+          type: "array"
+          items:
+            type: "Fact"
+        errors:
+          - "FACT_NOT_FOUND"
+          
+      validateFact:
+        description: "Validate a fact's structure and content"
+        parameters:
+          fact:
+            type: "Fact"
+            partial: true
+            required: true
+        returns:
+          type: "FactValidationResult"
+          
+      hasFactsForConcept:
+        description: "Check if facts are available for a given concept"
+        parameters:
+          concept_type:
+            type: "string"
+            required: true
+          parameters:
+            type: "object"
+            nullable: true
+        returns:
+          type: "boolean"
+        errors:
+          - "INVALID_CONCEPT_TYPE"
+          
+      getAvailableConceptTypes:
+        description: "Get all available concept types"
+        returns:
+          type: "array"
+          items:
+            type: "string"
+            
+      getConceptParameterSchema:
+        description: "Get expected parameters for a concept type"
+        parameters:
+          concept_type:
+            type: "string"
+            required: true
+        returns:
+          type: "object"
+          description: "JSON Schema for concept parameters"
+        errors:
+          - "INVALID_CONCEPT_TYPE"
+
+usage_examples:
+  query_times_tables: |
+    # Find all times tables with operand 6
+    repository.queryFacts({
+      concept_type: "multiplication",
+      parameters: { operand1: 6 },
+      limit: 20
+    })
+    
+  check_fact_exists: |
+    # Check if a fact exists before using it
+    if (repository.factExists("m-0006-0007")) {
+      const fact = repository.getFactById("m-0006-0007");
+    }
+    
+  query_by_difficulty: |
+    # Get facts within a difficulty range
+    repository.queryFacts({
+      concept_type: "fraction",
+      difficulty_range: { min: 2, max: 5 }
+    })

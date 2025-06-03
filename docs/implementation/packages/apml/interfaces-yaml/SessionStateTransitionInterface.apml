@@ -1,0 +1,142 @@
+# Session State Transition Interface
+# APML Version: 2.2
+# Interface for managing session state transitions to prevent UI flashing
+
+interface_metadata:
+  name: SessionStateTransitionInterface
+  version: 1.0.0
+  module: Authentication
+  description: |
+    Define interface contracts for managing session state transitions to prevent UI flashing
+    between authentication completion and Auth-to-Player flow initialization.
+  dependencies:
+    - UserSessionManager
+    - AuthToPlayerEventBus
+
+types:
+  TransitionType:
+    type: enum
+    values:
+      - anonymous_creation
+      - authenticated_signin
+    description: Type of authentication transition
+
+  TransitionState:
+    type: object
+    properties:
+      name:
+        type: string
+        required: true
+        description: State name
+      isAuthenticated:
+        type: boolean
+        required: true
+      isLoading:
+        type: boolean
+        required: true
+      transitionType:
+        type: string
+        required: true
+
+  StateTransitionSequence:
+    type: object
+    properties:
+      transitionType:
+        type: TransitionType
+        required: true
+      description:
+        type: string
+        required: true
+      states:
+        type: TransitionState[]
+        required: true
+        description: Ordered sequence of states
+      transitionGuarantee:
+        type: string
+        required: true
+
+interface:
+  markTransitionInProgress:
+    description: Mark that a state transition is in progress to prevent UI flashing
+    parameters:
+      transitionType:
+        type: TransitionType
+        required: true
+        description: Type of transition starting
+    returns:
+      type: void
+    side_effects:
+      - Sets transition flag to prevent premature UI rendering
+
+  completeTransition:
+    description: Mark transition as complete and ready for Auth-to-Player flow
+    parameters:
+      transitionType:
+        type: TransitionType
+        required: true
+        description: Type of transition completing
+      authToPlayerReady:
+        type: boolean
+        required: true
+        description: Whether Auth-to-Player flow is ready
+    returns:
+      type: void
+    side_effects:
+      - Clears transition flag and enables normal UI rendering
+
+  isInTransition:
+    description: Check if any state transition is currently in progress
+    parameters: {}
+    returns:
+      type: boolean
+    side_effects: []
+    behavior:
+      description: Read-only operation that returns current transition state
+
+state_transition_contracts:
+  AnonymousUserCreation:
+    description: User selects "Try Without Signing Up" and anonymous session is created
+    sequence:
+      - name: anonymous_creation_started
+        order: 1
+        properties:
+          isAuthenticated: false
+          isLoading: true
+          transitionType: anonymous_creation
+      - name: anonymous_creation_complete
+        order: 2
+        properties:
+          isAuthenticated: true
+          isLoading: false
+          transitionType: auth_to_player_ready
+    guarantee: UI must not render main app until Auth-to-Player flow is initialized
+
+  AuthenticatedUserSignIn:
+    description: User completes OTP authentication
+    sequence:
+      - name: authentication_complete
+        order: 1
+        properties:
+          isAuthenticated: true
+          isLoading: false
+          transitionType: auth_to_player_ready
+    guarantee: Auth-to-Player flow starts immediately after authentication
+
+validation_criteria:
+  - id: ST-001
+    description: Anonymous user creation must not show Dashboard before Auth-to-Player flow
+    test: tests/session-transition/anonymous_no_flash_test.ts
+  - id: ST-002
+    description: Authenticated users must transition directly to Auth-to-Player flow
+    test: tests/session-transition/authenticated_no_flash_test.ts
+  - id: ST-003
+    description: State transitions must complete within 100ms to prevent UI flashing
+    test: tests/session-transition/transition_timing_test.ts
+
+integration_requirements:
+  - component: UserSessionManager
+    requirement: Must call markTransitionInProgress before createAnonymousUser
+  - component: AuthToPlayerEventBus
+    requirement: Must call completeTransition when Auth-to-Player flow starts
+  - component: App.tsx
+    requirement: Must check isInTransition before rendering main app content

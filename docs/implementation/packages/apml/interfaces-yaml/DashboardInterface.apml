@@ -1,0 +1,251 @@
+# DashboardInterface.apml
+# APML v2.2 Interface Definition
+# Module: UserInterface
+# Converted from XML APML format
+
+interface_metadata:
+  name: "DashboardInterface"
+  version: "1.1.0"
+  module: "UserInterface"
+  dependencies:
+    - "[object Object]"
+    - "[object Object]"
+    - "[object Object]"
+  description: |
+    Defines the contract for the Dashboard component that displays lifetime metrics and user progress information.
+
+types:
+  LifetimeMetrics:
+    description: "LifetimeMetrics"
+    properties:
+      totalPoints:
+        type: "number"
+        required: true
+        description: "Total accumulated points across all sessions"
+      totalSessions:
+        type: "number"
+        required: true
+        description: "Total number of completed sessions"
+      averageBlinkSpeed:
+        type: "number"
+        required: true
+        description: "Average blink speed across all sessions (ms)"
+      evolution:
+        type: "number"
+        required: true
+        description: "Evolution metric (Total Points / Average Blink Speed)"
+      globalRanking:
+        type: "number"
+        required: true
+        description: "User's global ranking position"
+      progressPercentage:
+        type: "number"
+        required: true
+        description: "Overall progress percentage (0-100)"
+      ftcPoints:
+        type: "number"
+        required: true
+        description: "First time correct points accumulated"
+      ecPoints:
+        type: "number"
+        required: true
+        description: "Eventually correct points accumulated"
+      basePoints:
+        type: "number"
+        required: true
+        description: "Base points without multipliers"
+      averageBonusMultiplier:
+        type: "number"
+        required: true
+        description: "Average bonus multiplier across sessions"
+  LearningPathProgress:
+    description: "LearningPathProgress"
+    properties:
+      pathId:
+        type: "string"
+        required: true
+        description: "Identifier for the learning path"
+      pathName:
+        type: "string"
+        required: true
+        description: "Display name for the learning path"
+      currentLevel:
+        type: "number"
+        required: true
+        description: "Current level within the path"
+      maxLevel:
+        type: "number"
+        required: true
+        description: "Maximum level available in the path"
+      completedStitches:
+        type: "number"
+        required: true
+        description: "Number of completed stitches in this path"
+      totalStitches:
+        type: "number"
+        required: true
+        description: "Total number of stitches in this path"
+      progressPercentage:
+        type: "number"
+        required: true
+        description: "Progress percentage for this path (0-100)"
+      active:
+        type: "boolean"
+        required: true
+        description: "Whether this path is currently active in the rotation"
+  Achievement:
+    description: "Achievement"
+    properties:
+      id:
+        type: "string"
+        required: true
+        description: "Unique identifier for the achievement"
+      name:
+        type: "string"
+        required: true
+        description: "Display name for the achievement"
+      description:
+        type: "string"
+        required: true
+        description: "Description of how the achievement was earned"
+      dateEarned:
+        type: "string"
+        required: true
+        description: "ISO date string when the achievement was earned"
+      iconUrl:
+        type: "string"
+        required: true
+        description: "URL to the achievement icon"
+      level:
+        type: "number"
+        required: false
+        description: "Achievement level (for multi-level achievements)"
+      pointsAwarded:
+        type: "number"
+        required: false
+        description: "Points awarded for this achievement"
+  DashboardData:
+    description: "DashboardData"
+    properties:
+      lifetimeMetrics:
+        type: "LifetimeMetrics"
+        required: true
+        description: "User's lifetime metrics"
+      learningPaths:
+        type: "array"
+        required: true
+        description: "Array of LearningPathProgress objects"
+      recentAchievements:
+        type: "array"
+        required: true
+        description: "Array of recent Achievement objects"
+      subscriptionType:
+        type: "string"
+        required: true
+        description: "User's subscription type (Anonymous, Free, Premium)"
+      username:
+        type: "string"
+        required: true
+        description: "User's display name"
+      avatarUrl:
+        type: "string"
+        required: false
+        description: "URL to user's avatar image"
+      lastSessionDate:
+        type: "string"
+        required: false
+        description: "ISO date string of the last completed session"
+      streakDays:
+        type: "number"
+        required: false
+        description: "Current streak of consecutive days with sessions"
+
+errors:
+  INVALID_DATA:
+    code: "D_001"
+    message: "The dashboard data is invalid or incomplete"
+  DISPLAY_FAILED:
+    code: "D_002"
+    message: "Failed to display the dashboard due to rendering issues"
+  INVALID_METRIC:
+    code: "D_003"
+    message: "The specified metric does not exist"
+  UPDATE_FAILED:
+    code: "D_004"
+    message: "Failed to update the metric"
+  INVALID_ACHIEVEMENT:
+    code: "D_005"
+    message: "The achievement data is invalid"
+  NOTIFICATION_FAILED:
+    code: "D_006"
+    message: "Failed to display the notification"
+  REFRESH_FAILED:
+    code: "D_007"
+    message: "Failed to refresh the dashboard"
+
+interface:
+  DashboardInterface:
+    methods:
+      showDashboard:
+        description: "Displays the dashboard with user's lifetime metrics and progress"
+        parameters:
+          dashboardData:
+            type: "DashboardData"
+            required: true
+            description: "Combined dashboard data"
+          options:
+            type: "object"
+            required: false
+            description: "Display options"
+        returns:
+          type: "boolean"
+          description: "Whether the dashboard was successfully displayed"
+        errors:
+          - "INVALID_DATA"
+          - "DISPLAY_FAILED"
+      updateMetric:
+        description: "Updates a specific metric on the dashboard"
+        parameters:
+          metricName:
+            type: "string"
+            required: true
+            description: "Name of the metric to update"
+          metricValue:
+            type: "any"
+            required: true
+            description: "New value for the metric"
+          options:
+            type: "object"
+            required: false
+            description: "Update options"
+        returns:
+          type: "boolean"
+          description: "Whether the metric was successfully updated"
+        errors:
+          - "INVALID_METRIC"
+          - "UPDATE_FAILED"
+      showAchievementNotification:
+        description: "Displays a notification for a newly earned achievement"
+        parameters:
+          achievement:
+            type: "Achievement"
+            required: true
+            description: "Achievement data"
+          options:
+            type: "object"
+            required: false
+            description: "Notification options"
+        returns:
+          type: "boolean"
+          description: "Whether the notification was successfully displayed"
+        errors:
+          - "INVALID_ACHIEVEMENT"
+          - "NOTIFICATION_FAILED"
+      refreshDashboard:
+        description: "Refreshes the dashboard data"
+        returns:
+          type: "boolean"
+          description: "Whether the dashboard was successfully refreshed"
+        errors:
+          - "REFRESH_FAILED"
+        async: true

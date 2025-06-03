@@ -1,0 +1,200 @@
+# OfflineStorageInterface.apml
+# APML v2.2 Interface Definition
+# Module: OfflineSupport
+# Converted from XML APML format
+
+interface_metadata:
+  name: "OfflineStorageInterface"
+  version: "1.1.0"
+  module: "OfflineSupport"
+  dependencies:
+    - "undefined"
+  description: |
+    Defines the contract for the OfflineStorage component that manages local data storage for offline usage.
+
+types:
+  StorageItem:
+    description: "StorageItem"
+    properties:
+      key:
+        type: "string"
+        required: true
+        description: "Unique key for the storage item"
+      value:
+        type: "any"
+        required: true
+        description: "Value of the storage item"
+      timestamp:
+        type: "string"
+        required: true
+        description: "ISO date string of last modification"
+      syncStatus:
+        type: "string"
+        required: true
+        description: "Synchronization status ('synced', 'pending', 'conflict')"
+      expirationDate:
+        type: "string"
+        required: false
+        description: "ISO date string of expiration"
+  StorageStats:
+    description: "StorageStats"
+    properties:
+      totalItems:
+        type: "number"
+        required: true
+        description: "Total number of items in storage"
+      totalSize:
+        type: "number"
+        required: true
+        description: "Total size in bytes"
+      syncedItems:
+        type: "number"
+        required: true
+        description: "Number of synced items"
+      pendingItems:
+        type: "number"
+        required: true
+        description: "Number of pending items"
+      conflictItems:
+        type: "number"
+        required: true
+        description: "Number of items with conflicts"
+      lastUpdated:
+        type: "string"
+        required: true
+        description: "ISO date string of last update"
+
+errors:
+  USER_NOT_FOUND:
+    code: "O_001"
+    message: "The specified user was not found"
+  ITEM_NOT_FOUND:
+    code: "O_002"
+    message: "The specified item was not found"
+  STORAGE_ERROR:
+    code: "O_003"
+    message: "Error storing the item"
+  QUOTA_EXCEEDED:
+    code: "O_004"
+    message: "Storage quota exceeded"
+  REMOVAL_ERROR:
+    code: "O_005"
+    message: "Error removing the item"
+  CLEAR_ERROR:
+    code: "O_006"
+    message: "Error clearing expired items"
+  INVALID_STATUS:
+    code: "O_007"
+    message: "The specified status is invalid"
+
+interface:
+  OfflineStorageInterface:
+    methods:
+      getItem:
+        description: "Gets an item from storage by key"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          key:
+            type: "string"
+            required: true
+            description: "Storage item key"
+        returns:
+          type: "StorageItem"
+          description: "The storage item"
+        errors:
+          - "USER_NOT_FOUND"
+          - "ITEM_NOT_FOUND"
+      setItem:
+        description: "Sets an item in storage"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          key:
+            type: "string"
+            required: true
+            description: "Storage item key"
+          value:
+            type: "any"
+            required: true
+            description: "Storage item value"
+          options:
+            type: "object"
+            required: false
+            description: "Storage options"
+        returns:
+          type: "boolean"
+          description: "Whether the item was successfully set"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STORAGE_ERROR"
+          - "QUOTA_EXCEEDED"
+      removeItem:
+        description: "Removes an item from storage"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          key:
+            type: "string"
+            required: true
+            description: "Storage item key"
+        returns:
+          type: "boolean"
+          description: "Whether the item was successfully removed"
+        errors:
+          - "USER_NOT_FOUND"
+          - "ITEM_NOT_FOUND"
+          - "REMOVAL_ERROR"
+      getStorageStats:
+        description: "Gets storage statistics for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "StorageStats"
+          description: "Storage statistics"
+        errors:
+          - "USER_NOT_FOUND"
+      clearExpiredItems:
+        description: "Clears expired items from storage"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "number"
+          description: "Number of items cleared"
+        errors:
+          - "USER_NOT_FOUND"
+          - "CLEAR_ERROR"
+      updateSyncStatus:
+        description: "Updates the synchronization status of an item"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          key:
+            type: "string"
+            required: true
+            description: "Storage item key"
+          syncStatus:
+            type: "string"
+            required: true
+            description: "New synchronization status"
+        returns:
+          type: "boolean"
+          description: "Whether the status was successfully updated"
+        errors:
+          - "USER_NOT_FOUND"
+          - "ITEM_NOT_FOUND"
+          - "INVALID_STATUS"

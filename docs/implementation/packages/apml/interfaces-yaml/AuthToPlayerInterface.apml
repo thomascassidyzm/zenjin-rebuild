@@ -1,0 +1,141 @@
+# AuthToPlayerInterface.apml
+# APML v2.2 Interface Definition
+# Module: AuthToPlayer
+# Purpose: Define user context contracts for Auth-to-Player flow
+
+interface_metadata:
+  name: "AuthToPlayerInterface"
+  version: "1.0.0"
+  module: "AuthToPlayer"
+  dependencies: []
+  description: |
+    Defines user context contracts for Auth-to-Player flow with proper type safety for different user states.
+    Ensures authenticated users always have required identifiers while anonymous users have optional fields.
+
+types:
+  UserType:
+    description: "Type of user in the system"
+    type: "string"
+    enum: ["authenticated", "anonymous"]
+    
+  BaseUserContext:
+    description: "Base user context shared by all user types"
+    properties:
+      userType:
+        type: "UserType"
+        required: true
+        description: "Type of user"
+        
+  AuthenticatedUserContext:
+    description: "Context for authenticated users"
+    extends: "BaseUserContext"
+    properties:
+      userType:
+        type: "string"
+        required: true
+        const: "authenticated"
+        description: "Always 'authenticated' for this type"
+      userId:
+        type: "string"
+        required: true
+        description: "Unique identifier from authentication system - never null for authenticated users"
+      userName:
+        type: "string"
+        required: false
+        description: "Display name from user profile"
+      email:
+        type: "string"
+        required: true
+        description: "Email address from authentication system"
+        
+  AnonymousUserContext:
+    description: "Context for anonymous users"
+    extends: "BaseUserContext"
+    properties:
+      userType:
+        type: "string"
+        required: true
+        const: "anonymous"
+        description: "Always 'anonymous' for this type"
+      userId:
+        type: "string"
+        required: false
+        description: "Optional anonymous user identifier for session tracking"
+      userName:
+        type: "string"
+        required: false
+        description: "Generated display name for anonymous users"
+      email:
+        type: "string"
+        required: false
+        description: "Not applicable for anonymous users"
+
+errors:
+  INVALID_USER_TYPE:
+    code: "ATP_001"
+    message: "Invalid user type provided"
+  MISSING_USER_ID:
+    code: "ATP_002"
+    message: "User ID is required for authenticated users"
+  MISSING_EMAIL:
+    code: "ATP_003"
+    message: "Email is required for authenticated users"
+  CONTEXT_VALIDATION_FAILED:
+    code: "ATP_004"
+    message: "User context validation failed"
+
+interface:
+  AuthToPlayerInterface:
+    methods:
+      createUserContext:
+        description: "Creates appropriate user context based on authentication state"
+        parameters:
+          isAuthenticated:
+            type: "boolean"
+            required: true
+            description: "Whether user is authenticated"
+          userId:
+            type: "string"
+            required: false
+            description: "User identifier"
+          userName:
+            type: "string"
+            required: false
+            description: "User display name"
+          email:
+            type: "string"
+            required: false
+            description: "User email address"
+        returns:
+          type: "object"
+          description: "AuthenticatedUserContext or AnonymousUserContext"
+        errors:
+          - "INVALID_USER_TYPE"
+          - "MISSING_USER_ID"
+          - "MISSING_EMAIL"
+          
+      validateUserContext:
+        description: "Validates a user context object"
+        parameters:
+          context:
+            type: "object"
+            required: true
+            description: "User context to validate"
+        returns:
+          type: "boolean"
+          description: "Whether context is valid"
+        errors:
+          - "CONTEXT_VALIDATION_FAILED"
+          
+      extractUserId:
+        description: "Extract appropriate user ID for state initialization"
+        parameters:
+          userContext:
+            type: "object"
+            required: true
+            description: "User context"
+        returns:
+          type: "string"
+          description: |
+            For authenticated users: actual userId
+            For anonymous users: userId if provided, otherwise generated

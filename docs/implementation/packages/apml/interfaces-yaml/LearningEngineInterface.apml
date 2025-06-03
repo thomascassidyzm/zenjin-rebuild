@@ -1,0 +1,490 @@
+# Learning Engine Interface
+# APML Version: 2.2
+# Service adapter interface for the LearningEngine module
+
+interface_metadata:
+  name: LearningEngineInterface
+  version: 1.0.0
+  module: LearningEngine
+  description: |
+    APML-compliant interface for the LearningEngine service adapter that coordinates distinction-based
+    learning components following the External Service Integration Protocol. Provides unified access to
+    mathematical fact repositories, question generation, distractor generation, and distinction management.
+  dependencies:
+    - FactRepositoryInterface
+    - QuestionGeneratorInterface
+    - DistractorGeneratorInterface
+    - DistinctionManagerInterface
+    - ContentManagerInterface
+  context_boundary:
+    scope: Service adapter interface for LearningEngine module integration
+    token_estimate: 8000
+
+types:
+  SessionConfiguration:
+    type: object
+    properties:
+      maxQuestions:
+        type: number
+        required: false
+        description: Maximum questions per session
+      difficultyRange:
+        type: "[number, number]"
+        required: false
+        description: Min/max difficulty range
+      focusAreas:
+        type: string[]
+        required: false
+        description: Specific focus areas for session
+      adaptiveDifficulty:
+        type: boolean
+        required: false
+        description: Whether to adjust difficulty based on performance
+
+  Question:
+    type: object
+    properties:
+      id:
+        type: string
+        required: true
+        description: Unique question identifier
+      factId:
+        type: string
+        required: true
+        description: Associated mathematical fact ID
+      questionText:
+        type: string
+        required: true
+        description: The question to display
+      correctAnswer:
+        type: string
+        required: true
+        description: The correct answer
+      distractors:
+        type: string[]
+        required: true
+        description: Incorrect answer options
+      boundaryLevel:
+        type: number
+        required: true
+        description: Distinction boundary level (1-5)
+      difficulty:
+        type: number
+        required: true
+        description: Question difficulty rating
+      metadata:
+        type: object
+        required: false
+        description: Additional question metadata
+
+  QuestionRequest:
+    type: object
+    properties:
+      difficulty:
+        type: number
+        required: false
+      focusArea:
+        type: string
+        required: false
+      excludeFactIds:
+        type: string[]
+        required: false
+
+  UserResponse:
+    type: object
+    properties:
+      questionId:
+        type: string
+        required: true
+        description: Question identifier
+      selectedAnswer:
+        type: string
+        required: true
+        description: User's selected answer
+      responseTime:
+        type: number
+        required: true
+        description: Response time in milliseconds
+      isCorrect:
+        type: boolean
+        required: true
+        description: Whether response was correct
+      timestamp:
+        type: string
+        required: true
+        description: ISO timestamp of response
+
+  ResponseFeedback:
+    type: object
+    properties:
+      isCorrect:
+        type: boolean
+        required: true
+        description: Whether response was correct
+      correctAnswer:
+        type: string
+        required: true
+        description: The correct answer
+      explanation:
+        type: string
+        required: true
+        description: Explanation of the answer
+      encouragement:
+        type: string
+        required: true
+        description: Encouraging message for user
+      masteryUpdate:
+        type: object
+        required: true
+        description: Updated mastery information
+
+  UserMasteryState:
+    type: object
+    properties:
+      userId:
+        type: string
+        required: true
+        description: User identifier
+      learningPaths:
+        type: object
+        required: true
+        description: Mastery data by learning path
+      overallProgress:
+        type: number
+        required: true
+        description: Overall progress percentage
+      strengths:
+        type: string[]
+        required: true
+        description: Areas of strength
+      improvementAreas:
+        type: string[]
+        required: true
+        description: Areas needing improvement
+      lastUpdated:
+        type: string
+        required: true
+        description: ISO timestamp of last update
+
+  MathematicalFact:
+    type: object
+    properties:
+      id:
+        type: string
+        required: true
+      content:
+        type: string
+        required: true
+      difficulty:
+        type: number
+        required: true
+      learningPathId:
+        type: string
+        required: true
+
+  MathematicalFactInput:
+    type: object
+    properties:
+      content:
+        type: string
+        required: true
+      difficulty:
+        type: number
+        required: true
+      learningPathId:
+        type: string
+        required: true
+      metadata:
+        type: object
+        required: false
+
+  FactQuery:
+    type: object
+    properties:
+      tags:
+        type: string[]
+        required: false
+      excludeIds:
+        type: string[]
+        required: false
+      limit:
+        type: number
+        required: false
+
+errors:
+  LE-001:
+    code: LE-001
+    message: User not found
+  LE-002:
+    code: LE-002
+    message: Learning path not found
+  LE-003:
+    code: LE-003
+    message: Session initialization failed
+  LE-004:
+    code: LE-004
+    message: Session not found
+  LE-005:
+    code: LE-005
+    message: Question generation failed
+  LE-006:
+    code: LE-006
+    message: No suitable facts available
+  LE-007:
+    code: LE-007
+    message: Invalid response data
+  LE-008:
+    code: LE-008
+    message: Question not found
+  LE-009:
+    code: LE-009
+    message: Response processing failed
+  LE-010:
+    code: LE-010
+    message: User mastery data not found
+  LE-011:
+    code: LE-011
+    message: Data retrieval failed
+  LE-012:
+    code: LE-012
+    message: Learning path not found
+  LE-013:
+    code: LE-013
+    message: No facts match criteria
+  LE-014:
+    code: LE-014
+    message: Invalid fact data
+  LE-015:
+    code: LE-015
+    message: Fact already exists
+  LE-016:
+    code: LE-016
+    message: Content update failed
+  LE-017:
+    code: LE-017
+    message: Invalid export type
+  LE-018:
+    code: LE-018
+    message: Export generation failed
+  LE-019:
+    code: LE-019
+    message: Insufficient permissions
+
+interface:
+  initializeLearningSession:
+    description: Initialize a new learning session for a user
+    parameters:
+      userId:
+        type: string
+        required: true
+        description: User identifier
+      learningPathId:
+        type: string
+        required: true
+        description: Learning path identifier
+      sessionConfig:
+        type: SessionConfiguration
+        required: false
+        description: Session configuration options
+    returns:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          description: Unique session identifier
+        initialQuestions:
+          type: Question[]
+          description: Initial set of questions for the session
+    errors:
+      - LE-001
+      - LE-002
+      - LE-003
+
+  generateQuestion:
+    description: Generate a new question based on user's current learning state
+    parameters:
+      sessionId:
+        type: string
+        required: true
+        description: Active session identifier
+      userId:
+        type: string
+        required: true
+        description: User identifier
+      questionRequest:
+        type: QuestionRequest
+        required: false
+        description: Question generation parameters
+    returns:
+      type: Question
+      description: Generated question with distractors
+    errors:
+      - LE-004
+      - LE-005
+      - LE-006
+
+  processUserResponse:
+    description: Process user's response and update learning state
+    parameters:
+      sessionId:
+        type: string
+        required: true
+        description: Active session identifier
+      questionId:
+        type: string
+        required: true
+        description: Question identifier
+      userResponse:
+        type: UserResponse
+        required: true
+        description: User's response data
+    returns:
+      type: object
+      properties:
+        feedback:
+          type: ResponseFeedback
+          description: Feedback on user's response
+        nextQuestion:
+          type: Question
+          required: false
+          description: Next question if session continues
+        sessionComplete:
+          type: boolean
+          description: Whether session is complete
+    errors:
+      - LE-007
+      - LE-008
+      - LE-009
+
+  getUserMasteryState:
+    description: Get comprehensive mastery information for a user
+    parameters:
+      userId:
+        type: string
+        required: true
+        description: User identifier
+      learningPathId:
+        type: string
+        required: false
+        description: Learning path filter
+    returns:
+      type: UserMasteryState
+      description: Complete user mastery information
+    errors:
+      - LE-010
+      - LE-011
+
+  getAvailableFacts:
+    description: Get available mathematical facts for a learning context
+    parameters:
+      learningPathId:
+        type: string
+        required: true
+        description: Learning path identifier
+      difficulty:
+        type: number
+        required: false
+        description: Difficulty level filter
+      factQuery:
+        type: FactQuery
+        required: false
+        description: Additional query filters
+    returns:
+      type: MathematicalFact[]
+      description: Available mathematical facts
+    errors:
+      - LE-012
+      - LE-013
+
+  updateContent:
+    description: Update or add mathematical content
+    parameters:
+      factData:
+        type: MathematicalFactInput
+        required: true
+        description: Fact data to add/update
+      updateMode:
+        type: string
+        required: false
+        description: "Update mode: create, update, or upsert"
+    returns:
+      type: object
+      properties:
+        factId:
+          type: string
+          description: Identifier of created/updated fact
+        success:
+          type: boolean
+          description: Whether operation succeeded
+    errors:
+      - LE-014
+      - LE-015
+      - LE-016
+
+  exportLearningData:
+    description: Export user learning data or curriculum content
+    parameters:
+      exportType:
+        type: string
+        required: true
+        description: "Export type: user_data, curriculum, or full"
+      userId:
+        type: string
+        required: false
+        description: User identifier for user_data export
+      format:
+        type: string
+        required: false
+        description: "Export format: json, csv, or xml"
+    returns:
+      type: string
+      description: Exported data in requested format
+    errors:
+      - LE-017
+      - LE-018
+      - LE-019
+
+validation_criteria:
+  - id: LE-INT-001
+    description: Service adapter implements all interface methods
+  - id: LE-INT-002
+    description: Error handling follows APML protocol
+  - id: LE-INT-003
+    description: Component integration is properly orchestrated
+  - id: LE-INT-004
+    description: Session management is stateful and consistent
+  - id: LE-INT-005
+    description: Data persistence is properly managed
+  - id: LE-INT-006
+    description: Content management operations work correctly
+  - id: LE-INT-007
+    description: Performance requirements are met (question generation <200ms, response processing <100ms)
+
+integration_points:
+  - target: ProgressionSystem.TripleHelixManagerInterface
+    purpose: Coordinate learning path progression and tube rotation
+    methods:
+      - getUserActiveLearningPath
+      - updateLearningProgress
+  - target: MetricsSystem.SessionMetricsManagerInterface
+    purpose: Record learning session metrics and performance data
+    methods:
+      - recordQuestionResponse
+      - calculateSessionMetrics
+  - target: UserInterface.PlayerCardInterface
+    purpose: Provide questions and process responses from UI components
+    methods:
+      - generateQuestion
+      - processUserResponse
+  - target: BackendServices.UserSessionManagerInterface
+    purpose: Persist learning data and synchronize user state
+    methods:
+      - saveUserProgress
+      - loadUserState
+
+external_service_protocol:
+  service_type: Learning Engine Coordination
+  isolation: Service adapter pattern with interface-only dependencies
+  error_recovery: Graceful degradation with offline fallback capabilities
+  monitoring: Comprehensive logging of learning session activities and performance metrics
+  testing: Component integration tests with mock implementations for isolated testing

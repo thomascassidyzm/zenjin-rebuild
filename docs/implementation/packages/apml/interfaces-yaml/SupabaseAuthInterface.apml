@@ -1,0 +1,414 @@
+# SupabaseAuthInterface.apml
+# APML v2.2 Interface Definition
+# Module: BackendServices
+# Converted from XML APML format
+
+interface_metadata:
+  name: "SupabaseAuthInterface"
+  version: "1.0.0"
+  module: "BackendServices"
+  dependencies:
+    - "[object Object]"
+    - "[object Object]"
+  description: |
+    Defines the contract for user authentication and authorization using Supabase Auth, supporting anonymous users, registration, login, and seamless migration between user types.
+
+types:
+  AnonymousUser:
+    description: "AnonymousUser"
+    properties:
+      id:
+        type: "string"
+        required: true
+        description: "Supabase anonymous user ID"
+      anonymousId:
+        type: "string"
+        required: true
+        description: "Custom anonymous identifier for app logic"
+      createdAt:
+        type: "string"
+        required: true
+        description: "ISO timestamp of creation"
+      expiresAt:
+        type: "string"
+        required: true
+        description: "ISO timestamp of expiration"
+      sessionData:
+        type: "object"
+        required: false
+        description: "Temporary session data"
+  RegisteredUser:
+    description: "RegisteredUser"
+    properties:
+      id:
+        type: "string"
+        required: true
+        description: "Supabase user ID"
+      email:
+        type: "string"
+        required: true
+        description: "User email address"
+      displayName:
+        type: "string"
+        required: false
+        description: "User display name"
+      createdAt:
+        type: "string"
+        required: true
+        description: "ISO timestamp of registration"
+      lastLoginAt:
+        type: "string"
+        required: true
+        description: "ISO timestamp of last login"
+      subscriptionTier:
+        type: "string"
+        required: true
+        description: "User subscription level"
+      metadata:
+        type: "object"
+        required: false
+        description: "Additional user metadata"
+  AuthSession:
+    description: "AuthSession"
+    properties:
+      user:
+        type: "object"
+        required: true
+        description: "User object (anonymous or registered)"
+      accessToken:
+        type: "string"
+        required: true
+        description: "JWT access token"
+      refreshToken:
+        type: "string"
+        required: true
+        description: "Refresh token"
+      expiresAt:
+        type: "number"
+        required: true
+        description: "Token expiration timestamp"
+      userType:
+        type: "string"
+        required: true
+        description: "Type of user (anonymous or registered)"
+  RegistrationRequest:
+    description: "RegistrationRequest"
+    properties:
+      email:
+        type: "string"
+        required: true
+        description: "User email address"
+      password:
+        type: "string"
+        required: true
+        description: "User password"
+      displayName:
+        type: "string"
+        required: false
+        description: "User display name"
+      anonymousId:
+        type: "string"
+        required: false
+        description: "Anonymous ID to migrate from"
+      metadata:
+        type: "object"
+        required: false
+        description: "Additional user metadata"
+  LoginRequest:
+    description: "LoginRequest"
+    properties:
+      email:
+        type: "string"
+        required: true
+        description: "User email address"
+      password:
+        type: "string"
+        required: true
+        description: "User password"
+      rememberMe:
+        type: "boolean"
+        required: false
+        description: "Whether to extend session duration"
+        default: false
+  AuthResult:
+    description: "AuthResult"
+    properties:
+      success:
+        type: "boolean"
+        required: true
+        description: "Whether the operation was successful"
+      session:
+        type: "AuthSession"
+        required: false
+        description: "Auth session if successful"
+      user:
+        type: "object"
+        required: false
+        description: "User object if successful"
+      error:
+        type: "string"
+        required: false
+        description: "Error message if failed"
+      requiresEmailConfirmation:
+        type: "boolean"
+        required: false
+        description: "Whether email confirmation is required"
+
+errors:
+  ANONYMOUS_CREATION_FAILED:
+    code: "S_001"
+    message: "Failed to create anonymous user"
+  SESSION_CREATION_FAILED:
+    code: "S_002"
+    message: "Failed to create anonymous session"
+  EMAIL_ALREADY_EXISTS:
+    code: "S_003"
+    message: "Email address is already registered"
+  WEAK_PASSWORD:
+    code: "S_004"
+    message: "Password does not meet security requirements"
+  INVALID_EMAIL:
+    code: "S_005"
+    message: "Email address format is invalid"
+  REGISTRATION_FAILED:
+    code: "S_006"
+    message: "User registration failed"
+  MIGRATION_FAILED:
+    code: "S_007"
+    message: "Failed to migrate anonymous user data"
+  INVALID_CREDENTIALS:
+    code: "S_008"
+    message: "Email or password is incorrect"
+  EMAIL_NOT_CONFIRMED:
+    code: "S_009"
+    message: "User has not confirmed their email address"
+  ACCOUNT_LOCKED:
+    code: "S_010"
+    message: "Account is temporarily locked"
+  LOGIN_FAILED:
+    code: "S_011"
+    message: "Login attempt failed"
+  LOGOUT_FAILED:
+    code: "S_012"
+    message: "Failed to logout user"
+  SESSION_EXPIRED:
+    code: "S_013"
+    message: "Current session has expired"
+  INVALID_SESSION:
+    code: "S_014"
+    message: "Session is invalid or corrupted"
+  REFRESH_FAILED:
+    code: "S_015"
+    message: "Failed to refresh session"
+  REFRESH_TOKEN_EXPIRED:
+    code: "S_016"
+    message: "Refresh token has expired"
+  NO_ACTIVE_SESSION:
+    code: "S_017"
+    message: "No active session to refresh"
+  ANONYMOUS_USER_NOT_FOUND:
+    code: "S_018"
+    message: "Anonymous user does not exist"
+  EXTENSION_FAILED:
+    code: "S_019"
+    message: "Failed to extend session"
+  CLEANUP_FAILED:
+    code: "S_020"
+    message: "Failed to cleanup expired users"
+  USER_NOT_FOUND:
+    code: "S_021"
+    message: "User does not exist"
+  INVALID_PROFILE_DATA:
+    code: "S_022"
+    message: "Profile data is invalid"
+  UPDATE_FAILED:
+    code: "S_023"
+    message: "Failed to update profile"
+  EMAIL_NOT_FOUND:
+    code: "S_024"
+    message: "Email address is not registered"
+  RESET_FAILED:
+    code: "S_025"
+    message: "Failed to initiate password reset"
+  INVALID_TOKEN:
+    code: "S_026"
+    message: "Confirmation token is invalid or expired"
+  CONFIRMATION_FAILED:
+    code: "S_027"
+    message: "Failed to confirm email"
+
+interface:
+  SupabaseAuthInterface:
+    methods:
+      createAnonymousUser:
+        description: "Creates a new anonymous user with temporary access"
+        parameters:
+          sessionData:
+            type: "object"
+            required: false
+            description: "Initial session data"
+          ttlHours:
+            type: "number"
+            required: false
+            description: "Time to live in hours"
+            default: 168
+        returns:
+          type: "AuthResult"
+          description: "Authentication result with anonymous user"
+        errors:
+          - "ANONYMOUS_CREATION_FAILED"
+          - "SESSION_CREATION_FAILED"
+        async: true
+      registerUser:
+        description: "Registers a new user account, optionally migrating from anonymous"
+        parameters:
+          registrationRequest:
+            type: "RegistrationRequest"
+            required: true
+            description: "Registration details"
+        returns:
+          type: "AuthResult"
+          description: "Authentication result with registered user"
+        errors:
+          - "EMAIL_ALREADY_EXISTS"
+          - "WEAK_PASSWORD"
+          - "INVALID_EMAIL"
+          - "REGISTRATION_FAILED"
+          - "MIGRATION_FAILED"
+        async: true
+      loginUser:
+        description: "Authenticates a registered user"
+        parameters:
+          loginRequest:
+            type: "LoginRequest"
+            required: true
+            description: "Login credentials"
+        returns:
+          type: "AuthResult"
+          description: "Authentication result"
+        errors:
+          - "INVALID_CREDENTIALS"
+          - "EMAIL_NOT_CONFIRMED"
+          - "ACCOUNT_LOCKED"
+          - "LOGIN_FAILED"
+        async: true
+      logoutUser:
+        description: "Logs out the current user and invalidates session"
+        returns:
+          type: "boolean"
+          description: "Whether logout was successful"
+        errors:
+          - "LOGOUT_FAILED"
+        async: true
+      getCurrentSession:
+        description: "Gets the current authentication session"
+        returns:
+          type: "AuthSession"
+          description: "Current session or null if not authenticated"
+        errors:
+          - "SESSION_EXPIRED"
+          - "INVALID_SESSION"
+        async: true
+      refreshSession:
+        description: "Refreshes the current authentication session"
+        returns:
+          type: "AuthResult"
+          description: "Refreshed authentication result"
+        errors:
+          - "REFRESH_FAILED"
+          - "REFRESH_TOKEN_EXPIRED"
+          - "NO_ACTIVE_SESSION"
+        async: true
+      migrateAnonymousToRegistered:
+        description: "Migrates an anonymous user to a registered account"
+        parameters:
+          anonymousId:
+            type: "string"
+            required: true
+            description: "Anonymous user identifier"
+          registrationRequest:
+            type: "RegistrationRequest"
+            required: true
+            description: "Registration details"
+        returns:
+          type: "AuthResult"
+          description: "Authentication result with migrated user"
+        errors:
+          - "ANONYMOUS_USER_NOT_FOUND"
+          - "MIGRATION_FAILED"
+          - "EMAIL_ALREADY_EXISTS"
+        async: true
+      extendAnonymousSession:
+        description: "Extends the TTL of an anonymous user session"
+        parameters:
+          anonymousId:
+            type: "string"
+            required: true
+            description: "Anonymous user identifier"
+          additionalHours:
+            type: "number"
+            required: true
+            description: "Hours to add to current TTL"
+        returns:
+          type: "boolean"
+          description: "Whether extension was successful"
+        errors:
+          - "ANONYMOUS_USER_NOT_FOUND"
+          - "SESSION_EXPIRED"
+          - "EXTENSION_FAILED"
+        async: true
+      cleanupExpiredAnonymousUsers:
+        description: "Removes expired anonymous users and their data"
+        returns:
+          type: "number"
+          description: "Number of users cleaned up"
+        errors:
+          - "CLEANUP_FAILED"
+        async: true
+      updateUserProfile:
+        description: "Updates user profile information"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          profileUpdates:
+            type: "object"
+            required: true
+            description: "Profile fields to update"
+        returns:
+          type: "object"
+          description: "Updated user object"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_PROFILE_DATA"
+          - "UPDATE_FAILED"
+        async: true
+      resetPassword:
+        description: "Initiates password reset process"
+        parameters:
+          email:
+            type: "string"
+            required: true
+            description: "User email address"
+        returns:
+          type: "boolean"
+          description: "Whether reset email was sent"
+        errors:
+          - "EMAIL_NOT_FOUND"
+          - "RESET_FAILED"
+        async: true
+      confirmEmail:
+        description: "Confirms user email address"
+        parameters:
+          token:
+            type: "string"
+            required: true
+            description: "Email confirmation token"
+        returns:
+          type: "AuthResult"
+          description: "Authentication result after confirmation"
+        errors:
+          - "INVALID_TOKEN"
+          - "CONFIRMATION_FAILED"
+        async: true

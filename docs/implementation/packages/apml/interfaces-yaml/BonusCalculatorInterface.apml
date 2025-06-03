@@ -1,0 +1,322 @@
+# BonusCalculatorInterface.apml
+# APML v2.2 Interface Definition
+# Module: MetricsSystem
+# Implements MAX() bonus system with Easter Egg thresholds
+
+interface_metadata:
+  name: "BonusCalculatorInterface"
+  version: "1.0.0"
+  module: "MetricsSystem"
+  dependencies:
+    - "ConsistencyTrackerInterface"
+  description: |
+    Defines the contract for calculating bonus multipliers using the MAX(consistency, excellence, speed) system.
+    Implements hidden Easter Egg thresholds for discovery-based gameplay.
+
+constants:
+  BONUS_SYSTEM_TYPE:
+    description: "Bonus calculation method"
+    type: "string"
+    value: "MAX"
+  MULTIPLIER_RANGE:
+    description: "Bonus multiplier range"
+    type: "object"
+    properties:
+      min:
+        type: "number"
+        value: 2.0
+        description: "Minimum bonus multiplier"
+      max:
+        type: "number"
+        value: 30.0
+        description: "Maximum bonus multiplier"
+  EASTER_EGG_MODE:
+    description: "Whether thresholds are hidden from UI"
+    type: "boolean"
+    value: true
+
+types:
+  BonusComponents:
+    description: "Individual bonus components before MAX() selection"
+    properties:
+      consistencyMultiplier:
+        type: "number"
+        required: true
+        description: "Consistency bonus multiplier (based on valid sessions)"
+      excellenceMultiplier:
+        type: "number"
+        required: true
+        description: "Excellence bonus multiplier (based on FTC percentage)"
+      speedMultiplier:
+        type: "number"
+        required: true
+        description: "Speed bonus multiplier (based on blink speed)"
+      winningCategory:
+        type: "string"
+        required: true
+        description: "Which category provided the maximum bonus"
+        enum: ["consistency", "excellence", "speed"]
+      finalMultiplier:
+        type: "number"
+        required: true
+        description: "Final multiplier (MAX of the three)"
+
+  SessionMetrics:
+    description: "Session metrics for bonus calculation"
+    properties:
+      ftcCount:
+        type: "number"
+        required: true
+        description: "First-time correct answers"
+      totalQuestions:
+        type: "number"
+        required: true
+        description: "Total questions answered"
+      duration:
+        type: "number"
+        required: true
+        description: "Session duration in milliseconds"
+      validSessionsShort:
+        type: "number"
+        required: true
+        description: "Valid sessions in 3-day window"
+      validSessionsMedium:
+        type: "number"
+        required: true
+        description: "Valid sessions in 12-day window"
+      validSessionsLong:
+        type: "number"
+        required: true
+        description: "Valid sessions in 35-day window"
+
+  ThresholdConfig:
+    description: "Configurable threshold settings (for admin/testing)"
+    properties:
+      excellenceThresholds:
+        type: "array"
+        required: true
+        description: "FTC percentage thresholds for excellence bonuses"
+        items:
+          type: "object"
+          properties:
+            ftcPercentage:
+              type: "number"
+              description: "Minimum FTC percentage required"
+            multiplier:
+              type: "number"
+              description: "Bonus multiplier awarded"
+      speedThresholds:
+        type: "array"
+        required: true
+        description: "Blink speed thresholds for speed bonuses"
+        items:
+          type: "object"
+          properties:
+            maxBlinkSpeed:
+              type: "number"
+              description: "Maximum blink speed in milliseconds"
+            multiplier:
+              type: "number"
+              description: "Bonus multiplier awarded"
+      consistencyThresholds:
+        type: "array"
+        required: true
+        description: "Valid session count thresholds for consistency bonuses"
+        items:
+          type: "object"
+          properties:
+            timeWindow:
+              type: "string"
+              enum: ["short", "medium", "long"]
+            sessionCount:
+              type: "number"
+              description: "Minimum valid sessions required"
+            multiplier:
+              type: "number"
+              description: "Bonus multiplier awarded"
+
+errors:
+  INVALID_SESSION_METRICS:
+    code: "BC_001"
+    message: "Session metrics are invalid"
+  CALCULATION_FAILED:
+    code: "BC_002"
+    message: "Bonus calculation failed"
+  INVALID_THRESHOLD_CONFIG:
+    code: "BC_003"
+    message: "Threshold configuration is invalid"
+  EASTER_EGG_ACCESS_DENIED:
+    code: "BC_004"
+    message: "Easter Egg threshold access denied for non-admin users"
+
+interface:
+  BonusCalculatorInterface:
+    methods:
+      calculateBonusComponents:
+        description: "Calculates all three bonus components (consistency, excellence, speed)"
+        parameters:
+          sessionMetrics:
+            type: "SessionMetrics"
+            required: true
+            description: "Session metrics for calculation"
+        returns:
+          type: "BonusComponents"
+          description: "All bonus components with final MAX() result"
+        errors:
+          - "INVALID_SESSION_METRICS"
+          - "CALCULATION_FAILED"
+
+      calculateConsistencyBonus:
+        description: "Calculates consistency bonus based on valid sessions across time windows"
+        parameters:
+          validSessionsShort:
+            type: "number"
+            required: true
+            description: "Valid sessions in 3-day window"
+          validSessionsMedium:
+            type: "number"
+            required: true
+            description: "Valid sessions in 12-day window"
+          validSessionsLong:
+            type: "number"
+            required: true
+            description: "Valid sessions in 35-day window"
+        returns:
+          type: "number"
+          description: "Consistency bonus multiplier"
+        errors:
+          - "CALCULATION_FAILED"
+
+      calculateExcellenceBonus:
+        description: "Calculates excellence bonus based on FTC percentage"
+        parameters:
+          ftcCount:
+            type: "number"
+            required: true
+            description: "First-time correct answers"
+          totalQuestions:
+            type: "number"
+            required: true
+            description: "Total questions answered"
+        returns:
+          type: "number"
+          description: "Excellence bonus multiplier"
+        errors:
+          - "CALCULATION_FAILED"
+
+      calculateSpeedBonus:
+        description: "Calculates speed bonus based on blink speed"
+        parameters:
+          duration:
+            type: "number"
+            required: true
+            description: "Session duration in milliseconds"
+          ftcCount:
+            type: "number"
+            required: true
+            description: "First-time correct answers"
+        returns:
+          type: "number"
+          description: "Speed bonus multiplier"
+        errors:
+          - "CALCULATION_FAILED"
+
+      getMaxBonus:
+        description: "Applies MAX() logic to select highest bonus"
+        parameters:
+          consistencyMultiplier:
+            type: "number"
+            required: true
+            description: "Consistency bonus multiplier"
+          excellenceMultiplier:
+            type: "number"
+            required: true
+            description: "Excellence bonus multiplier"
+          speedMultiplier:
+            type: "number"
+            required: true
+            description: "Speed bonus multiplier"
+        returns:
+          type: "object"
+          description: "Winner and final multiplier"
+          properties:
+            winningCategory:
+              type: "string"
+              enum: ["consistency", "excellence", "speed"]
+            finalMultiplier:
+              type: "number"
+        errors:
+          - "CALCULATION_FAILED"
+
+      # Admin/Testing Methods (Easter Egg management)
+      getThresholdConfig:
+        description: "Gets current threshold configuration (admin only)"
+        parameters:
+          adminToken:
+            type: "string"
+            required: true
+            description: "Admin authentication token"
+        returns:
+          type: "ThresholdConfig"
+          description: "Current threshold configuration"
+        errors:
+          - "EASTER_EGG_ACCESS_DENIED"
+
+      updateThresholdConfig:
+        description: "Updates threshold configuration (admin only)"
+        parameters:
+          adminToken:
+            type: "string"
+            required: true
+            description: "Admin authentication token"
+          thresholdConfig:
+            type: "ThresholdConfig"
+            required: true
+            description: "New threshold configuration"
+        returns:
+          type: "boolean"
+          description: "True if configuration was updated successfully"
+        errors:
+          - "EASTER_EGG_ACCESS_DENIED"
+          - "INVALID_THRESHOLD_CONFIG"
+
+      previewBonusCalculation:
+        description: "Previews bonus calculation with custom thresholds (admin only)"
+        parameters:
+          adminToken:
+            type: "string"
+            required: true
+            description: "Admin authentication token"
+          sessionMetrics:
+            type: "SessionMetrics"
+            required: true
+            description: "Session metrics for calculation"
+          customThresholds:
+            type: "ThresholdConfig"
+            required: false
+            description: "Custom threshold configuration for testing"
+        returns:
+          type: "object"
+          description: "Detailed calculation breakdown"
+          properties:
+            bonusComponents:
+              type: "BonusComponents"
+            calculationSteps:
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  step:
+                    type: "string"
+                  category:
+                    type: "string"
+                  input:
+                    type: "object"
+                  output:
+                    type: "number"
+                  thresholdMet:
+                    type: "boolean"
+        errors:
+          - "EASTER_EGG_ACCESS_DENIED"
+          - "INVALID_SESSION_METRICS"
+          - "INVALID_THRESHOLD_CONFIG"

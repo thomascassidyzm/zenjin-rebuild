@@ -1,0 +1,142 @@
+# Authentication Flow Interface
+# APML Version: 2.2
+# Interface for authentication flow completion with proper user data availability guarantees
+
+interface_metadata:
+  name: AuthenticationFlowInterface
+  version: 1.0.0
+  module: Authentication
+  description: |
+    Defines contracts for authentication flow completion with proper user data availability guarantees.
+    Eliminates timing dependencies and ensures Auth-to-Player flow receives complete user context.
+  dependencies:
+    - AuthenticatedUserContext
+  context_boundary:
+    size: medium
+    token_estimate: 4000
+    description: Authentication completion handling, user context creation, and Auth-to-Player flow initialization
+
+types:
+  AuthenticationMethod:
+    type: enum
+    values:
+      - PASSWORD
+      - OTP
+      - ANONYMOUS
+    description: Method used for authentication
+
+  AuthenticatedUser:
+    type: object
+    properties:
+      id:
+        type: string
+        required: true
+        description: Unique user identifier from authentication system
+      email:
+        type: string
+        required: true
+        description: Verified email address
+      displayName:
+        type: string
+        required: false
+        description: User display name
+      userType:
+        type: string
+        required: true
+        description: Type of user account (registered, anonymous, etc.)
+      subscriptionTier:
+        type: string
+        required: true
+        description: User subscription level
+
+  AuthenticationResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+      user:
+        type: AuthenticatedUser
+        required: false
+        description: Present when success=true, contains complete user data
+      error:
+        type: string
+        required: false
+        description: Present when success=false, contains error message
+
+errors:
+  INVALID_CREDENTIALS:
+    code: INVALID_CREDENTIALS
+    message: Invalid email or password provided
+  SERVICE_UNAVAILABLE:
+    code: SERVICE_UNAVAILABLE
+    message: Authentication service is temporarily unavailable
+  USER_REGISTRATION_FAILED:
+    code: USER_REGISTRATION_FAILED
+    message: Failed to auto-register new user
+
+interface:
+  onAuthenticationComplete:
+    description: Handle authentication completion with guaranteed user data availability
+    parameters:
+      result:
+        type: AuthenticationResult
+        required: true
+        description: Complete authentication result with user data when successful
+      method:
+        type: AuthenticationMethod
+        required: true
+        description: Method used for authentication
+    returns:
+      type: void
+    behavior:
+      preconditions:
+        - If result.success=true, result.user must be fully populated
+        - User data must be immediately available without async dependencies
+      postconditions:
+        - Auth-to-Player flow initialized with valid user context
+        - No further session state dependencies required
+
+  createUserContext:
+    description: Create typed user context from authentication result
+    parameters:
+      user:
+        type: AuthenticatedUser
+        required: true
+    returns:
+      type: AuthenticatedUserContext
+      description: APML-compliant user context for Auth-to-Player flow
+    behavior:
+      invariants:
+        - Output context must have all required fields populated
+        - No null or undefined values in required fields
+
+  handlePasswordAuthentication:
+    description: Process password authentication with proper error handling
+    parameters:
+      email:
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+    returns:
+      type: AuthenticationResult
+    errors:
+      - INVALID_CREDENTIALS
+      - SERVICE_UNAVAILABLE
+      - USER_REGISTRATION_FAILED
+    behavior:
+      on_success: Returns AuthenticationResult with populated user data
+      on_failure: Returns AuthenticationResult with specific error message
+
+validation_criteria:
+  - id: AF001
+    description: Authentication completion must provide complete user data synchronously
+    test: tests/authentication/auth-completion.test.ts
+  - id: AF002
+    description: Password authentication must handle both sign-in and auto-registration
+    test: tests/authentication/password-auth.test.ts
+  - id: AF003
+    description: User context creation must never produce null/undefined required fields
+    test: tests/authentication/user-context-creation.test.ts

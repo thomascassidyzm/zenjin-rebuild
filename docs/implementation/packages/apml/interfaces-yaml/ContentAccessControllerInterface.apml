@@ -1,0 +1,200 @@
+# ContentAccessControllerInterface.apml
+# APML v2.2 Interface Definition
+# Module: SubscriptionSystem
+# Converted from XML APML format
+
+interface_metadata:
+  name: "ContentAccessControllerInterface"
+  version: "1.1.0"
+  module: "SubscriptionSystem"
+  dependencies:
+    - "undefined"
+  description: |
+    Defines the contract for the ContentAccessController component that manages access to premium content based on subscription status.
+
+types:
+  ContentItem:
+    description: "ContentItem"
+    properties:
+      id:
+        type: "string"
+        required: true
+        description: "Unique identifier for the content item"
+      type:
+        type: "string"
+        required: true
+        description: "Type of content ('lesson', 'exercise', 'assessment')"
+      accessLevel:
+        type: "string"
+        required: true
+        description: "Required access level ('free', 'basic', 'premium')"
+      metadata:
+        type: "object"
+        required: false
+        description: "Additional metadata for the content item"
+  AccessRights:
+    description: "AccessRights"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "User identifier"
+      accessLevel:
+        type: "string"
+        required: true
+        description: "User's access level ('free', 'basic', 'premium')"
+      specialAccess:
+        type: "array"
+        required: false
+        description: "IDs of content items with special access"
+        items:
+          type: "string"
+      expirationDate:
+        type: "string"
+        required: false
+        description: "ISO date string of access expiration"
+
+errors:
+  USER_NOT_FOUND:
+    code: "C_001"
+    message: "The specified user was not found"
+  CONTENT_NOT_FOUND:
+    code: "C_002"
+    message: "The specified content was not found"
+  NO_ACCESS_RIGHTS:
+    code: "C_003"
+    message: "No access rights exist for this user"
+  INVALID_ACCESS_LEVEL:
+    code: "C_004"
+    message: "The specified access level is invalid"
+  UPDATE_FAILED:
+    code: "C_005"
+    message: "Failed to update access rights"
+  GRANT_FAILED:
+    code: "C_006"
+    message: "Failed to grant special access"
+  REVOKE_FAILED:
+    code: "C_007"
+    message: "Failed to revoke special access"
+  INVALID_CONTENT_TYPE:
+    code: "C_008"
+    message: "The specified content type is invalid"
+
+interface:
+  ContentAccessControllerInterface:
+    methods:
+      checkAccess:
+        description: "Checks if a user has access to a specific content item"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          contentId:
+            type: "string"
+            required: true
+            description: "Content item identifier"
+        returns:
+          type: "object"
+          description: "Access check result"
+          properties:
+            hasAccess:
+              type: "boolean"
+              description: "Whether the user has access"
+            reason:
+              type: "string"
+              description: "Reason for access result"
+        errors:
+          - "USER_NOT_FOUND"
+          - "CONTENT_NOT_FOUND"
+      getUserAccessRights:
+        description: "Gets the access rights for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "AccessRights"
+          description: "User's access rights"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_ACCESS_RIGHTS"
+      updateAccessRights:
+        description: "Updates the access rights for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          accessLevel:
+            type: "string"
+            required: true
+            description: "New access level"
+          expirationDate:
+            type: "string"
+            required: false
+            description: "ISO date string of access expiration"
+        returns:
+          type: "AccessRights"
+          description: "Updated access rights"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_ACCESS_LEVEL"
+          - "UPDATE_FAILED"
+      grantSpecialAccess:
+        description: "Grants special access to specific content items"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          contentIds:
+            type: "array"
+            required: true
+            description: "Content item identifiers"
+          expirationDate:
+            type: "string"
+            required: false
+            description: "ISO date string of special access expiration"
+        returns:
+          type: "AccessRights"
+          description: "Updated access rights"
+        errors:
+          - "USER_NOT_FOUND"
+          - "CONTENT_NOT_FOUND"
+          - "GRANT_FAILED"
+      revokeSpecialAccess:
+        description: "Revokes special access to specific content items"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          contentIds:
+            type: "array"
+            required: true
+            description: "Content item identifiers"
+        returns:
+          type: "AccessRights"
+          description: "Updated access rights"
+        errors:
+          - "USER_NOT_FOUND"
+          - "REVOKE_FAILED"
+      getAccessibleContent:
+        description: "Gets all content items accessible to a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          contentType:
+            type: "string"
+            required: false
+            description: "Filter by content type"
+        returns:
+          type: "array"
+          description: "Array of accessible content items"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_CONTENT_TYPE"

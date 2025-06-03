@@ -1,0 +1,238 @@
+# DistinctionManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: LearningEngine
+# Converted from XML APML format
+
+interface_metadata:
+  name: "DistinctionManagerInterface"
+  version: "1.1.0"
+  module: "LearningEngine"
+  dependencies:
+    - "[object Object]"
+  description: |
+    Defines the contract for the DistinctionManager component that manages the five boundary levels of distinction and tracks user mastery at each level.
+
+types:
+  BoundaryLevel:
+    description: "BoundaryLevel"
+    properties:
+      level:
+        type: "number"
+        required: true
+        description: "Boundary level (1-5)"
+      name:
+        type: "string"
+        required: true
+        description: "Name of the boundary level"
+      description:
+        type: "string"
+        required: true
+        description: "Description of the boundary level"
+  UserStitchBoundaryLevel:
+    description: "UserStitchBoundaryLevel"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "User identifier"
+      stitchId:
+        type: "string"
+        required: true
+        description: "Stitch identifier"
+      currentLevel:
+        type: "number"
+        required: true
+        description: "Current boundary level (1-5)"
+      masteryScore:
+        type: "number"
+        required: true
+        description: "Mastery score for the current level (0.0-1.0)"
+      consecutiveCorrect:
+        type: "number"
+        required: true
+        description: "Number of consecutive correct answers"
+      lastResponseTime:
+        type: "number"
+        required: false
+        description: "Last response time in milliseconds"
+      lastAttemptDate:
+        type: "string"
+        required: false
+        description: "ISO date string of last attempt"
+  PerformanceData:
+    description: "PerformanceData"
+    properties:
+      correctFirstAttempt:
+        type: "boolean"
+        required: true
+        description: "Whether the answer was correct on first attempt"
+      responseTime:
+        type: "number"
+        required: true
+        description: "Response time in milliseconds"
+      consecutiveCorrect:
+        type: "number"
+        required: false
+        description: "Number of consecutive correct answers"
+        default: 0
+
+errors:
+  USER_NOT_FOUND:
+    code: "D_001"
+    message: "The specified user was not found"
+  STITCH_NOT_FOUND:
+    code: "D_002"
+    message: "The specified stitch was not found"
+  NO_MASTERY_DATA:
+    code: "D_003"
+    message: "No mastery data exists for this user and stitch"
+  INVALID_PERFORMANCE_DATA:
+    code: "D_004"
+    message: "The performance data is invalid"
+  INVALID_LEVEL:
+    code: "D_005"
+    message: "The specified level is invalid"
+  ALREADY_INITIALIZED:
+    code: "D_006"
+    message: "Mastery data already exists for this user and stitch"
+  INVALID_ANSWER:
+    code: "D_007"
+    message: "The correct answer is invalid"
+
+interface:
+  DistinctionManagerInterface:
+    methods:
+      getCurrentBoundaryLevel:
+        description: "Gets the current boundary level for a user and stitch"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+        returns:
+          type: "number"
+          description: "Current boundary level (1-5)"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          - "NO_MASTERY_DATA"
+      getUserStitchMastery:
+        description: "Gets detailed mastery data for a user and stitch"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+        returns:
+          type: "UserStitchBoundaryLevel"
+          description: "User stitch mastery data"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          - "NO_MASTERY_DATA"
+      updateBoundaryLevel:
+        description: "Updates the boundary level based on user performance"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+          performance:
+            type: "PerformanceData"
+            required: true
+            description: "Performance data for the update"
+        returns:
+          type: "object"
+          description: "Result of the update operation"
+          properties:
+            previousLevel:
+              type: "number"
+              description: "Previous boundary level"
+            newLevel:
+              type: "number"
+              description: "New boundary level"
+            levelChanged:
+              type: "boolean"
+              description: "Whether the level changed"
+            masteryScore:
+              type: "number"
+              description: "Updated mastery score"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          - "INVALID_PERFORMANCE_DATA"
+      getBoundaryLevelDescription:
+        description: "Gets the description of a specific boundary level"
+        parameters:
+          level:
+            type: "number"
+            required: true
+            description: "Boundary level (1-5)"
+        returns:
+          type: "BoundaryLevel"
+          description: "Boundary level description"
+        errors:
+          - "INVALID_LEVEL"
+      getAllBoundaryLevels:
+        description: "Gets descriptions of all boundary levels"
+        returns:
+          type: "array"
+          description: "Array of all boundary level descriptions"
+      initializeUserStitchMastery:
+        description: "Initializes mastery data for a user and stitch"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+          initialLevel:
+            type: "number"
+            required: false
+            description: "Initial boundary level (1-5)"
+            default: 1
+        returns:
+          type: "boolean"
+          description: "Whether the initialization was successful"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          - "INVALID_LEVEL"
+          - "ALREADY_INITIALIZED"
+      generateDistractor:
+        description: "Generates a distractor value for the given stitch based on the current boundary level"
+        parameters:
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+          boundaryLevel:
+            type: "number"
+            required: true
+            description: "Current boundary level (1-5)"
+          correctAnswer:
+            type: "number"
+            required: true
+            description: "The correct answer to generate a distractor for"
+        returns:
+          type: "number"
+          description: "Generated distractor value"
+        errors:
+          - "STITCH_NOT_FOUND"
+          - "INVALID_LEVEL"
+          - "INVALID_ANSWER"

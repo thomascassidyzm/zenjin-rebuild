@@ -169,13 +169,15 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       
       // After showing feedback, reset the card
       setTimeout(() => {
-        setFeedbackState('idle');
-        setIsInteractable(true);
-        
-        // Re-present the same question if answer was incorrect
-        if (!response.isCorrect && currentQuestion) {
-          presentQuestion(currentQuestion);
-        }
+        safeSetState(() => {
+          setFeedbackState('idle');
+          setIsInteractable(true);
+          
+          // Re-present the same question if answer was incorrect
+          if (!response.isCorrect && currentQuestion) {
+            presentQuestion(currentQuestion);
+          }
+        });
       }, duration);
       
       return { processed: true, feedbackShown: true };
@@ -183,7 +185,7 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       console.error('FEEDBACK_FAILED: Failed to show feedback due to rendering issues', error);
       return { processed: false, feedbackShown: false };
     }
-  }, []);
+  }, [safeSetState]);
 
   /**
    * Handles timeout when user doesn't respond within the allocated time
@@ -208,13 +210,15 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       
       // After showing feedback, reset the card and re-present question
       setTimeout(() => {
-        setFeedbackState('idle');
-        setIsInteractable(true);
-        
-        // Re-present the same question for timeout scenario
-        if (currentQuestion) {
-          presentQuestion(currentQuestion);
-        }
+        safeSetState(() => {
+          setFeedbackState('idle');
+          setIsInteractable(true);
+          
+          // Re-present the same question for timeout scenario
+          if (currentQuestion) {
+            presentQuestion(currentQuestion);
+          }
+        });
       }, 3000); // Show timeout feedback for 3 seconds
       
       return { processed: true, feedbackShown: true };
@@ -222,7 +226,7 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       console.error('FEEDBACK_FAILED: Failed to show timeout feedback due to rendering issues', error);
       return { processed: false, feedbackShown: false };
     }
-  }, [currentQuestion, presentQuestion]);
+  }, [currentQuestion, presentQuestion, safeSetState]);
 
   /**
    * Resets the PlayerCard to its initial state
@@ -296,13 +300,29 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
     reset
   }), [presentQuestion, handleResponse, handleTimeout, reset]);
 
-  // Clean up timeouts on unmount
+  // APML-compliant component lifecycle cleanup
+  const isMountedRef = useRef(true);
+  
   useEffect(() => {
+    isMountedRef.current = true;
+    
     return () => {
+      // Mark component as unmounted
+      isMountedRef.current = false;
+      
+      // Clear all timers and async operations
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
+  }, []);
+  
+  // Safe state setter that checks if component is still mounted
+  const safeSetState = useCallback((setter: () => void) => {
+    if (isMountedRef.current) {
+      setter();
+    }
   }, []);
 
   // Determine card background class based on feedback state

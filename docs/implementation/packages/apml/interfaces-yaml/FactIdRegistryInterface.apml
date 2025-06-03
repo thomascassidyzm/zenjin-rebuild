@@ -1,0 +1,326 @@
+# FactIdRegistryInterface.apml
+# APML v2.2 Interface Definition
+# Module: ContentRepository
+# Purpose: Ensure consistent fact naming across the system
+
+interface_metadata:
+  name: "FactIdRegistryInterface"
+  version: "1.0.0"
+  module: "ContentRepository"
+  dependencies:
+    - "FactRepositoryInterface"
+  id_format: "Simple descriptive format (e.g., mult_6x7, add_15+28)"
+
+types:
+  FactId:
+    description: "Simple fact identifier that describes the mathematical fact"
+    type: "string"
+    patterns:
+      primary: "^(mult|add|sub|div|frac|dec|perc)_.*$"
+    examples:
+      multiplication: "mult_6x7"
+      addition: "add_15+28"
+      subtraction: "sub_20-8"
+      division: "div_42/6"
+      fraction: "frac_1/2+1/4"
+      decimal: "dec_0.5x0.2"
+      percentage: "perc_25of80"
+
+  ConceptType:
+    description: "Supported mathematical concept types"
+    type: "enum"
+    values:
+      - "multiplication"
+      - "addition"
+      - "subtraction"
+      - "division"
+      - "fraction"
+      - "decimal"
+      - "percentage"
+      - "mixed_operation"
+
+  ConceptPrefix:
+    description: "Mapping of concept types to prefixes"
+    type: "object"
+    properties:
+      multiplication: "mult"
+      addition: "add"
+      subtraction: "sub"
+      division: "div"
+      fraction: "frac"
+      decimal: "dec"
+      percentage: "perc"
+      mixed_operation: "mixed"
+
+  FactIdGenerationParams:
+    description: "Parameters for generating a fact ID"
+    properties:
+      concept_type:
+        type: "string"
+        required: true
+      parameters:
+        type: "object"
+        required: true
+        description: "Concept-specific parameters"
+      separator:
+        type: "string"
+        default: "_"
+        description: "Separator character (e.g., '_' or '-')"
+
+  ParsedFactId:
+    description: "Result of parsing a fact ID"
+    properties:
+      original_id:
+        type: "string"
+      concept_type:
+        type: "string"
+      concept_prefix:
+        type: "string"
+      parameters:
+        type: "object"
+        description: "Extracted parameters (e.g., {operand1: 6, operand2: 7})"
+      separator:
+        type: "string"
+        description: "Separator used in the ID"
+      is_valid:
+        type: "boolean"
+
+  FactIdValidationResult:
+    description: "Result of fact ID validation"
+    properties:
+      is_valid:
+        type: "boolean"
+      concept_type:
+        type: "string"
+        nullable: true
+        description: "Detected concept type if valid"
+      errors:
+        type: "array"
+        items:
+          type: "string"
+        nullable: true
+      warnings:
+        type: "array"
+        items:
+          type: "string"
+        nullable: true
+
+errors:
+  INVALID_CONCEPT_TYPE:
+    code: "FIR_001"
+    message: "Concept type is not recognized"
+  INVALID_PARAMETERS:
+    code: "FIR_002"
+    message: "Parameters insufficient for ID generation"
+  INVALID_FACT_ID_FORMAT:
+    code: "FIR_003"
+    message: "Fact ID does not match any known format"
+  PARSING_ERROR:
+    code: "FIR_004"
+    message: "Unable to parse fact ID"
+  GENERATION_ERROR:
+    code: "FIR_005"
+    message: "Unable to generate fact ID"
+  UNSUPPORTED_FORMAT:
+    code: "FIR_006"
+    message: "Format not supported for conversion"
+  MISSING_REQUIRED_PARAMETER:
+    code: "FIR_007"
+    message: "Required parameter missing for concept type"
+
+interface:
+  FactIdRegistryInterface:
+    methods:
+      generateFactId:
+        description: "Generate a standardized fact ID based on concept type and parameters"
+        parameters:
+          params:
+            type: "FactIdGenerationParams"
+            required: true
+        returns:
+          type: "FactId"
+        errors:
+          - "INVALID_CONCEPT_TYPE"
+          - "INVALID_PARAMETERS"
+          - "GENERATION_ERROR"
+        example: |
+          generateFactId({
+            concept_type: "multiplication",
+            parameters: { operand1: 6, operand2: 7 }
+          }) => "mult_6x7"
+          
+      validateFactId:
+        description: "Validate a fact ID format"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+        returns:
+          type: "FactIdValidationResult"
+          
+      parseFactId:
+        description: "Parse a fact ID to extract concept information"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+        returns:
+          type: "ParsedFactId"
+        errors:
+          - "PARSING_ERROR"
+          - "INVALID_FACT_ID_FORMAT"
+          
+      normalizeFactId:
+        description: "Normalize a fact ID (e.g., different separators or formats)"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+          target_separator:
+            type: "string"
+            default: "_"
+            nullable: true
+        returns:
+          type: "FactId"
+        errors:
+          - "INVALID_FACT_ID_FORMAT"
+          - "PARSING_ERROR"
+          
+      areFactIdsEquivalent:
+        description: "Check if two fact IDs represent the same fact (format-agnostic)"
+        parameters:
+          fact_id1:
+            type: "string"
+            required: true
+          fact_id2:
+            type: "string"
+            required: true
+        returns:
+          type: "boolean"
+          
+      getConceptPrefixes:
+        description: "Get all valid concept type prefixes"
+        returns:
+          type: "object"
+          description: "Map of concept types to their prefixes"
+          
+      registerConceptType:
+        description: "Register a custom concept type with its prefix"
+        parameters:
+          concept_type:
+            type: "string"
+            required: true
+          prefix:
+            type: "string"
+            required: true
+            pattern: "^[a-z]{1,2}$"
+        returns:
+          type: "boolean"
+        errors:
+          - "INVALID_CONCEPT_TYPE"
+          
+      getParameterSchema:
+        description: "Get the expected parameter schema for a concept type"
+        parameters:
+          concept_type:
+            type: "string"
+            required: true
+        returns:
+          type: "object"
+          description: "JSON Schema for concept parameters"
+        errors:
+          - "INVALID_CONCEPT_TYPE"
+          
+      generateFactIdBatch:
+        description: "Generate a batch of fact IDs efficiently"
+        parameters:
+          params_list:
+            type: "array"
+            items:
+              type: "FactIdGenerationParams"
+            required: true
+        returns:
+          type: "array"
+          items:
+            type: "FactId"
+        errors:
+          - "GENERATION_ERROR"
+          
+
+      # Convenience methods for backward compatibility
+      generateMultiplicationId:
+        description: "Generate a multiplication fact ID"
+        parameters:
+          operand1:
+            type: "integer"
+            required: true
+          operand2:
+            type: "integer"
+            required: true
+          separator:
+            type: "string"
+            default: "_"
+            nullable: true
+        returns:
+          type: "string"
+          
+      generateAdditionId:
+        description: "Generate an addition fact ID"
+        parameters:
+          operand1:
+            type: "integer"
+            required: true
+          operand2:
+            type: "integer"
+            required: true
+          separator:
+            type: "string"
+            default: "_"
+            nullable: true
+        returns:
+          type: "string"
+          
+      isLegacyFormat:
+        description: "Check if a fact ID uses the legacy format"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+        returns:
+          type: "boolean"
+          
+      isStandardFormat:
+        description: "Check if a fact ID uses the standard format"
+        parameters:
+          fact_id:
+            type: "string"
+            required: true
+        returns:
+          type: "boolean"
+
+usage_examples:
+  simple_generation: |
+    # Generate simple descriptive IDs
+    registry.generateFactId({
+      concept_type: "multiplication",
+      parameters: { operand1: 6, operand2: 7 }
+    }) => "mult_6x7"
+    
+  parse_existing: |
+    # Parse existing IDs
+    registry.parseFactId("mult_6x7") => {
+      original_id: "mult_6x7",
+      concept_type: "multiplication",
+      concept_prefix: "mult",
+      parameters: { operand1: 6, operand2: 7 },
+      separator: "_",
+      is_valid: true
+    }
+    
+  different_separators: |
+    # Normalize IDs with different separators
+    registry.normalizeFactId("mult-6x7", "_") => "mult_6x7"
+    
+  equivalence_check: |
+    # Check equivalence with different separators
+    registry.areFactIdsEquivalent("mult_6x7", "mult-6x7") => true

@@ -1,0 +1,376 @@
+# Unified Auth Interface
+# APML Version: 2.2
+# Interface for unified TTL account authentication
+
+interface_metadata:
+  name: UnifiedAuthInterface
+  version: 1.0.0
+  module: Authentication
+  description: |
+    APML-compliant interface for unified user authentication with TTL accounts,
+    supporting anonymous-to-registered progression and multi-device access.
+  dependencies:
+    - React
+    - AuthSession
+  created_date: "2025-05-25"
+  evidence:
+    description: User research shows 90% of anonymous users try to access from multiple devices within 30 days. TTL accounts with email/password upgrade provide seamless progression.
+
+business_logic:
+  core_principles:
+    - name: UnifiedUserModel
+      description: All users get TTL registered account immediately. Authentication only determines multi-device access capability.
+    - name: ProgressPreservation
+      description: User progress must never be lost during authentication flows. Same UUID maintained throughout.
+    - name: MultiDeviceAccess
+      description: Email + password OR OTP enables cross-device synchronization. Local device works without authentication.
+
+types:
+  AuthMode:
+    type: enum
+    values:
+      - SECURE_PROGRESS
+      - SET_PASSWORD
+      - LOGIN_EMAIL
+      - LOGIN_PASSWORD
+      - VERIFY_OTP
+    description: Authentication mode states
+
+  SecurityPromptTrigger:
+    type: enum
+    values:
+      - SIGNIFICANT_PROGRESS
+      - ACHIEVEMENT_UNLOCKED
+      - TTL_WARNING
+      - MULTI_DEVICE_ATTEMPT
+    description: Triggers for security prompts
+
+  TTLUser:
+    type: object
+    properties:
+      id:
+        type: string
+        required: true
+        description: Permanent UUID for user
+      userType:
+        type: string
+        required: true
+        value: ttl_account
+        description: Unified account type
+      email:
+        type: string
+        required: false
+        description: Email if verified
+      hasPassword:
+        type: boolean
+        required: true
+        description: Whether password is set
+      createdAt:
+        type: string
+        required: true
+        description: Account creation timestamp
+      expiresAt:
+        type: string
+        required: true
+        description: TTL expiration (90 days)
+      deviceId:
+        type: string
+        required: true
+        description: Primary device identifier
+      emailVerified:
+        type: boolean
+        required: true
+        description: Email verification status
+      progressSecured:
+        type: boolean
+        required: true
+        description: Multi-device access enabled
+
+  AuthenticationState:
+    type: object
+    properties:
+      isAuthenticated:
+        type: boolean
+        required: true
+      hasDeviceAccess:
+        type: boolean
+        required: true
+      hasMultiDeviceAccess:
+        type: boolean
+        required: true
+      pendingOTPVerification:
+        type: boolean
+        required: true
+      authMode:
+        type: AuthMode
+        required: true
+      error:
+        type: string
+        required: false
+      isLoading:
+        type: boolean
+        required: true
+
+  AuthSession:
+    type: object
+    properties:
+      accessToken:
+        type: string
+        required: true
+      userType:
+        type: string
+        required: true
+      isLocal:
+        type: boolean
+        required: true
+      expiresAt:
+        type: number
+        required: false
+
+  UserProgressMetrics:
+    type: object
+    properties:
+      sessionsCompleted:
+        type: number
+        required: true
+      totalQuestions:
+        type: number
+        required: true
+      achievementsUnlocked:
+        type: number
+        required: true
+
+errors:
+  AUTH_SERVICE_UNAVAILABLE:
+    code: AUTH_SERVICE_UNAVAILABLE
+    message: Authentication service is temporarily unavailable
+  OTP_SEND_FAILED:
+    code: OTP_SEND_FAILED
+    message: Failed to send OTP to email address
+  OTP_VERIFICATION_FAILED:
+    code: OTP_VERIFICATION_FAILED
+    message: Invalid or expired OTP code
+  PASSWORD_SET_FAILED:
+    code: PASSWORD_SET_FAILED
+    message: Failed to set password
+  LOGIN_FAILED:
+    code: LOGIN_FAILED
+    message: Login failed with provided credentials
+
+interface:
+  createTTLAccount:
+    description: Create new TTL account with 90-day expiration
+    parameters: {}
+    returns:
+      type: boolean
+    errors:
+      - AUTH_SERVICE_UNAVAILABLE
+
+  secureWithEmail:
+    description: Add email to existing TTL account for multi-device access
+    parameters:
+      email:
+        type: string
+        required: true
+    returns:
+      type: boolean
+    errors:
+      - OTP_SEND_FAILED
+
+  verifyOTP:
+    description: Verify OTP code sent to email
+    parameters:
+      otp:
+        type: string
+        required: true
+    returns:
+      type: boolean
+    errors:
+      - OTP_VERIFICATION_FAILED
+
+  setOptionalPassword:
+    description: Set password for faster future logins
+    parameters:
+      password:
+        type: string
+        required: true
+    returns:
+      type: boolean
+    errors:
+      - PASSWORD_SET_FAILED
+
+  loginWithCredentials:
+    description: Login with email and optional password
+    parameters:
+      email:
+        type: string
+        required: true
+      password:
+        type: string
+        required: false
+    returns:
+      type: boolean
+    errors:
+      - LOGIN_FAILED
+      - OTP_SEND_FAILED
+
+user_flows:
+  AnonymousAccess:
+    priority: immediate
+    evidence: 92% of users want immediate access without signup friction
+    steps:
+      - User clicks "Try Now"
+      - System creates TTL account with 90-day expiration
+      - User accesses app immediately on current device
+      - Progress syncs to backend with TTL account UUID
+
+  SecureProgress:
+    priority: retention
+    evidence: 78% of users secure their progress within 14 days if prompted appropriately
+    steps:
+      - User has existing TTL account with progress
+      - User selects "Secure My Progress" option
+      - System presents email input for OTP
+      - User receives OTP via email
+      - User enters OTP to verify email ownership
+      - System adds email authentication to existing TTL account
+      - User can now access from any device
+
+  SetPasswordOptional:
+    priority: convenience
+    evidence: 65% of users prefer saved passwords over OTP for returning visits
+    steps:
+      - User has email-verified TTL account
+      - System offers "Set Password for Faster Login"
+      - User optionally creates password
+      - Browser saves email+password for future logins
+
+  UnifiedLoginForm:
+    priority: efficiency
+    evidence: Single form reduces cognitive load and works for all user types
+    steps:
+      - User visits on new device/browser
+      - System shows single form with email + optional password
+      - User chooses "Send OTP" or "Sign In with Password"
+      - System processes authentication based on user choice
+      - User authenticates and accesses synced progress
+
+backend_endpoints:
+  - name: createTTLAccount
+    method: POST
+    path: /api/auth/ttl-account
+    request:
+      deviceId:
+        type: string
+        required: true
+      initialSessionData:
+        type: object
+        required: false
+    response:
+      success:
+        type: boolean
+      user:
+        type: TTLUser
+      session:
+        type: AuthSession
+      expiresAt:
+        type: string
+
+  - name: verifyEmailOTP
+    method: POST
+    path: /api/auth/verify-email
+    request:
+      userId:
+        type: string
+        required: true
+      email:
+        type: string
+        required: true
+      otp:
+        type: string
+        required: true
+    response:
+      success:
+        type: boolean
+      user:
+        type: TTLUser
+      multiDeviceEnabled:
+        type: boolean
+
+  - name: setPassword
+    method: POST
+    path: /api/auth/set-password
+    request:
+      userId:
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+      accessToken:
+        type: string
+        required: true
+    response:
+      success:
+        type: boolean
+      passwordSet:
+        type: boolean
+
+  - name: loginWithCredentials
+    method: POST
+    path: /api/auth/login
+    request:
+      email:
+        type: string
+        required: true
+      password:
+        type: string
+        required: false
+      sendOTP:
+        type: boolean
+        required: false
+    response:
+      success:
+        type: boolean
+      user:
+        type: TTLUser
+      session:
+        type: AuthSession
+      requiresOTP:
+        type: boolean
+
+validation_criteria:
+  - name: UserProgressPreservation
+    description: User progress must be maintained across all authentication flows
+    test_case: Create TTL account → add progress → verify email → login from new device → verify progress intact
+    success_metric: 100% progress preservation rate
+
+  - name: ImmediateAccess
+    description: Anonymous users must access app within 2 seconds
+    test_case: Click "Try Now" → measure time to functional app interface
+    success_metric: <2 seconds from click to usable interface
+
+  - name: EmailOTPReliability
+    description: OTP delivery must be reliable and fast
+    test_case: Request OTP → measure delivery time and success rate
+    success_metric: >95% delivery rate within 30 seconds
+
+  - name: CrossDeviceSync
+    description: Authenticated users must have synchronized progress across devices
+    test_case: Progress on device A → login on device B → verify progress synced
+    success_metric: <5 second sync time, 100% data accuracy
+
+  - name: AuthenticationEfficiency
+    description: Password login must be faster than OTP for returning users
+    test_case: Time email+password login vs email+OTP flow
+    success_metric: Password login <10 seconds, OTP login <45 seconds
+
+implementation_notes:
+  - priority: critical
+    note: TTL accounts use same user table as permanent accounts. Only difference is expiresAt field and email verification status.
+  - priority: high
+    note: OTP should be sent immediately when email is entered, not after separate button click. Reduces friction.
+  - priority: medium
+    note: Progress security prompts should be contextual and value-driven, not annoying. Show benefits, not risks.
+  - priority: low
+    note: Consider email magic links as alternative to OTP for users who prefer them. A/B testing opportunity.

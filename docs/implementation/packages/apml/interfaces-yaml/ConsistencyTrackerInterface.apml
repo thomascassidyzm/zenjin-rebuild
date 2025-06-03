@@ -1,0 +1,248 @@
+# ConsistencyTrackerInterface.apml
+# APML v2.2 Interface Definition
+# Module: MetricsSystem
+# Tracks valid sessions for consistency bonus calculation
+
+interface_metadata:
+  name: "ConsistencyTrackerInterface"
+  version: "1.0.0"
+  module: "MetricsSystem"
+  dependencies: []
+  description: |
+    Defines the contract for tracking valid sessions (>100 questions) across time windows 
+    for consistency bonus calculation. Supports Easter Egg thresholds discovery.
+
+constants:
+  MIN_QUESTIONS_VALID_SESSION:
+    description: "Minimum questions required for a session to be considered valid"
+    type: "number"
+    value: 100
+  TIME_WINDOWS:
+    description: "Time windows for consistency tracking"
+    type: "object"
+    properties:
+      short:
+        type: "number"
+        value: 3
+        description: "3-day window"
+      medium:
+        type: "number"
+        value: 12
+        description: "12-day window"
+      long:
+        type: "number"
+        value: 35
+        description: "35-day window"
+
+types:
+  ValidSession:
+    description: "A valid learning session record"
+    properties:
+      sessionId:
+        type: "string"
+        required: true
+        description: "Unique session identifier"
+      userId:
+        type: "string"
+        required: true
+        description: "User identifier"
+      questionCount:
+        type: "number"
+        required: true
+        description: "Number of questions answered in session"
+      completedAt:
+        type: "string"
+        required: true
+        description: "ISO timestamp when session was completed"
+      points:
+        type: "number"
+        required: true
+        description: "Total points earned in session"
+  
+  ConsistencyMetrics:
+    description: "Consistency metrics across time windows"
+    properties:
+      shortWindow:
+        type: "object"
+        required: true
+        description: "3-day window metrics"
+        properties:
+          validSessions:
+            type: "number"
+            description: "Number of valid sessions in 3-day window"
+          multiplier:
+            type: "number"
+            description: "Consistency multiplier for this window"
+      mediumWindow:
+        type: "object"
+        required: true
+        description: "12-day window metrics"
+        properties:
+          validSessions:
+            type: "number"
+            description: "Number of valid sessions in 12-day window"
+          multiplier:
+            type: "number"
+            description: "Consistency multiplier for this window"
+      longWindow:
+        type: "object"
+        required: true
+        description: "35-day window metrics"
+        properties:
+          validSessions:
+            type: "number"
+            description: "Number of valid sessions in 35-day window"
+          multiplier:
+            type: "number"
+            description: "Consistency multiplier for this window"
+      bestMultiplier:
+        type: "number"
+        required: true
+        description: "Highest multiplier across all windows"
+
+  TimeWindow:
+    description: "Time window specification"
+    type: "string"
+    enum: ["short", "medium", "long"]
+
+errors:
+  INVALID_SESSION:
+    code: "CT_001"
+    message: "The session data is invalid"
+  INVALID_TIME_WINDOW:
+    code: "CT_002"
+    message: "The time window is invalid"
+  USER_NOT_FOUND:
+    code: "CT_003"
+    message: "User not found"
+  CALCULATION_FAILED:
+    code: "CT_004"
+    message: "Failed to calculate consistency metrics"
+  INVALID_DATE_RANGE:
+    code: "CT_005"
+    message: "Invalid date range provided"
+
+interface:
+  ConsistencyTrackerInterface:
+    methods:
+      recordValidSession:
+        description: "Records a valid session (>100 questions) for consistency tracking"
+        parameters:
+          validSession:
+            type: "ValidSession"
+            required: true
+            description: "Valid session data to record"
+        returns:
+          type: "boolean"
+          description: "True if session was recorded successfully"
+        errors:
+          - "INVALID_SESSION"
+          - "USER_NOT_FOUND"
+      
+      getConsistencyMetrics:
+        description: "Gets consistency metrics for all time windows"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          referenceDate:
+            type: "string"
+            required: false
+            description: "ISO timestamp to calculate windows from (defaults to now)"
+        returns:
+          type: "ConsistencyMetrics"
+          description: "Consistency metrics across all time windows"
+        errors:
+          - "USER_NOT_FOUND"
+          - "CALCULATION_FAILED"
+          - "INVALID_DATE_RANGE"
+      
+      getValidSessionsInWindow:
+        description: "Gets count of valid sessions in a specific time window"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          timeWindow:
+            type: "TimeWindow"
+            required: true
+            description: "Time window to check"
+          referenceDate:
+            type: "string"
+            required: false
+            description: "ISO timestamp to calculate window from (defaults to now)"
+        returns:
+          type: "number"
+          description: "Number of valid sessions in the specified window"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_TIME_WINDOW"
+          - "INVALID_DATE_RANGE"
+      
+      calculateConsistencyMultiplier:
+        description: "Calculates consistency multiplier based on session count and window"
+        parameters:
+          validSessionCount:
+            type: "number"
+            required: true
+            description: "Number of valid sessions"
+          timeWindow:
+            type: "TimeWindow"
+            required: true
+            description: "Time window for calculation"
+        returns:
+          type: "number"
+          description: "Consistency multiplier (hidden Easter Egg thresholds)"
+        errors:
+          - "INVALID_TIME_WINDOW"
+          - "CALCULATION_FAILED"
+      
+      getUserSessionHistory:
+        description: "Gets user's valid session history for debugging/admin"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          startDate:
+            type: "string"
+            required: false
+            description: "Start date for history (ISO timestamp)"
+          endDate:
+            type: "string"
+            required: false
+            description: "End date for history (ISO timestamp)"
+          limit:
+            type: "number"
+            required: false
+            description: "Maximum number of sessions to return"
+        returns:
+          type: "array"
+          description: "Array of valid sessions"
+          items:
+            type: "ValidSession"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_DATE_RANGE"
+      
+      cleanupOldSessions:
+        description: "Removes old session records beyond retention period"
+        parameters:
+          retentionDays:
+            type: "number"
+            required: false
+            description: "Number of days to retain (defaults to 90)"
+        returns:
+          type: "object"
+          description: "Cleanup summary"
+          properties:
+            deletedCount:
+              type: "number"
+              description: "Number of sessions deleted"
+            retentionDate:
+              type: "string"
+              description: "Cutoff date for retention"
+        errors:
+          - "CALCULATION_FAILED"

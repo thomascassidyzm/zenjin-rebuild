@@ -1,0 +1,340 @@
+# ContentAdminInterface.yaml
+# APML v2.2 Interface Definition
+# Module: AdminSystem
+# Purpose: Administrative tools for content creation and management
+
+interface_metadata:
+  name: "ContentAdminInterface"
+  version: "1.0.0"
+  module: "AdminSystem"
+  dependencies:
+    - "ContentManagerInterface"
+    - "PositionManagerInterface"
+    - "StitchGeneratorInterface"
+  access_level: "admin_only"
+
+types:
+  StitchGroup:
+    description: "Conceptual grouping for batch stitch creation"
+    properties:
+      id:
+        type: "string"
+        pattern: "^[a-z-]+$"
+        example: "fractions-basics"
+      name:
+        type: "string"
+        example: "Basic Fractions"
+      description:
+        type: "string"
+      tube_id:
+        type: "TubeId"
+      concept_template:
+        type: "object"
+        description: "Template for generating multiple related stitches"
+        example: |
+          {
+            "type": "fractions",
+            "denominators": [2, 3, 4, 5],
+            "operations": ["identify", "compare"]
+          }
+      stitch_count:
+        type: "integer"
+        minimum: 1
+        maximum: 50
+      position_range_start:
+        type: "integer"
+        description: "Where to place these stitches in the tube"
+        
+  BatchGenerationRequest:
+    description: "Request to generate multiple stitches"
+    properties:
+      group_id:
+        type: "string"
+      naming_pattern:
+        type: "string"
+        example: "t{tube}-{concept}-{index}"
+      position_strategy:
+        type: "string"
+        enum: ["append", "insert", "replace"]
+      preview_only:
+        type: "boolean"
+        default: true
+        
+  GeneratedStitch:
+    description: "A stitch created by batch generation"
+    properties:
+      id:
+        type: "string"
+      name:
+        type: "string"
+      concept_type:
+        type: "string"
+      concept_params:
+        type: "object"
+      assigned_position:
+        type: "integer"
+      fact_coverage:
+        type: "array"
+        items:
+          type: "string"
+        description: "Fact IDs this stitch will use"
+        
+  TubePositionChange:
+    description: "A position change in the tube"
+    properties:
+      stitch_id:
+        type: "string"
+      old_position:
+        type: "integer"
+        nullable: true
+      new_position:
+        type: "integer"
+      reason:
+        type: "string"
+        enum: ["drag_drop", "insert", "remove", "reorder"]
+        
+  ContentDeployment:
+    description: "A deployment of content changes"
+    properties:
+      id:
+        type: "string"
+      timestamp:
+        type: "string"
+        format: "iso8601"
+      changes:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            type:
+              type: "string"
+              enum: ["add_stitch", "move_stitch", "remove_stitch", "add_facts"]
+            details:
+              type: "object"
+      affected_users:
+        type: "integer"
+      deployed_by:
+        type: "string"
+      
+  StitchTestRun:
+    description: "Preview of questions from a stitch"
+    properties:
+      stitch_id:
+        type: "string"
+      boundary_level:
+        type: "integer"
+        enum: [1, 2, 3, 4, 5]
+      questions:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            statement:
+              type: "string"
+            correct_answer:
+              type: "string"
+            distractor:
+              type: "string"
+            distractor_rationale:
+              type: "string"
+              description: "Why this distractor was chosen"
+
+errors:
+  INSUFFICIENT_PERMISSIONS:
+    code: "ADMIN_001"
+    message: "User lacks admin permissions"
+  POSITION_CONFLICT:
+    code: "ADMIN_002"
+    message: "Position changes would conflict with existing content"
+  FACT_COVERAGE_GAP:
+    code: "ADMIN_003"
+    message: "Not enough facts to support stitch generation"
+  DEPLOYMENT_VALIDATION_FAILED:
+    code: "ADMIN_004"
+    message: "Content deployment failed validation"
+  ROLLBACK_FAILED:
+    code: "ADMIN_005"
+    message: "Failed to rollback deployment"
+
+interface:
+  ContentAdminInterface:
+    methods:
+      createStitchGroup:
+        description: "Create a conceptual group for batch stitch generation"
+        parameters:
+          group:
+            type: "StitchGroup"
+            required: true
+        returns:
+          type: "StitchGroup"
+          description: "Created stitch group"
+        errors:
+          - "INSUFFICIENT_PERMISSIONS"
+          
+      generateStitches:
+        description: "Generate multiple stitches from a group template"
+        parameters:
+          request:
+            type: "BatchGenerationRequest"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            generated:
+              type: "array"
+              items:
+                type: "GeneratedStitch"
+            warnings:
+              type: "array"
+              items:
+                type: "string"
+            fact_gaps:
+              type: "array"
+              items:
+                type: "string"
+              description: "Facts that need to be created"
+        errors:
+          - "FACT_COVERAGE_GAP"
+          
+      previewTubePositions:
+        description: "Preview tube with proposed changes"
+        parameters:
+          tube_id:
+            type: "TubeId"
+            required: true
+          changes:
+            type: "array"
+            items:
+              type: "TubePositionChange"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            current_state:
+              type: "PositionMap"
+            proposed_state:
+              type: "PositionMap"
+            affected_users:
+              type: "integer"
+            warnings:
+              type: "array"
+              items:
+                type: "string"
+                
+      applyTubePositionChanges:
+        description: "Apply position changes to default tube configuration"
+        parameters:
+          tube_id:
+            type: "TubeId"
+            required: true
+          changes:
+            type: "array"
+            items:
+              type: "TubePositionChange"
+            required: true
+          deployment_note:
+            type: "string"
+            required: true
+        returns:
+          type: "ContentDeployment"
+          description: "Deployment record"
+        errors:
+          - "POSITION_CONFLICT"
+          - "DEPLOYMENT_VALIDATION_FAILED"
+          
+      testRunStitch:
+        description: "Generate test questions from a stitch"
+        parameters:
+          stitch_id:
+            type: "string"
+            required: true
+          boundary_level:
+            type: "integer"
+            enum: [1, 2, 3, 4, 5]
+            required: true
+          user_context:
+            type: "string"
+            required: false
+            description: "Optional user ID for personalized preview"
+        returns:
+          type: "StitchTestRun"
+          description: "Preview of 20 questions"
+          
+      getContentCoverage:
+        description: "Analyze content coverage across tubes"
+        parameters:
+          include_gaps:
+            type: "boolean"
+            default: true
+        returns:
+          type: "object"
+          properties:
+            tubes:
+              type: "object"
+              additionalProperties:
+                type: "object"
+                properties:
+                  total_positions:
+                    type: "integer"
+                  filled_positions:
+                    type: "integer"
+                  concept_coverage:
+                    type: "object"
+                    additionalProperties:
+                      type: "integer"
+                  gaps:
+                    type: "array"
+                    items:
+                      type: "object"
+                      properties:
+                        position_range:
+                          type: "string"
+                        suggested_content:
+                          type: "string"
+                          
+      rollbackDeployment:
+        description: "Rollback a content deployment"
+        parameters:
+          deployment_id:
+            type: "string"
+            required: true
+          reason:
+            type: "string"
+            required: true
+        returns:
+          type: "ContentDeployment"
+          description: "Rollback deployment record"
+        errors:
+          - "ROLLBACK_FAILED"
+          
+      importFactsBatch:
+        description: "Import multiple facts for stitch generation"
+        parameters:
+          facts:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                operation:
+                  type: "string"
+                operands:
+                  type: "array"
+                  items:
+                    type: "number"
+                result:
+                  type: "number"
+            required: true
+          validate_ids:
+            type: "boolean"
+            default: true
+        returns:
+          type: "object"
+          properties:
+            imported:
+              type: "integer"
+            skipped:
+              type: "integer"
+            errors:
+              type: "array"
+              items:
+                type: "string"

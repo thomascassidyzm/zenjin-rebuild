@@ -1,0 +1,499 @@
+# CacheManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: LearningEngine
+# Purpose: Content preloading and caching for Live Aid triple helix rotation
+
+interface_metadata:
+  name: "CacheManagerInterface"
+  version: "1.0.0"
+  module: "LearningEngine"
+  dependencies:
+    - "StitchManagerInterface"
+    - "StitchCacheInterface"
+    - "LiveAidManagerInterface"
+  performance_targets:
+    question_generation: "30ms"
+    cache_hit_rate: "90%+"
+    preload_time: "< 500ms per stitch"
+
+types:
+  CacheEntryMetadata:
+    description: "Metadata for cached content"
+    properties:
+      cache_key:
+        type: "string"
+        description: "Unique cache identifier"
+      user_id:
+        type: "string"
+      created_at:
+        type: "string"
+        format: "iso8601"
+      last_accessed_at:
+        type: "string"
+        format: "iso8601"
+      access_count:
+        type: "integer"
+        default: 0
+      size_bytes:
+        type: "integer"
+      ttl_seconds:
+        type: "integer"
+        nullable: true
+      expires_at:
+        type: "string"
+        format: "iso8601"
+        nullable: true
+
+  CachedContent:
+    description: "Generic cached content wrapper"
+    generic: "T"
+    properties:
+      data:
+        type: "T"
+        description: "The cached data"
+      metadata:
+        type: "CacheEntryMetadata"
+      tube_status:
+        type: "LiveAidStatus"
+        nullable: true
+        description: "Associated tube status if applicable"
+
+  CacheWarmingRequest:
+    description: "Request to warm cache for PREPARING state"
+    properties:
+      user_id:
+        type: "string"
+      tube_id:
+        type: "TubeId"
+      stitch_ids:
+        type: "array"
+        items:
+          type: "StitchId"
+        description: "Stitches to pre-warm"
+      priority:
+        type: "string"
+        enum: ["immediate", "high", "normal", "low"]
+      warming_strategy:
+        type: "string"
+        enum: ["sequential", "parallel", "adaptive"]
+
+  CacheWarmingProgress:
+    description: "Progress tracking for cache warming"
+    properties:
+      request_id:
+        type: "string"
+      user_id:
+        type: "string"
+      tube_id:
+        type: "TubeId"
+      total_stitches:
+        type: "integer"
+      completed_stitches:
+        type: "integer"
+      progress:
+        type: "number"
+        minimum: 0.0
+        maximum: 1.0
+      estimated_completion_time:
+        type: "string"
+        format: "iso8601"
+        nullable: true
+      failed_stitches:
+        type: "array"
+        items:
+          type: "StitchId"
+
+  CacheInvalidationStrategy:
+    description: "Strategy for cache invalidation"
+    properties:
+      strategy_type:
+        type: "string"
+        enum: ["ttl", "lru", "boundary_change", "manual", "progressive"]
+      ttl_seconds:
+        type: "integer"
+        nullable: true
+        description: "For TTL strategy"
+      max_entries:
+        type: "integer"
+        nullable: true
+        description: "For LRU strategy"
+      boundary_threshold:
+        type: "integer"
+        nullable: true
+        description: "For boundary change strategy"
+      custom_rules:
+        type: "array"
+        items:
+          type: "string"
+        nullable: true
+
+  CacheInvalidationResult:
+    description: "Result of cache invalidation"
+    properties:
+      invalidated_keys:
+        type: "array"
+        items:
+          type: "string"
+      invalidation_reason:
+        type: "string"
+      invalidation_timestamp:
+        type: "string"
+        format: "iso8601"
+      freed_memory_bytes:
+        type: "integer"
+      affected_users:
+        type: "array"
+        items:
+          type: "string"
+
+  CacheStorageStats:
+    description: "Cache performance statistics"
+    properties:
+      total_entries:
+        type: "integer"
+      total_size_bytes:
+        type: "integer"
+      hit_rate:
+        type: "number"
+        description: "Cache hit percentage (0-100)"
+      miss_rate:
+        type: "number"
+        description: "Cache miss percentage (0-100)"
+      average_access_time:
+        type: "number"
+        description: "Average access time in milliseconds"
+      memory_utilization:
+        type: "number"
+        description: "Memory usage percentage (0-100)"
+      eviction_count:
+        type: "integer"
+        description: "Number of evictions due to size limits"
+
+  PreloadConfiguration:
+    description: "Configuration for content preloading"
+    properties:
+      user_id:
+        type: "string"
+      tube_id:
+        type: "TubeId"
+      preload_depth:
+        type: "integer"
+        description: "How many stitches ahead to preload"
+      preload_strategy:
+        type: "string"
+        enum: ["predictive", "sequential", "adaptive"]
+      max_preload_size_bytes:
+        type: "integer"
+        nullable: true
+      priority_factors:
+        type: "object"
+        nullable: true
+        properties:
+          user_history:
+            type: "number"
+            description: "Weight for user's historical patterns"
+          concept_progression:
+            type: "number"
+            description: "Weight for logical concept progression"
+          performance_metrics:
+            type: "number"
+            description: "Weight for performance requirements"
+
+  CacheRetrievalOptions:
+    description: "Options for cache retrieval"
+    properties:
+      fallback_to_generation:
+        type: "boolean"
+        default: true
+        description: "Generate if not cached"
+      accept_stale:
+        type: "boolean"
+        default: false
+        description: "Accept expired entries"
+      max_stale_seconds:
+        type: "integer"
+        nullable: true
+        description: "How stale is acceptable"
+      refresh_in_background:
+        type: "boolean"
+        default: false
+        description: "Refresh cache after serving stale"
+
+errors:
+  CACHE_MISS:
+    code: "CM_001"
+    message: "Content not found in cache"
+  CACHE_EXPIRED:
+    code: "CM_002"
+    message: "Content exists but is expired"
+  CACHE_FULL:
+    code: "CM_003"
+    message: "Cache storage is full"
+  PRELOAD_FAILED:
+    code: "CM_004"
+    message: "Preloading could not be completed"
+  WARMING_IN_PROGRESS:
+    code: "CM_005"
+    message: "Another warming process is active"
+  INVALIDATION_FAILED:
+    code: "CM_006"
+    message: "Invalidation process failed"
+  STORAGE_LIMIT_EXCEEDED:
+    code: "CM_007"
+    message: "Cache storage limit reached"
+  INVALID_CACHE_KEY:
+    code: "CM_008"
+    message: "Invalid cache key format"
+  SERIALIZATION_ERROR:
+    code: "CM_009"
+    message: "Content cannot be serialized"
+
+interface:
+  CacheManagerInterface:
+    methods:
+      preloadContent:
+        description: "Preloads content for the PREPARING tube"
+        parameters:
+          config:
+            type: "PreloadConfiguration"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            preloaded:
+              type: "boolean"
+            cached_stitches:
+              type: "array"
+              items:
+                type: "StitchId"
+            total_size_bytes:
+              type: "integer"
+            preload_duration:
+              type: "integer"
+              description: "Time taken in milliseconds"
+        errors:
+          - "PRELOAD_FAILED"
+          - "STORAGE_LIMIT_EXCEEDED"
+        async: true
+        
+      retrieveFromCache:
+        description: "Retrieves cached content (questions, stitches, etc.)"
+        generic: "T"
+        parameters:
+          cache_key:
+            type: "string"
+            required: true
+          options:
+            type: "CacheRetrievalOptions"
+            nullable: true
+        returns:
+          type: "CachedContent<T>"
+          nullable: true
+        errors:
+          - "CACHE_MISS"
+          - "CACHE_EXPIRED"
+          
+      storeInCache:
+        description: "Stores content in cache with TTL support"
+        generic: "T"
+        parameters:
+          cache_key:
+            type: "string"
+            required: true
+          data:
+            type: "T"
+            required: true
+          ttl_seconds:
+            type: "integer"
+            nullable: true
+        returns:
+          type: "object"
+          properties:
+            stored:
+              type: "boolean"
+            cache_key:
+              type: "string"
+            expires_at:
+              type: "string"
+              format: "iso8601"
+              nullable: true
+            size_bytes:
+              type: "integer"
+        errors:
+          - "STORAGE_LIMIT_EXCEEDED"
+          - "SERIALIZATION_ERROR"
+          
+      invalidateCache:
+        description: "Invalidates cache entries based on strategy"
+        parameters:
+          strategy:
+            type: "CacheInvalidationStrategy"
+            required: true
+          target_keys:
+            type: "array"
+            items:
+              type: "string"
+            nullable: true
+        returns:
+          type: "CacheInvalidationResult"
+        errors:
+          - "INVALIDATION_FAILED"
+          
+      warmCacheForPreparing:
+        description: "Warms cache for PREPARING state content"
+        parameters:
+          request:
+            type: "CacheWarmingRequest"
+            required: true
+        returns:
+          type: "CacheWarmingProgress"
+        errors:
+          - "WARMING_IN_PROGRESS"
+          - "STORAGE_LIMIT_EXCEEDED"
+        async: true
+        
+      getCacheWarmingProgress:
+        description: "Gets current cache warming progress"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          request_id:
+            type: "string"
+            nullable: true
+        returns:
+          type: "array"
+          items:
+            type: "CacheWarmingProgress"
+            
+      cacheGeneratedQuestions:
+        description: "Caches generated questions for performance"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          stitch_id:
+            type: "StitchId"
+            required: true
+          questions:
+            type: "array"
+            items:
+              type: "ReadyQuestion"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            cached:
+              type: "boolean"
+            cache_key:
+              type: "string"
+            question_count:
+              type: "integer"
+            expires_at:
+              type: "string"
+              format: "iso8601"
+        errors:
+          - "STORAGE_LIMIT_EXCEEDED"
+          
+      getCachedQuestions:
+        description: "Gets cached questions if available"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          stitch_id:
+            type: "StitchId"
+            required: true
+        returns:
+          type: "array"
+          items:
+            type: "ReadyQuestion"
+          nullable: true
+          
+      manageTTLExpiration:
+        description: "Manages TTL expiration for cached entries"
+        parameters:
+          check_interval_seconds:
+            type: "integer"
+            default: 300
+            nullable: true
+        returns:
+          type: "object"
+          properties:
+            expired_count:
+              type: "integer"
+            freed_memory_bytes:
+              type: "integer"
+            next_check_time:
+              type: "string"
+              format: "iso8601"
+              
+      getCacheStatistics:
+        description: "Gets cache storage statistics"
+        parameters:
+          user_id:
+            type: "string"
+            nullable: true
+            description: "For user-specific stats"
+        returns:
+          type: "CacheStorageStats"
+          
+      optimizeCache:
+        description: "Optimizes cache based on usage patterns"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            optimized:
+              type: "boolean"
+            evicted_entries:
+              type: "integer"
+            freed_memory_bytes:
+              type: "integer"
+            performance_improvement:
+              type: "number"
+              description: "Percentage improvement"
+              
+      clearUserCache:
+        description: "Clears all cache entries for a user"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            cleared:
+              type: "boolean"
+            cleared_entries:
+              type: "integer"
+            freed_memory_bytes:
+              type: "integer"
+              
+      buildCacheKey:
+        description: "Builds cache key for consistent key generation"
+        parameters:
+          components:
+            type: "array"
+            items:
+              type: "string"
+            required: true
+            variadic: true
+        returns:
+          type: "string"
+          description: "Consistent cache key"
+
+live_aid_integration:
+  triple_helix_rotation: |
+    # LIVE → PREPARING → READY → LIVE
+    # Cache manager preloads content for PREPARING tube
+    # When rotation occurs, PREPARING content is already cached
+    
+  example_workflow: |
+    # 1. User completes stitch in LIVE tube
+    # 2. Tubes rotate
+    # 3. Cache manager immediately starts warming new PREPARING content
+    # 4. By next rotation, content is ready with 90%+ cache hit rate

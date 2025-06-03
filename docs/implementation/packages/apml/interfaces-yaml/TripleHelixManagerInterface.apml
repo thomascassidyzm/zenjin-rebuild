@@ -1,0 +1,294 @@
+# TripleHelixManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: ProgressionSystem
+# Purpose: Manage three tubes and their rotation according to Live Aid model
+
+interface_metadata:
+  name: "TripleHelixManagerInterface"
+  version: "2.0.0"
+  module: "ProgressionSystem"
+  dependencies:
+    - "StitchManagerInterface"
+    - "PositionManagerInterface"
+  description: |
+    Defines the contract for the TripleHelixManager component that manages 
+    three tubes and their rotation according to the Live Aid Stage Model. 
+    Each tube contains stitches at various positions using sparse position storage.
+    
+    Key concepts:
+    - Three tubes (tube1, tube2, tube3) rotate through LIVE/READY/PREPARING states
+    - Sparse position storage allows positions up to 1000+ without memory waste
+    - Active stitch is always at position 1 in the LIVE tube
+
+types:
+  TubeId:
+    description: "Identifier for a tube"
+    type: "string"
+    enum: ["tube1", "tube2", "tube3"]
+    
+  TubeState:
+    description: "Current state of a single tube"
+    properties:
+      tubeId:
+        type: "TubeId"
+        required: true
+        description: "Tube identifier (tube1, tube2, or tube3)"
+      positions:
+        type: "object"
+        required: true
+        description: "Sparse position map: {[logicalPosition: number]: stitchId}"
+        additionalProperties:
+          type: "string"
+      lowestPosition:
+        type: "integer"
+        required: true
+        description: "Lowest occupied position in this tube"
+      highestPosition:
+        type: "integer"
+        required: true
+        description: "Highest occupied position in this tube"
+      activeStitchId:
+        type: "string"
+        required: false
+        description: "The stitch at position 1 (if any)"
+        
+  TripleHelixState:
+    description: "Complete state of the triple helix for a user"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "User identifier"
+      activeTube:
+        type: "integer"
+        required: true
+        enum: [1, 2, 3]
+        description: "Currently active tube number"
+      tube1State:
+        type: "TubeState"
+        required: true
+        description: "State of tube 1"
+      tube2State:
+        type: "TubeState"
+        required: true
+        description: "State of tube 2"
+      tube3State:
+        type: "TubeState"
+        required: true
+        description: "State of tube 3"
+      lastRotationTime:
+        type: "string"
+        format: "iso8601"
+        required: false
+        description: "ISO date string of last rotation"
+      rotationCount:
+        type: "integer"
+        required: true
+        description: "Number of rotations performed"
+      liveAidStatus:
+        type: "object"
+        required: true
+        description: "Live Aid status for each tube"
+        properties:
+          live:
+            type: "TubeId"
+            description: "Tube currently LIVE"
+          ready:
+            type: "TubeId"
+            description: "Tube currently READY"
+          preparing:
+            type: "TubeId"
+            description: "Tube currently PREPARING"
+            
+  RotationResult:
+    description: "Result of a tube rotation operation"
+    properties:
+      previousActiveTube:
+        type: "integer"
+        required: true
+        description: "Previously active tube number"
+      newActiveTube:
+        type: "integer"
+        required: true
+        description: "New active tube number"
+      rotationCount:
+        type: "integer"
+        required: true
+        description: "Total rotations performed"
+      liveAidTransition:
+        type: "object"
+        required: true
+        description: "Live Aid status changes"
+        properties:
+          oldLive:
+            type: "TubeId"
+          newLive:
+            type: "TubeId"
+          oldReady:
+            type: "TubeId"
+          newReady:
+            type: "TubeId"
+          oldPreparing:
+            type: "TubeId"
+          newPreparing:
+            type: "TubeId"
+
+errors:
+  USER_NOT_FOUND:
+    code: "THM_001"
+    message: "The specified user was not found"
+  NO_TRIPLE_HELIX:
+    code: "THM_002"
+    message: "No triple helix state exists for this user"
+  INVALID_TUBE_ID:
+    code: "THM_003"
+    message: "Invalid tube identifier"
+  NO_ACTIVE_STITCH:
+    code: "THM_004"
+    message: "No stitch at position 1 in active tube"
+  ROTATION_FAILED:
+    code: "THM_005"
+    message: "Failed to rotate tubes"
+  ALREADY_INITIALIZED:
+    code: "THM_006"
+    message: "Triple helix already initialized for this user"
+  INITIALIZATION_FAILED:
+    code: "THM_007"
+    message: "Failed to initialize triple helix"
+
+interface:
+  TripleHelixManagerInterface:
+    methods:
+      getActiveTube:
+        description: "Gets the currently active tube number for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "integer"
+          description: "Active tube number (1, 2, or 3)"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_TRIPLE_HELIX"
+          
+      getTubeState:
+        description: "Gets the state of a specific tube for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          tubeId:
+            type: "TubeId"
+            required: true
+            description: "Tube identifier"
+        returns:
+          type: "TubeState"
+          description: "State of the requested tube"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_TUBE_ID"
+          - "NO_TRIPLE_HELIX"
+          
+      getActiveStitch:
+        description: "Gets the active stitch (at position 1) in the currently active tube"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "object"
+          properties:
+            stitchId:
+              type: "string"
+              description: "ID of the active stitch"
+            tubeId:
+              type: "TubeId"
+              description: "Tube containing the active stitch"
+            position:
+              type: "integer"
+              description: "Position (always 1 for active)"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_TRIPLE_HELIX"
+          - "NO_ACTIVE_STITCH"
+          
+      rotateTubes:
+        description: "Rotates tubes: LIVE → PREPARING, READY → LIVE, PREPARING → READY"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "RotationResult"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_TRIPLE_HELIX"
+          - "ROTATION_FAILED"
+          
+      initializeTripleHelix:
+        description: "Sets up initial triple helix state with default tube positions"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "TripleHelixState"
+        errors:
+          - "USER_NOT_FOUND"
+          - "ALREADY_INITIALIZED"
+          - "INITIALIZATION_FAILED"
+          
+      getTripleHelixState:
+        description: "Gets the complete triple helix state for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "TripleHelixState"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_TRIPLE_HELIX"
+          
+      getLiveAidStatus:
+        description: "Gets current Live Aid status showing which tube is LIVE, READY, PREPARING"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "object"
+          properties:
+            live:
+              type: "TubeId"
+            ready:
+              type: "TubeId"
+            preparing:
+              type: "TubeId"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_TRIPLE_HELIX"
+
+live_aid_rotation:
+  description: |
+    The Live Aid model ensures content is always ready:
+    - LIVE: Currently active tube being played
+    - READY: Content prepared and ready to go live
+    - PREPARING: Content being prepared in background
+    
+    Rotation pattern:
+    - LIVE → PREPARING (user completes current content)
+    - READY → LIVE (prepared content becomes active)
+    - PREPARING → READY (background prep becomes ready)
+    
+  example: |
+    Initial: tube1=LIVE, tube2=READY, tube3=PREPARING
+    After rotation: tube2=LIVE, tube3=READY, tube1=PREPARING

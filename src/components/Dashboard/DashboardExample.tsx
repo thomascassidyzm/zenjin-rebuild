@@ -96,7 +96,7 @@ const mockDashboardData: DashboardData = {
   recentAchievements: [],
   subscriptionType: "Premium",
   username: "MathWhiz123",
-  avatarUrl: "/api/placeholder/100/100",
+  avatarUrl: "", // Avatar should be generated or use initials
   lastSessionDate: "2025-05-19T16:45:00Z",
   streakDays: 12
 };
@@ -469,7 +469,7 @@ const DashboardDemo = () => {
       name: "Addition Master",
       description: "Reach level 10 in the Addition path",
       dateEarned: new Date().toISOString(),
-      iconUrl: "/api/placeholder/50/50",
+      iconUrl: "", // Achievement icons should be handled by UI components
       pointsAwarded: 1000
     };
     

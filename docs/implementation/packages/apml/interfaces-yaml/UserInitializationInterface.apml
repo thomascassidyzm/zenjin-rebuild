@@ -1,0 +1,278 @@
+# User Initialization Interface
+# APML Version: 2.2
+# Interface for initializing new users in the database after authentication
+
+interface_metadata:
+  name: UserInitializationInterface
+  version: 1.0.0
+  module: BackendServices
+  description: |
+    Define interface contracts for initializing new users in the database after authentication.
+    Following External Service Integration Protocol for backend user creation.
+  dependencies:
+    - UserRecord
+    - UserStateRecord
+    - TripleHelixState
+    - ProgressMetrics
+  external_service_contract:
+    service_name: Backend User Initialization API
+    behaviors:
+      - name: initializeUser
+        creates_database_records: true
+        side_effects: Creates user and user_state records
+        description: Creates new user records in database for authenticated users who don't yet exist
+      - name: checkUserExists
+        authentication_required: true
+        returns_user_data: boolean
+        description: Verifies if user exists in database without creating records
+
+types:
+  UserType:
+    type: enum
+    values:
+      - registered
+      - anonymous
+    description: Type of user account
+
+  UserRecord:
+    type: object
+    properties:
+      id:
+        type: string
+        required: true
+        description: User's unique identifier
+      email:
+        type: string
+        required: true
+        description: User's email address
+      displayName:
+        type: string
+        required: true
+        description: User's display name
+      userType:
+        type: UserType
+        required: true
+        description: Type of user account
+      subscriptionTier:
+        type: string
+        required: true
+        description: User's subscription level
+      createdAt:
+        type: string
+        required: true
+        description: ISO timestamp of record creation
+
+  UserStateRecord:
+    type: object
+    properties:
+      userId:
+        type: string
+        required: true
+        description: Associated user identifier
+      stitchPositions:
+        type: object
+        required: true
+        description: User's learning positions
+      tripleHelixState:
+        type: TripleHelixState
+        required: true
+        description: User's Triple Helix progress
+      spacedRepetitionState:
+        type: object
+        required: true
+        description: Spaced repetition data
+      progressMetrics:
+        type: ProgressMetrics
+        required: true
+        description: User's progress statistics
+      version:
+        type: number
+        required: true
+        description: State version for optimistic locking
+      lastSyncTime:
+        type: string
+        required: true
+        description: ISO timestamp of last sync
+
+  UserInitializationResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        required: true
+        description: Whether initialization completed successfully
+      user:
+        type: UserRecord
+        required: false
+        description: Created user record or null if failed
+      userState:
+        type: UserStateRecord
+        required: false
+        description: Created user state record or null if failed
+      error:
+        type: string
+        required: false
+        description: Error message if initialization failed
+      errorCode:
+        type: string
+        required: false
+        description: Error code for programmatic handling
+
+  UserExistenceResult:
+    type: object
+    properties:
+      exists:
+        type: boolean
+        required: true
+        description: Whether user exists in database
+      requiresInitialization:
+        type: boolean
+        required: true
+        description: Whether user needs to be created
+      user:
+        type: UserRecord
+        required: false
+        description: User record if exists
+      error:
+        type: string
+        required: false
+        description: Error message if check failed
+
+  UserInitializationStatus:
+    type: object
+    properties:
+      userExists:
+        type: boolean
+        required: true
+        description: User record exists in database
+      userStateExists:
+        type: boolean
+        required: true
+        description: User state record exists in database
+      isFullyInitialized:
+        type: boolean
+        required: true
+        description: Both user and state records exist
+      missingComponents:
+        type: string[]
+        required: true
+        description: List of missing components
+
+errors:
+  USER_ALREADY_EXISTS:
+    code: USER_ALREADY_EXISTS
+    message: User already exists in database
+    recovery: Return existing user data, mark as successful
+  AUTHENTICATION_FAILED:
+    code: AUTHENTICATION_FAILED
+    message: Invalid or expired authentication token
+    recovery: Require user to re-authenticate
+  PERMISSION_DENIED:
+    code: PERMISSION_DENIED
+    message: User trying to initialize different user's record
+    recovery: Reject request, log security event
+  DATABASE_ERROR:
+    code: DATABASE_ERROR
+    message: Database operation failed during user creation
+    recovery: Rollback any partial changes, retry with exponential backoff
+  VALIDATION_ERROR:
+    code: VALIDATION_ERROR
+    message: Invalid user data provided for initialization
+    recovery: Return specific validation errors for correction
+
+interface:
+  initializeNewUser:
+    description: Creates complete user record with initial state in database
+    parameters:
+      userId:
+        type: string
+        required: true
+        description: Authenticated user's unique identifier from auth system
+      email:
+        type: string
+        required: true
+        description: User's verified email address
+      displayName:
+        type: string
+        required: false
+        description: Optional display name (defaults to email prefix)
+      userType:
+        type: UserType
+        required: true
+        description: Type of user being created
+    returns:
+      type: UserInitializationResult
+    errors:
+      - USER_ALREADY_EXISTS
+      - AUTHENTICATION_FAILED
+      - PERMISSION_DENIED
+      - DATABASE_ERROR
+      - VALIDATION_ERROR
+    side_effects:
+      - Creates record in users table
+      - Creates record in user_state table with default learning position
+      - Establishes user's initial Triple Helix state
+
+  ensureUserExists:
+    description: Verifies user exists in database, creates if missing
+    parameters:
+      userId:
+        type: string
+        required: true
+        description: User identifier to check
+      accessToken:
+        type: string
+        required: true
+        description: Authentication token for authorization
+    returns:
+      type: UserExistenceResult
+    errors:
+      - AUTHENTICATION_FAILED
+      - DATABASE_ERROR
+    side_effects:
+      - May create user records if user authenticated but not in database
+
+  getUserInitializationStatus:
+    description: Checks current initialization status without side effects
+    parameters:
+      userId:
+        type: string
+        required: true
+        description: User identifier to check
+    returns:
+      type: UserInitializationStatus
+    side_effects: []
+    behavior:
+      description: Read-only operation
+
+service_adapter_requirements:
+  - Must isolate external service behavior from application logic
+  - Must provide consistent interface regardless of backend implementation
+  - Must handle all documented error states gracefully
+  - Must support offline/online mode detection
+  - Must provide immediate feedback on operation status
+
+validation_criteria:
+  - id: UI-001
+    description: New authenticated users must be successfully created in database with complete state
+    test: tests/user-init/successful_creation_test.ts
+  - id: UI-002
+    description: Existing users must be identified without creating duplicate records
+    test: tests/user-init/existing_user_handling_test.ts
+  - id: UI-003
+    description: Database errors must be handled gracefully with proper rollback
+    test: tests/user-init/error_recovery_test.ts
+  - id: UI-004
+    description: Only authenticated users can initialize their own records
+    test: tests/user-init/authentication_validation_test.ts
+  - id: UI-005
+    description: New users must be created with proper default learning state
+    test: tests/user-init/default_state_test.ts
+
+integration_requirements:
+  - component: UserSessionManager
+    requirement: Must be called after successful authentication before user state queries
+  - component: UserStateInitializer
+    requirement: Must provide user existence check before attempting state loading
+  - component: AuthToPlayerEventBus
+    requirement: Must complete before Auth-to-Player flow can start user state initialization

@@ -75,7 +75,7 @@ const mockDashboardData: DashboardData = {
       name: "Flawless Session",
       description: "Complete a session with 100% accuracy",
       dateEarned: "2025-05-22T10:30:00Z",
-      iconUrl: "/api/placeholder/50/50",
+      iconUrl: "", // Removed placeholder URL - icons should be handled by UI components
       pointsAwarded: 500
     }
   ],
@@ -989,7 +989,6 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 1: User Choice (Launch Interface - immediate start page)
-  console.log('🐛 Phase 1 check - userAuthChoice:', userAuthChoice);
   if (!userAuthChoice) {
     return (
       <LaunchInterface
@@ -1000,11 +999,6 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 2: Authentication Forms (for Sign In/Sign Up choices)
-  console.log('🐛 Phase 2 check - sign in/up flow conditions:', {
-    isSignInOrUp: userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP,
-    notAuthenticated: !sessionState.isAuthenticated,
-    notLoading: !sessionState.isLoading
-  });
   if ((userAuthChoice === UserAuthChoice.SIGN_IN || userAuthChoice === UserAuthChoice.SIGN_UP) && !sessionState.isAuthenticated && !sessionState.isLoading) {
     const handleSendOTP = async (email: string): Promise<boolean> => {
       setAuthError(null);
@@ -1087,11 +1081,6 @@ const AppContent: React.FC = () => {
   }
 
   // Phase 3: Session Loading (only show for sign-in users, not anonymous)
-  console.log('🐛 Phase 3 check - loading conditions:', {
-    isLoading: sessionState.isLoading,
-    notAuthenticated: !sessionState.isAuthenticated,
-    notAnonymous: userAuthChoice !== UserAuthChoice.ANONYMOUS
-  });
   if (sessionState.isLoading && !sessionState.isAuthenticated && userAuthChoice !== UserAuthChoice.ANONYMOUS) {
     const loadingContext = LoadingContext.USER_AUTHENTICATION;
       
@@ -1111,20 +1100,7 @@ const AppContent: React.FC = () => {
   const effectiveOnlineStatus = isOnline || backendIsWorking;
 
   // Phase 4: Auth-to-Player Flow (after authentication success OR anonymous pending)
-  console.log('🐛 DEBUG Auth-to-Player conditions:', {
-    isAuthenticated: sessionState.isAuthenticated,
-    userAuthChoice: userAuthChoice,
-    authToPlayerState: authToPlayerState,
-    condition: sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS
-  });
-  
   const shouldShowAuthToPlayerFlow = sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS;
-  console.log('🐛 Auth-to-Player flow decision:', {
-    shouldShow: shouldShowAuthToPlayerFlow,
-    isAuthenticated: sessionState.isAuthenticated,
-    userAuthChoice: userAuthChoice,
-    authToPlayerState: authToPlayerState
-  });
   
   // Store Auth-to-Player content for integration into main app
   let authToPlayerContent = null;
@@ -1357,13 +1333,6 @@ const AppContent: React.FC = () => {
 
 
   // Main app content with smooth launch transition
-  console.log('🐛 DEBUG Rendering mainAppContent with:', {
-    currentPage,
-    authToPlayerState,
-    hasAuthToPlayerContent: !!authToPlayerContent,
-    shouldShowFullScreen: authToPlayerContent && (authToPlayerState === 'PRE_ENGAGEMENT' || authToPlayerState === 'LOADING_WITH_ANIMATION')
-  });
-  
   // Determine what content to show
   const contentToRender = authToPlayerContent || renderCurrentPage();
   

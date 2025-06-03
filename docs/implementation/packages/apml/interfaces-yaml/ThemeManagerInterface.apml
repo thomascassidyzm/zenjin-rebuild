@@ -1,0 +1,188 @@
+# ThemeManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: UserInterface
+# Converted from XML APML format
+
+interface_metadata:
+  name: "ThemeManagerInterface"
+  version: "1.1.0"
+  module: "UserInterface"
+  dependencies:
+    - "undefined"
+  description: |
+    Defines the contract for the ThemeManager component that manages the visual theme of the application, including colors, animations, and styling.
+
+types:
+  ThemeColors:
+    description: "ThemeColors"
+    properties:
+      primary:
+        type: "string"
+        required: true
+        description: "Primary color (hex code)"
+      secondary:
+        type: "string"
+        required: true
+        description: "Secondary color (hex code)"
+      background:
+        type: "string"
+        required: true
+        description: "Background color (hex code)"
+      text:
+        type: "string"
+        required: true
+        description: "Text color (hex code)"
+      accent:
+        type: "string"
+        required: false
+        description: "Accent color (hex code)"
+      success:
+        type: "string"
+        required: false
+        description: "Success color (hex code)"
+      error:
+        type: "string"
+        required: false
+        description: "Error color (hex code)"
+      neutral:
+        type: "string"
+        required: false
+        description: "Neutral color (hex code)"
+  ThemeAnimation:
+    description: "ThemeAnimation"
+    properties:
+      enabled:
+        type: "boolean"
+        required: true
+        description: "Whether animations are enabled"
+      speed:
+        type: "number"
+        required: false
+        description: "Animation speed multiplier (1.0 is normal)"
+        default: 1.0
+      bubblesDensity:
+        type: "number"
+        required: false
+        description: "Density of background bubbles animation"
+        default: 0.5
+      bubblesSpeed:
+        type: "number"
+        required: false
+        description: "Speed of background bubbles animation"
+        default: 1.0
+  ThemeConfig:
+    description: "ThemeConfig"
+    properties:
+      colors:
+        type: "ThemeColors"
+        required: true
+        description: "Theme color configuration"
+      animation:
+        type: "ThemeAnimation"
+        required: true
+        description: "Theme animation configuration"
+      fontFamily:
+        type: "string"
+        required: false
+        description: "Primary font family"
+        default: "'Inter', sans-serif"
+      borderRadius:
+        type: "number"
+        required: false
+        description: "Border radius for UI elements in pixels"
+        default: 8
+      spacing:
+        type: "number"
+        required: false
+        description: "Base spacing unit in pixels"
+        default: 4
+
+errors:
+  INVALID_CONFIG:
+    code: "T_001"
+    message: "The theme configuration is invalid"
+  THEME_APPLICATION_FAILED:
+    code: "T_002"
+    message: "Failed to apply the theme"
+  NO_ACTIVE_THEME:
+    code: "T_003"
+    message: "No active theme configuration found"
+  INVALID_PROPERTY_PATH:
+    code: "T_004"
+    message: "The property path is invalid"
+  PROPERTY_NOT_FOUND:
+    code: "T_005"
+    message: "The specified property was not found"
+  ANIMATION_START_FAILED:
+    code: "T_006"
+    message: "Failed to start the animation"
+  ANIMATION_STOP_FAILED:
+    code: "T_007"
+    message: "Failed to stop the animation"
+  NO_ACTIVE_ANIMATION:
+    code: "T_008"
+    message: "No active animation to stop"
+
+interface:
+  ThemeManagerInterface:
+    methods:
+      applyTheme:
+        description: "Applies a theme configuration to the application"
+        parameters:
+          config:
+            type: "ThemeConfig"
+            required: true
+            description: "The theme configuration to apply"
+        returns:
+          type: "boolean"
+          description: "Whether the theme was successfully applied"
+        errors:
+          - "INVALID_CONFIG"
+          - "THEME_APPLICATION_FAILED"
+      getThemeConfig:
+        description: "Gets the current theme configuration"
+        returns:
+          type: "ThemeConfig"
+          description: "The current theme configuration"
+        errors:
+          - "NO_ACTIVE_THEME"
+      getThemeProperty:
+        description: "Gets a specific theme property value"
+        parameters:
+          propertyPath:
+            type: "string"
+            required: true
+            description: "Path to the property (e.g., 'colors.primary', 'animation.speed')"
+        returns:
+          type: "any"
+          description: "The value of the specified property"
+        errors:
+          - "INVALID_PROPERTY_PATH"
+          - "PROPERTY_NOT_FOUND"
+      startBackgroundAnimation:
+        description: "Starts the background bubbles animation"
+        parameters:
+          options:
+            type: "object"
+            required: false
+            description: "Animation options"
+        returns:
+          type: "boolean"
+          description: "Whether the animation was successfully started"
+        errors:
+          - "ANIMATION_START_FAILED"
+      stopBackgroundAnimation:
+        description: "Stops the background bubbles animation"
+        returns:
+          type: "boolean"
+          description: "Whether the animation was successfully stopped"
+        errors:
+          - "ANIMATION_STOP_FAILED"
+          - "NO_ACTIVE_ANIMATION"
+      getCSSVariables:
+        description: "Gets CSS variables for the current theme"
+        returns:
+          type: "object"
+          description: "Object containing CSS variable names and values"
+        errors:
+          - "NO_ACTIVE_THEME"

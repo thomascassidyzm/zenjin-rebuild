@@ -1,0 +1,555 @@
+# SupabaseDatabaseInterface.apml
+# APML v2.2 Interface Definition
+# Module: BackendServices
+# Converted from XML APML format
+
+interface_metadata:
+  name: "SupabaseDatabaseInterface"
+  version: "1.0.0"
+  module: "BackendServices"
+  dependencies:
+    - "[object Object]"
+  description: |
+    Defines the database schema and operations for the Zenjin Maths App using Supabase Postgres, including tables for user management, learning state, metrics, and content.
+
+types:
+  DatabaseSchema:
+    description: "DatabaseSchema"
+    properties:
+      users:
+        type: "table"
+        required: true
+        description: "User accounts (both anonymous and registered)"
+      user_state:
+        type: "table"
+        required: true
+        description: "Current learning state for each user"
+      session_metrics:
+        type: "table"
+        required: true
+        description: "Session performance metrics"
+      learning_paths:
+        type: "table"
+        required: true
+        description: "Available learning paths and content"
+      user_progress:
+        type: "table"
+        required: true
+        description: "User progress through learning paths"
+      stitch_positions:
+        type: "table"
+        required: true
+        description: "Current stitch positions and skip numbers"
+      achievements:
+        type: "table"
+        required: true
+        description: "User achievements and milestones"
+      subscription_tiers:
+        type: "table"
+        required: true
+        description: "Available subscription levels"
+  UsersTable:
+    description: "UsersTable"
+    properties:
+      id:
+        type: "uuid"
+        required: true
+        description: "Primary key, Supabase Auth user ID"
+      user_type:
+        type: "text"
+        required: true
+        description: "Type: 'anonymous' or 'registered'"
+      anonymous_id:
+        type: "text"
+        required: false
+        description: "Custom anonymous identifier for app logic"
+      email:
+        type: "text"
+        required: false
+        description: "User email (null for anonymous)"
+      display_name:
+        type: "text"
+        required: false
+        description: "User display name"
+      subscription_tier:
+        type: "text"
+        required: true
+        description: "Current subscription level"
+      created_at:
+        type: "timestamptz"
+        required: true
+        description: "Account creation timestamp"
+      updated_at:
+        type: "timestamptz"
+        required: true
+        description: "Last update timestamp"
+      expires_at:
+        type: "timestamptz"
+        required: false
+        description: "Expiration for anonymous users"
+      metadata:
+        type: "jsonb"
+        required: false
+        description: "Additional user metadata"
+  UserStateTable:
+    description: "UserStateTable"
+    properties:
+      id:
+        type: "uuid"
+        required: true
+        description: "Primary key"
+      user_id:
+        type: "uuid"
+        required: true
+        description: "Foreign key to users table"
+      stitch_positions:
+        type: "jsonb"
+        required: true
+        description: "Current stitch positions across learning paths"
+      triple_helix_state:
+        type: "jsonb"
+        required: true
+        description: "Current tube rotation and active path"
+      spaced_repetition_state:
+        type: "jsonb"
+        required: true
+        description: "Skip numbers and progression data"
+      progress_metrics:
+        type: "jsonb"
+        required: true
+        description: "Learning progress and performance metrics"
+      version:
+        type: "bigint"
+        required: true
+        description: "State version for conflict resolution"
+      last_sync_time:
+        type: "timestamptz"
+        required: true
+        description: "Last successful sync timestamp"
+      sync_source:
+        type: "text"
+        required: false
+        description: "Device/source of last update"
+      created_at:
+        type: "timestamptz"
+        required: true
+        description: "State creation timestamp"
+      updated_at:
+        type: "timestamptz"
+        required: true
+        description: "Last update timestamp"
+  SessionMetricsTable:
+    description: "SessionMetricsTable"
+    properties:
+      id:
+        type: "uuid"
+        required: true
+        description: "Primary key"
+      user_id:
+        type: "uuid"
+        required: true
+        description: "Foreign key to users table"
+      session_id:
+        type: "text"
+        required: true
+        description: "Unique session identifier"
+      learning_path:
+        type: "text"
+        required: true
+        description: "Learning path for this session"
+      questions_answered:
+        type: "integer"
+        required: true
+        description: "Total questions answered"
+      correct_answers:
+        type: "integer"
+        required: true
+        description: "Number of correct answers"
+      session_duration:
+        type: "integer"
+        required: true
+        description: "Session duration in seconds"
+      ftc_points:
+        type: "integer"
+        required: true
+        description: "First Time Correct points earned"
+      ec_points:
+        type: "integer"
+        required: true
+        description: "Eventually Correct points earned"
+      base_points:
+        type: "integer"
+        required: true
+        description: "Base points earned"
+      bonus_multiplier:
+        type: "decimal"
+        required: true
+        description: "Bonus multiplier applied"
+      blink_speed:
+        type: "decimal"
+        required: true
+        description: "Average response time"
+      session_data:
+        type: "jsonb"
+        required: false
+        description: "Additional session data"
+      started_at:
+        type: "timestamptz"
+        required: true
+        description: "Session start timestamp"
+      completed_at:
+        type: "timestamptz"
+        required: true
+        description: "Session completion timestamp"
+      created_at:
+        type: "timestamptz"
+        required: true
+        description: "Record creation timestamp"
+  LearningPathsTable:
+    description: "LearningPathsTable"
+    properties:
+      id:
+        type: "uuid"
+        required: true
+        description: "Primary key"
+      path_id:
+        type: "text"
+        required: true
+        description: "Unique path identifier (e.g., 'addition')"
+      path_name:
+        type: "text"
+        required: true
+        description: "Human-readable path name"
+      description:
+        type: "text"
+        required: false
+        description: "Path description"
+      difficulty_level:
+        type: "integer"
+        required: true
+        description: "Difficulty level (1-10)"
+      required_subscription:
+        type: "text"
+        required: true
+        description: "Minimum subscription tier required"
+      content_data:
+        type: "jsonb"
+        required: true
+        description: "Learning path content and configuration"
+      is_active:
+        type: "boolean"
+        required: true
+        description: "Whether path is currently active"
+      sort_order:
+        type: "integer"
+        required: true
+        description: "Display order"
+      created_at:
+        type: "timestamptz"
+        required: true
+        description: "Path creation timestamp"
+      updated_at:
+        type: "timestamptz"
+        required: true
+        description: "Last update timestamp"
+  StitchPositionsTable:
+    description: "StitchPositionsTable"
+    properties:
+      id:
+        type: "uuid"
+        required: true
+        description: "Primary key"
+      user_id:
+        type: "uuid"
+        required: true
+        description: "Foreign key to users table"
+      learning_path:
+        type: "text"
+        required: true
+        description: "Learning path identifier"
+      stitch_id:
+        type: "text"
+        required: true
+        description: "Stitch identifier"
+      current_position:
+        type: "integer"
+        required: true
+        description: "Current position in learning sequence"
+      skip_number:
+        type: "integer"
+        required: true
+        description: "Current skip number from spaced repetition"
+      next_review_at:
+        type: "timestamptz"
+        required: false
+        description: "When this stitch should be reviewed next"
+      mastery_level:
+        type: "integer"
+        required: true
+        description: "Current mastery level (0-5)"
+      times_seen:
+        type: "integer"
+        required: true
+        description: "Number of times this stitch has been presented"
+      times_correct:
+        type: "integer"
+        required: true
+        description: "Number of times answered correctly"
+      last_seen_at:
+        type: "timestamptz"
+        required: false
+        description: "Last time this stitch was presented"
+      created_at:
+        type: "timestamptz"
+        required: true
+        description: "Record creation timestamp"
+      updated_at:
+        type: "timestamptz"
+        required: true
+        description: "Last update timestamp"
+
+errors:
+  INITIALIZATION_FAILED:
+    code: "S_001"
+    message: "Failed to initialize database schema"
+  PERMISSION_DENIED:
+    code: "S_002"
+    message: "Insufficient permissions to create schema"
+  USER_CREATION_FAILED:
+    code: "S_003"
+    message: "Failed to create user record"
+  DUPLICATE_USER:
+    code: "S_004"
+    message: "User already exists"
+  INVALID_USER_DATA:
+    code: "S_005"
+    message: "User data validation failed"
+  DATABASE_ERROR:
+    code: "S_006"
+    message: "Database query failed"
+  VERSION_CONFLICT:
+    code: "S_007"
+    message: "State version conflict detected"
+  USER_NOT_FOUND:
+    code: "S_008"
+    message: "User does not exist"
+  UPDATE_FAILED:
+    code: "S_009"
+    message: "Failed to update state"
+  METRICS_INSERT_FAILED:
+    code: "S_010"
+    message: "Failed to insert session metrics"
+  INVALID_METRICS_DATA:
+    code: "S_011"
+    message: "Metrics data validation failed"
+  LEARNING_PATH_NOT_FOUND:
+    code: "S_012"
+    message: "Learning path does not exist"
+  POSITION_UPDATE_FAILED:
+    code: "S_013"
+    message: "Failed to update stitch position"
+  STITCH_NOT_FOUND:
+    code: "S_014"
+    message: "Stitch does not exist"
+  INVALID_SUBSCRIPTION_TIER:
+    code: "S_015"
+    message: "Subscription tier is invalid"
+  INVALID_DATE_RANGE:
+    code: "S_016"
+    message: "Date range is invalid"
+  CLEANUP_FAILED:
+    code: "S_017"
+    message: "Failed to cleanup expired users"
+  MIGRATION_FAILED:
+    code: "S_018"
+    message: "Failed to migrate user data"
+  SOURCE_USER_NOT_FOUND:
+    code: "S_019"
+    message: "Anonymous user does not exist"
+  TARGET_USER_EXISTS:
+    code: "S_020"
+    message: "Registered user already has data"
+
+interface:
+  SupabaseDatabaseInterface:
+    methods:
+      initializeDatabase:
+        description: "Creates all necessary tables, indexes, and constraints"
+        returns:
+          type: "boolean"
+          description: "Whether database initialization was successful"
+        errors:
+          - "INITIALIZATION_FAILED"
+          - "PERMISSION_DENIED"
+        async: true
+      createUser:
+        description: "Creates a new user record in the users table"
+        parameters:
+          userData:
+            type: "object"
+            required: true
+            description: "User data to insert"
+        returns:
+          type: "object"
+          description: "Created user record"
+        errors:
+          - "USER_CREATION_FAILED"
+          - "DUPLICATE_USER"
+          - "INVALID_USER_DATA"
+        async: true
+      getUserById:
+        description: "Retrieves a user by their ID"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "object"
+          description: "User record or null if not found"
+        errors:
+          - "DATABASE_ERROR"
+        async: true
+      updateUserState:
+        description: "Updates user state with optimistic locking"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stateData:
+            type: "object"
+            required: true
+            description: "State data to update"
+          expectedVersion:
+            type: "number"
+            required: true
+            description: "Expected current version"
+        returns:
+          type: "object"
+          description: "Update result with new version"
+        errors:
+          - "VERSION_CONFLICT"
+          - "USER_NOT_FOUND"
+          - "UPDATE_FAILED"
+        async: true
+      insertSessionMetrics:
+        description: "Records session performance metrics"
+        parameters:
+          metricsData:
+            type: "object"
+            required: true
+            description: "Session metrics to record"
+        returns:
+          type: "object"
+          description: "Inserted metrics record"
+        errors:
+          - "METRICS_INSERT_FAILED"
+          - "INVALID_METRICS_DATA"
+        async: true
+      getStitchPositions:
+        description: "Retrieves current stitch positions for a user and learning path"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          learningPath:
+            type: "string"
+            required: true
+            description: "Learning path identifier"
+        returns:
+          type: "array"
+          description: "Array of stitch positions"
+        errors:
+          - "USER_NOT_FOUND"
+          - "LEARNING_PATH_NOT_FOUND"
+        async: true
+      updateStitchPosition:
+        description: "Updates a specific stitch position and skip number"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          learningPath:
+            type: "string"
+            required: true
+            description: "Learning path identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+          positionData:
+            type: "object"
+            required: true
+            description: "Position and performance data"
+        returns:
+          type: "object"
+          description: "Updated stitch position"
+        errors:
+          - "POSITION_UPDATE_FAILED"
+          - "STITCH_NOT_FOUND"
+        async: true
+      getLearningPaths:
+        description: "Retrieves available learning paths for a subscription tier"
+        parameters:
+          subscriptionTier:
+            type: "string"
+            required: true
+            description: "User subscription tier"
+        returns:
+          type: "array"
+          description: "Array of available learning paths"
+        errors:
+          - "INVALID_SUBSCRIPTION_TIER"
+        async: true
+      getUserMetrics:
+        description: "Retrieves aggregated metrics for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          startDate:
+            type: "string"
+            required: false
+            description: "Start date for metrics (ISO string)"
+          endDate:
+            type: "string"
+            required: false
+            description: "End date for metrics (ISO string)"
+        returns:
+          type: "object"
+          description: "Aggregated user metrics"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_DATE_RANGE"
+        async: true
+      cleanupExpiredUsers:
+        description: "Removes expired anonymous users and their associated data"
+        returns:
+          type: "number"
+          description: "Number of users cleaned up"
+        errors:
+          - "CLEANUP_FAILED"
+        async: true
+      migrateUserData:
+        description: "Migrates data from anonymous user to registered user"
+        parameters:
+          anonymousUserId:
+            type: "string"
+            required: true
+            description: "Anonymous user identifier"
+          registeredUserId:
+            type: "string"
+            required: true
+            description: "Registered user identifier"
+        returns:
+          type: "object"
+          description: "Result of migration operation"
+        errors:
+          - "MIGRATION_FAILED"
+          - "SOURCE_USER_NOT_FOUND"
+          - "TARGET_USER_EXISTS"
+        async: true

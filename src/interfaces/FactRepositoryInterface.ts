@@ -142,6 +142,14 @@ export interface FactRepositoryInterface {
    */
   getConceptParameterSchema(concept_type: string): Record<string, any>;
 
+  /**
+   * Search facts by operation and additional criteria
+   * @param searchCriteria - Search criteria including operation and filters
+   * @returns Array of matching facts
+   * @throws INVALID_QUERY if Search criteria are invalid
+   */
+  searchFacts(searchCriteria: { operation: string; [key: string]: any }): Fact[];
+
 }
 
 // Export default interface

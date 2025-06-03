@@ -1,0 +1,106 @@
+# UserSessionManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: BackendServices
+# Converted from XML APML format
+
+interface_metadata:
+  name: "UserSessionManagerInterface"
+  version: "1.0.0"
+  module: "BackendServices"
+  dependencies:
+    - "[object Object]"
+    - "[object Object]"
+    - "[object Object]"
+    - "[object Object]"
+    - "[object Object]"
+  description: |
+    Provides unified interface for managing user sessions, authentication, and state persistence
+    that integrates BackendServices with frontend components following APML compliance requirements.
+
+types:
+  UserSessionState:
+    description: "UserSessionState"
+    properties:
+      user:
+        type: "User | null"
+        required: true
+      session:
+        type: "Session | null"
+        required: true
+      isAuthenticated:
+        type: "boolean"
+        required: true
+      isLoading:
+        type: "boolean"
+        required: true
+      backendStatus:
+        type: "BackendServiceStatus"
+        required: true
+      userState:
+        type: "UserApplicationState"
+        required: true
+      error:
+        type: "string | null"
+        required: true
+  UserApplicationState:
+    description: "UserApplicationState"
+    properties:
+      stitchPositions:
+        type: "Record<string, any>"
+        required: true
+      tripleHelixState:
+        type: "Record<string, any>"
+        required: true
+      spacedRepetitionState:
+        type: "Record<string, any>"
+        required: true
+      progressMetrics:
+        type: "Record<string, any>"
+        required: true
+      lastSyncTime:
+        type: "string | null"
+        required: true
+      version:
+        type: "number"
+        required: true
+  SessionMetrics:
+    description: "SessionMetrics"
+    properties:
+      sessionId:
+        type: "string"
+        required: true
+      correctAnswers:
+        type: "number"
+        required: true
+      totalQuestions:
+        type: "number"
+        required: true
+      completionTime:
+        type: "number"
+        required: true
+      learningPath:
+        type: "string"
+        required: true
+      timestamp:
+        type: "string"
+        required: true
+
+interface:
+  UserSessionManagerInterface:
+    methods:
+      initializeSession:
+        description: "undefined"
+      createAnonymousUser:
+        description: "undefined"
+      getUserState:
+        description: "undefined"
+      refreshUserState:
+        description: "undefined"
+      updateUserState:
+        description: "undefined"
+      recordSessionMetrics:
+        description: "undefined"
+      getBackendStatus:
+        description: "undefined"
+      logout:
+        description: "undefined"

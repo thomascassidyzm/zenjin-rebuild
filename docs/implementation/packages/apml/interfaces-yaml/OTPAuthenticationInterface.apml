@@ -1,0 +1,142 @@
+# OTPAuthenticationInterface.apml
+# APML v2.2 Interface Definition
+# Module: Authentication
+# Purpose: Interface-first design for OTP authentication flow
+
+interface_metadata:
+  name: "OTPAuthenticationInterface"
+  version: "1.0.0"
+  module: "Authentication"
+  dependencies: []
+  description: |
+    Defines the contract for OTP (One-Time Password) authentication flow,
+    managing state transitions and user interactions for passwordless login.
+
+types:
+  OTPAuthState:
+    description: "Current state of OTP authentication flow"
+    type: "string"
+    enum: ["EMAIL_ENTRY", "OTP_VERIFICATION", "AUTHENTICATED", "ERROR"]
+    
+  OTPAuthenticationState:
+    description: "Complete state of OTP authentication"
+    properties:
+      currentState:
+        type: "OTPAuthState"
+        required: true
+        description: "Current state in the authentication flow"
+      email:
+        type: "string"
+        required: true
+        description: "Email address for OTP delivery"
+      otpCode:
+        type: "string"
+        required: false
+        description: "Entered OTP code"
+      error:
+        type: "string"
+        required: false
+        description: "Error message if any"
+      isLoading:
+        type: "boolean"
+        required: true
+        description: "Whether an operation is in progress"
+      attemptCount:
+        type: "integer"
+        required: true
+        description: "Number of OTP verification attempts"
+      sessionToken:
+        type: "string"
+        required: false
+        description: "Session token after successful authentication"
+
+errors:
+  INVALID_EMAIL:
+    code: "OTP_001"
+    message: "Invalid email address format"
+  OTP_SEND_FAILED:
+    code: "OTP_002"
+    message: "Failed to send OTP code"
+  INVALID_OTP:
+    code: "OTP_003"
+    message: "Invalid or expired OTP code"
+  TOO_MANY_ATTEMPTS:
+    code: "OTP_004"
+    message: "Too many verification attempts"
+  SESSION_EXPIRED:
+    code: "OTP_005"
+    message: "OTP session has expired"
+  NETWORK_ERROR:
+    code: "OTP_006"
+    message: "Network error during authentication"
+
+interface:
+  OTPAuthenticationInterface:
+    methods:
+      requestOTP:
+        description: "Request OTP code to be sent to email"
+        parameters:
+          email:
+            type: "string"
+            required: true
+            description: "Email address to send OTP"
+        returns:
+          type: "boolean"
+          description: "Whether OTP was successfully sent"
+        errors:
+          - "INVALID_EMAIL"
+          - "OTP_SEND_FAILED"
+          - "NETWORK_ERROR"
+          
+      verifyOTP:
+        description: "Verify the entered OTP code"
+        parameters:
+          email:
+            type: "string"
+            required: true
+            description: "Email address"
+          otpCode:
+            type: "string"
+            required: true
+            description: "OTP code to verify"
+        returns:
+          type: "object"
+          properties:
+            success:
+              type: "boolean"
+              description: "Whether verification succeeded"
+            sessionToken:
+              type: "string"
+              description: "Session token if successful"
+        errors:
+          - "INVALID_OTP"
+          - "TOO_MANY_ATTEMPTS"
+          - "SESSION_EXPIRED"
+          - "NETWORK_ERROR"
+          
+      resendOTP:
+        description: "Resend OTP code to the same email"
+        parameters:
+          email:
+            type: "string"
+            required: true
+            description: "Email address"
+        returns:
+          type: "boolean"
+          description: "Whether OTP was successfully resent"
+        errors:
+          - "OTP_SEND_FAILED"
+          - "SESSION_EXPIRED"
+          - "NETWORK_ERROR"
+          
+      getCurrentState:
+        description: "Get current authentication state"
+        returns:
+          type: "OTPAuthenticationState"
+          description: "Current authentication state"
+          
+      resetAuthentication:
+        description: "Reset authentication flow to initial state"
+        returns:
+          type: "boolean"
+          description: "Whether reset was successful"

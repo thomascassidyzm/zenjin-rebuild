@@ -343,10 +343,6 @@ const UserProfileHeader: React.FC<{
             src={avatarUrl} 
             alt={username} 
             className="h-full w-full object-cover"
-            onError={(e) => {
-              // Fallback in case avatar fails to load
-              (e.target as HTMLImageElement).src = '/avatars/default-avatar.png';
-            }}
           />
         ) : (
           <span className="text-white text-xl font-bold">{username.charAt(0).toUpperCase()}</span>

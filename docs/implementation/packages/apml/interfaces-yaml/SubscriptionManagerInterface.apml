@@ -1,0 +1,225 @@
+# SubscriptionManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: SubscriptionSystem
+# Converted from XML APML format
+
+interface_metadata:
+  name: "SubscriptionManagerInterface"
+  version: "1.1.0"
+  module: "SubscriptionSystem"
+  dependencies:
+    - "[object Object]"
+  description: |
+    Defines the contract for the SubscriptionManager component that manages user subscriptions and content access.
+
+types:
+  SubscriptionPlan:
+    description: "SubscriptionPlan"
+    properties:
+      id:
+        type: "string"
+        required: true
+        description: "Unique identifier for the subscription plan"
+      name:
+        type: "string"
+        required: true
+        description: "Name of the subscription plan"
+      description:
+        type: "string"
+        required: false
+        description: "Description of the subscription plan"
+      price:
+        type: "number"
+        required: true
+        description: "Price of the subscription plan"
+      currency:
+        type: "string"
+        required: true
+        description: "Currency code (e.g., 'USD', 'EUR')"
+      billingCycle:
+        type: "string"
+        required: true
+        description: "Billing cycle ('monthly', 'quarterly', 'annual')"
+      features:
+        type: "array"
+        required: false
+        description: "List of features included in the plan"
+        items:
+          type: "string"
+  UserSubscription:
+    description: "UserSubscription"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "User identifier"
+      planId:
+        type: "string"
+        required: true
+        description: "Subscription plan identifier"
+      status:
+        type: "string"
+        required: true
+        description: "Subscription status ('active', 'canceled', 'expired', 'trial')"
+      startDate:
+        type: "string"
+        required: true
+        description: "ISO date string of subscription start"
+      endDate:
+        type: "string"
+        required: false
+        description: "ISO date string of subscription end"
+      autoRenew:
+        type: "boolean"
+        required: true
+        description: "Whether the subscription auto-renews"
+      paymentMethod:
+        type: "string"
+        required: false
+        description: "Payment method identifier"
+      lastBillingDate:
+        type: "string"
+        required: false
+        description: "ISO date string of last billing"
+      nextBillingDate:
+        type: "string"
+        required: false
+        description: "ISO date string of next billing"
+
+errors:
+  USER_NOT_FOUND:
+    code: "S_001"
+    message: "The specified user was not found"
+  NO_SUBSCRIPTION:
+    code: "S_002"
+    message: "The user has no active subscription"
+  PLAN_NOT_FOUND:
+    code: "S_003"
+    message: "The specified plan was not found"
+  PAYMENT_METHOD_INVALID:
+    code: "S_004"
+    message: "The payment method is invalid"
+  SUBSCRIPTION_EXISTS:
+    code: "S_005"
+    message: "The user already has an active subscription"
+  CREATION_FAILED:
+    code: "S_006"
+    message: "Failed to create the subscription"
+  CANCELLATION_FAILED:
+    code: "S_007"
+    message: "Failed to cancel the subscription"
+  UPDATE_FAILED:
+    code: "S_008"
+    message: "Failed to update the subscription"
+
+interface:
+  SubscriptionManagerInterface:
+    methods:
+      getSubscriptionPlans:
+        description: "Gets all available subscription plans"
+        returns:
+          type: "array"
+          description: "Array of subscription plans"
+      getUserSubscription:
+        description: "Gets the current subscription for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "UserSubscription"
+          description: "User's current subscription"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_SUBSCRIPTION"
+      createSubscription:
+        description: "Creates a new subscription for a user"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          planId:
+            type: "string"
+            required: true
+            description: "Subscription plan identifier"
+          paymentMethod:
+            type: "string"
+            required: false
+            description: "Payment method identifier"
+          autoRenew:
+            type: "boolean"
+            required: false
+            description: "Whether the subscription should auto-renew"
+            default: true
+        returns:
+          type: "UserSubscription"
+          description: "Created subscription"
+        errors:
+          - "USER_NOT_FOUND"
+          - "PLAN_NOT_FOUND"
+          - "PAYMENT_METHOD_INVALID"
+          - "SUBSCRIPTION_EXISTS"
+          - "CREATION_FAILED"
+      cancelSubscription:
+        description: "Cancels a user's subscription"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          endImmediately:
+            type: "boolean"
+            required: false
+            description: "Whether to end the subscription immediately"
+            default: false
+        returns:
+          type: "boolean"
+          description: "Whether the cancellation was successful"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_SUBSCRIPTION"
+          - "CANCELLATION_FAILED"
+      updateSubscription:
+        description: "Updates a user's subscription"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          updates:
+            type: "object"
+            required: true
+            description: "Subscription updates"
+        returns:
+          type: "UserSubscription"
+          description: "Updated subscription"
+        errors:
+          - "USER_NOT_FOUND"
+          - "NO_SUBSCRIPTION"
+          - "PLAN_NOT_FOUND"
+          - "PAYMENT_METHOD_INVALID"
+          - "UPDATE_FAILED"
+      checkSubscriptionStatus:
+        description: "Checks if a user has an active subscription"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "object"
+          description: "Subscription status"
+          properties:
+            hasActiveSubscription:
+              type: "boolean"
+              description: "Whether the user has an active subscription"
+            planId:
+              type: "string"
+              description: "Current plan identifier (if active)"
+            daysRemaining:
+              type: "number"
+              description: "Days remaining in the current billing cycle (if active)"
+        errors:
+          - "USER_NOT_FOUND"

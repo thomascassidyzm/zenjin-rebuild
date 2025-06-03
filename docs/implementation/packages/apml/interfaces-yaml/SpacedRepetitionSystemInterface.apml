@@ -1,0 +1,321 @@
+# SpacedRepetitionSystemInterface.apml
+# APML v2.2 Interface Definition
+# Module: ProgressionSystem
+# Purpose: Implement the Stitch Repositioning Algorithm with tube-based position management
+
+interface_metadata:
+  name: "SpacedRepetitionSystemInterface"
+  version: "1.0.0"
+  module: "ProgressionSystem"
+  dependencies:
+    - "StitchManagerInterface"
+  description: |
+    Defines the contract for the SpacedRepetitionSystem component that implements 
+    the Stitch Repositioning Algorithm within tube positions.
+    Tube-based architecture with position compression following APML Framework v1.4.2.
+
+types:
+  SkipNumber:
+    description: "Valid skip numbers in the progression sequence"
+    type: "integer"
+    enum: [4, 8, 15, 30, 100, 1000]
+    
+  PerformanceData:
+    description: "Performance data for spaced repetition calculations"
+    properties:
+      correctCount:
+        type: "integer"
+        required: true
+        description: "Number of correct answers"
+      totalCount:
+        type: "integer"
+        required: true
+        description: "Total number of questions"
+      averageResponseTime:
+        type: "number"
+        required: true
+        description: "Average response time in milliseconds"
+      completionDate:
+        type: "string"
+        format: "iso8601"
+        required: true
+        description: "ISO date string of completion"
+      isPerfectScore:
+        type: "boolean"
+        required: true
+        description: "Whether score was 20/20"
+        
+  CompressionResult:
+    description: "Compression operation result"
+    properties:
+      tubeId:
+        type: "string"
+        required: true
+        description: "Tube identifier"
+      originalPositionCount:
+        type: "integer"
+        required: true
+        description: "Number of positions before compression"
+      compressedPositionCount:
+        type: "integer"
+        required: true
+        description: "Number of positions after compression"
+      gapsRemoved:
+        type: "integer"
+        required: true
+        description: "Number of gaps removed"
+      compressionRatio:
+        type: "number"
+        required: true
+        description: "Ratio of compression achieved"
+      timestamp:
+        type: "string"
+        format: "iso8601"
+        required: true
+        description: "When compression occurred"
+        
+  SkipCalculationResult:
+    description: "Skip number calculation result"
+    properties:
+      skipNumber:
+        type: "SkipNumber"
+        required: true
+        description: "Calculated skip number"
+      isAdvancement:
+        type: "boolean"
+        required: true
+        description: "Whether this advances in the sequence"
+      isReset:
+        type: "boolean"
+        required: true
+        description: "Whether this resets to beginning"
+      consecutivePerfect:
+        type: "integer"
+        required: true
+        description: "Updated consecutive perfect count"
+      reasoning:
+        type: "string"
+        required: true
+        description: "Explanation of calculation"
+
+errors:
+  USER_NOT_FOUND:
+    code: "SRS_001"
+    message: "The specified user was not found"
+  STITCH_NOT_FOUND:
+    code: "SRS_002"
+    message: "The specified stitch was not found"
+  TUBE_NOT_FOUND:
+    code: "SRS_003"
+    message: "The specified tube was not found"
+  INVALID_PERFORMANCE_DATA:
+    code: "SRS_004"
+    message: "The session results are invalid"
+  REPOSITIONING_FAILED:
+    code: "SRS_005"
+    message: "Failed to reposition the stitch"
+  NO_STITCHES_IN_TUBE:
+    code: "SRS_006"
+    message: "No stitches found in the specified tube"
+  COMPRESSION_FAILED:
+    code: "SRS_007"
+    message: "Failed to compress positions"
+  INVALID_SKIP_NUMBER:
+    code: "SRS_008"
+    message: "The skip number is invalid"
+  POSITION_CONFLICT:
+    code: "SRS_009"
+    message: "Position conflict detected during repositioning"
+  STITCH_ALREADY_RETIRED:
+    code: "SRS_010"
+    message: "Stitch is already retired (skipNumber = 1000)"
+
+interface:
+  SpacedRepetitionSystemInterface:
+    methods:
+      repositionStitch:
+        description: |
+          Repositions a stitch within its tube based on the Stitch Repositioning Algorithm.
+          Algorithm: If score = 20/20, move to position [skip number], else no change
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+          sessionResults:
+            type: "object"
+            required: true
+            description: "Session performance data"
+        returns:
+          type: "object"
+          description: "Result of the repositioning operation"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          - "INVALID_PERFORMANCE_DATA"
+          - "REPOSITIONING_FAILED"
+          - "STITCH_ALREADY_RETIRED"
+          
+      calculateSkipNumber:
+        description: |
+          Calculates the next skip number based on performance and current progression.
+          Sequence: [4, 8, 15, 30, 100, 1000] - advances on 20/20, resets on ≠20/20
+        parameters:
+          currentSkipNumber:
+            type: "SkipNumber"
+            required: true
+            description: "Current skip number"
+          consecutivePerfect:
+            type: "integer"
+            required: true
+            description: "Number of consecutive 20/20 scores"
+          sessionResults:
+            type: "object"
+            required: true
+            description: "Latest session performance"
+        returns:
+          type: "SkipCalculationResult"
+          description: "Skip calculation result"
+        errors:
+          - "INVALID_PERFORMANCE_DATA"
+          - "INVALID_SKIP_NUMBER"
+          
+      applyRepositioningAlgorithm:
+        description: |
+          Applies the repositioning algorithm: temporarily assign position -1, 
+          shift positions 1 through [skip number] down one position,
+          place stitch at position [skip number]
+        parameters:
+          tubeId:
+            type: "string"
+            required: true
+            description: "Tube identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch to reposition"
+          skipNumber:
+            type: "SkipNumber"
+            required: true
+            description: "Skip number for new position"
+        returns:
+          type: "object"
+          description: "Repositioning operation result"
+        errors:
+          - "TUBE_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          - "REPOSITIONING_FAILED"
+          
+      compressTubePositions:
+        description: "Compresses tube positions to remove gaps (maintains logical position integrity)"
+        parameters:
+          tubeId:
+            type: "string"
+            required: true
+            description: "Tube identifier to compress"
+        returns:
+          type: "CompressionResult"
+          description: "Compression operation result"
+        errors:
+          - "TUBE_NOT_FOUND"
+          - "COMPRESSION_FAILED"
+          
+      getTubePositionOrder:
+        description: "Gets the current position order for a tube (sorted by logical position)"
+        parameters:
+          tubeId:
+            type: "string"
+            required: true
+            description: "Tube identifier"
+        returns:
+          type: "array"
+          description: "Array of stitches in position order"
+          items:
+            type: "object"
+            properties:
+              stitchId:
+                type: "string"
+                description: "Stitch identifier"
+              logicalPosition:
+                type: "integer"
+                description: "Logical position in tube"
+        errors:
+          - "TUBE_NOT_FOUND"
+          
+      getRetiredStitches:
+        description: "Gets all retired stitches (skipNumber = 1000) for monthly review"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "array"
+          description: "Array of retired stitches across all tubes"
+          items:
+            type: "object"
+            properties:
+              stitchId:
+                type: "string"
+                description: "Stitch identifier"
+              tubeId:
+                type: "string"
+                description: "Tube identifier"
+              retiredDate:
+                type: "string"
+                format: "iso8601"
+                description: "Date when stitch was retired"
+        errors:
+          - "USER_NOT_FOUND"
+          
+      getRepositioningHistory:
+        description: "Gets the repositioning history for a specific stitch"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          stitchId:
+            type: "string"
+            required: true
+            description: "Stitch identifier"
+          limit:
+            type: "integer"
+            required: false
+            description: "Maximum number of history entries to return"
+        returns:
+          type: "array"
+          description: "Array of repositioning history entries"
+        errors:
+          - "USER_NOT_FOUND"
+          - "STITCH_NOT_FOUND"
+          
+      validateSkipSequence:
+        description: "Validates that the skip sequence is maintained correctly"
+        parameters:
+          currentSkipNumber:
+            type: "SkipNumber"
+            required: true
+            description: "Current skip number"
+          consecutivePerfect:
+            type: "integer"
+            required: true
+            description: "Consecutive perfect scores"
+        returns:
+          type: "boolean"
+          description: "Whether the progression is valid"
+
+skip_sequence:
+  description: |
+    The skip number progression sequence is: [4, 8, 15, 30, 100, 1000]
+    - Advances to next number on perfect score (20/20)
+    - Resets to 4 on any non-perfect score
+    - 1000 represents "retired" - reviewed monthly
+  example: |
+    Current: 8, Score: 20/20 → Next: 15
+    Current: 30, Score: 19/20 → Next: 4
+    Current: 1000, Score: any → Stays: 1000

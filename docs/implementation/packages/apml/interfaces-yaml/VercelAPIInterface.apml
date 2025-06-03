@@ -1,0 +1,426 @@
+# VercelAPIInterface.apml
+# APML v2.2 Interface Definition
+# Module: BackendServices
+# Converted from XML APML format
+
+interface_metadata:
+  name: "VercelAPIInterface"
+  version: "1.0.0"
+  module: "BackendServices"
+  dependencies:
+    - "[object Object]"
+    - "[object Object]"
+    - "[object Object]"
+  description: |
+    Defines the REST API endpoints for the Zenjin Maths App deployed on Vercel, providing serverless functions that integrate with Supabase for user management, state synchronization, and metrics collection.
+
+types:
+  APIResponse:
+    description: "APIResponse"
+    properties:
+      success:
+        type: "boolean"
+        required: true
+        description: "Whether the request was successful"
+      data:
+        type: "any"
+        required: false
+        description: "Response data if successful"
+      error:
+        type: "string"
+        required: false
+        description: "Error message if unsuccessful"
+      errorCode:
+        type: "string"
+        required: false
+        description: "Specific error code for client handling"
+      timestamp:
+        type: "string"
+        required: true
+        description: "ISO timestamp of response"
+      requestId:
+        type: "string"
+        required: true
+        description: "Unique request identifier for debugging"
+  AuthRequest:
+    description: "AuthRequest"
+    properties:
+      email:
+        type: "string"
+        required: false
+        description: "User email (for registration/login)"
+      password:
+        type: "string"
+        required: false
+        description: "User password (for registration/login)"
+      displayName:
+        type: "string"
+        required: false
+        description: "User display name"
+      anonymousId:
+        type: "string"
+        required: false
+        description: "Anonymous ID for migration"
+      userType:
+        type: "string"
+        required: false
+        description: "Type of user operation"
+  StateUpdateRequest:
+    description: "StateUpdateRequest"
+    properties:
+      stateChanges:
+        type: "object"
+        required: true
+        description: "Partial state changes to apply"
+      expectedVersion:
+        type: "number"
+        required: true
+        description: "Expected current version"
+      syncSource:
+        type: "string"
+        required: true
+        description: "Source device identifier"
+      timestamp:
+        type: "string"
+        required: true
+        description: "Client timestamp of changes"
+  MetricsSubmission:
+    description: "MetricsSubmission"
+    properties:
+      sessionId:
+        type: "string"
+        required: true
+        description: "Unique session identifier"
+      learningPath:
+        type: "string"
+        required: true
+        description: "Learning path identifier"
+      sessionData:
+        type: "object"
+        required: true
+        description: "Complete session performance data"
+      startedAt:
+        type: "string"
+        required: true
+        description: "Session start timestamp"
+      completedAt:
+        type: "string"
+        required: true
+        description: "Session completion timestamp"
+
+errors:
+  ANONYMOUS_CREATION_FAILED:
+    code: "V_001"
+    message: "Failed to create anonymous user"
+  DATABASE_ERROR:
+    code: "V_002"
+    message: "Database operation failed"
+  RATE_LIMIT_EXCEEDED:
+    code: "V_003"
+    message: "Too many requests from this IP"
+  EMAIL_ALREADY_EXISTS:
+    code: "V_004"
+    message: "Email address is already registered"
+  WEAK_PASSWORD:
+    code: "V_005"
+    message: "Password does not meet requirements"
+  INVALID_EMAIL:
+    code: "V_006"
+    message: "Email format is invalid"
+  MIGRATION_FAILED:
+    code: "V_007"
+    message: "Failed to migrate anonymous user data"
+  REGISTRATION_FAILED:
+    code: "V_008"
+    message: "User registration failed"
+  INVALID_CREDENTIALS:
+    code: "V_009"
+    message: "Email or password is incorrect"
+  EMAIL_NOT_CONFIRMED:
+    code: "V_010"
+    message: "Email not confirmed"
+  ACCOUNT_LOCKED:
+    code: "V_011"
+    message: "Account is temporarily locked"
+  LOGIN_FAILED:
+    code: "V_012"
+    message: "Login attempt failed"
+  INVALID_TOKEN:
+    code: "V_013"
+    message: "Authorization token is invalid"
+  LOGOUT_FAILED:
+    code: "V_014"
+    message: "Failed to logout user"
+  USER_NOT_FOUND:
+    code: "V_015"
+    message: "User does not exist"
+  UNAUTHORIZED:
+    code: "V_016"
+    message: "Invalid or missing authorization"
+  PERMISSION_DENIED:
+    code: "V_017"
+    message: "User cannot access this state"
+  VERSION_CONFLICT:
+    code: "V_018"
+    message: "State version conflict detected"
+  INVALID_STATE_DATA:
+    code: "V_019"
+    message: "State data is invalid"
+  UPDATE_FAILED:
+    code: "V_020"
+    message: "Failed to update state"
+  INVALID_METRICS_DATA:
+    code: "V_021"
+    message: "Metrics data is invalid"
+  METRICS_SUBMISSION_FAILED:
+    code: "V_022"
+    message: "Failed to submit metrics"
+  INVALID_DATE_RANGE:
+    code: "V_023"
+    message: "Date range parameters are invalid"
+  ANONYMOUS_USER_NOT_FOUND:
+    code: "V_024"
+    message: "Anonymous user does not exist"
+  REGISTERED_USER_EXISTS:
+    code: "V_025"
+    message: "Registered user already exists"
+  SERVICE_UNAVAILABLE:
+    code: "V_026"
+    message: "Service is currently unavailable"
+  CLEANUP_FAILED:
+    code: "V_027"
+    message: "Cleanup operation failed"
+
+interface:
+  VercelAPIInterface:
+    methods:
+      POST /api/auth/anonymous:
+        description: "Creates a new anonymous user with temporary access"
+        parameters:
+          body:
+            type: "AuthRequest"
+            required: false
+            description: "Optional initial session data"
+        returns:
+          type: "APIResponse"
+          description: "Auth result with anonymous user session"
+        errors:
+          - "ANONYMOUS_CREATION_FAILED"
+          - "DATABASE_ERROR"
+          - "RATE_LIMIT_EXCEEDED"
+        async: true
+      POST /api/auth/register:
+        description: "Registers a new user account, optionally migrating from anonymous"
+        parameters:
+          body:
+            type: "AuthRequest"
+            required: true
+            description: "Registration details"
+        returns:
+          type: "APIResponse"
+          description: "Registration result with user session"
+        errors:
+          - "EMAIL_ALREADY_EXISTS"
+          - "WEAK_PASSWORD"
+          - "INVALID_EMAIL"
+          - "MIGRATION_FAILED"
+          - "REGISTRATION_FAILED"
+        async: true
+      POST /api/auth/login:
+        description: "Authenticates a registered user"
+        parameters:
+          body:
+            type: "AuthRequest"
+            required: true
+            description: "Login credentials"
+        returns:
+          type: "APIResponse"
+          description: "Authentication result"
+        errors:
+          - "INVALID_CREDENTIALS"
+          - "EMAIL_NOT_CONFIRMED"
+          - "ACCOUNT_LOCKED"
+          - "LOGIN_FAILED"
+        async: true
+      POST /api/auth/logout:
+        description: "Logs out the current user"
+        parameters:
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header with JWT token"
+        returns:
+          type: "APIResponse"
+          description: "Logout result"
+        errors:
+          - "INVALID_TOKEN"
+          - "LOGOUT_FAILED"
+        async: true
+      GET /api/users/[id]/state:
+        description: "Retrieves current user state"
+        parameters:
+          params:
+            type: "object"
+            required: true
+            description: "User ID in URL params"
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+        returns:
+          type: "APIResponse"
+          description: "Current user state data"
+        errors:
+          - "USER_NOT_FOUND"
+          - "UNAUTHORIZED"
+          - "PERMISSION_DENIED"
+        async: true
+      PUT /api/users/[id]/state:
+        description: "Updates user state with conflict resolution"
+        parameters:
+          params:
+            type: "object"
+            required: true
+            description: "User ID in URL params"
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+          body:
+            type: "StateUpdateRequest"
+            required: true
+            description: "State update data"
+        returns:
+          type: "APIResponse"
+          description: "Update result with new state"
+        errors:
+          - "VERSION_CONFLICT"
+          - "USER_NOT_FOUND"
+          - "UNAUTHORIZED"
+          - "INVALID_STATE_DATA"
+          - "UPDATE_FAILED"
+        async: true
+      POST /api/users/[id]/metrics:
+        description: "Submits session performance metrics"
+        parameters:
+          params:
+            type: "object"
+            required: true
+            description: "User ID in URL params"
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+          body:
+            type: "MetricsSubmission"
+            required: true
+            description: "Session metrics data"
+        returns:
+          type: "APIResponse"
+          description: "Metrics submission result"
+        errors:
+          - "USER_NOT_FOUND"
+          - "UNAUTHORIZED"
+          - "INVALID_METRICS_DATA"
+          - "METRICS_SUBMISSION_FAILED"
+        async: true
+      GET /api/users/[id]/metrics:
+        description: "Retrieves user performance metrics and analytics"
+        parameters:
+          params:
+            type: "object"
+            required: true
+            description: "User ID in URL params"
+          query:
+            type: "object"
+            required: false
+            description: "Query parameters for filtering"
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+        returns:
+          type: "APIResponse"
+          description: "User metrics and analytics"
+        errors:
+          - "USER_NOT_FOUND"
+          - "UNAUTHORIZED"
+          - "INVALID_DATE_RANGE"
+        async: true
+      GET /api/learning-paths:
+        description: "Retrieves available learning paths for user's subscription"
+        parameters:
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+          query:
+            type: "object"
+            required: false
+            description: "Optional filtering parameters"
+        returns:
+          type: "APIResponse"
+          description: "Available learning paths"
+        errors:
+          - "UNAUTHORIZED"
+          - "USER_NOT_FOUND"
+        async: true
+      GET /api/users/[id]/progress:
+        description: "Retrieves user progress across all learning paths"
+        parameters:
+          params:
+            type: "object"
+            required: true
+            description: "User ID in URL params"
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+        returns:
+          type: "APIResponse"
+          description: "User progress data"
+        errors:
+          - "USER_NOT_FOUND"
+          - "UNAUTHORIZED"
+        async: true
+      POST /api/users/migrate:
+        description: "Migrates anonymous user to registered account"
+        parameters:
+          body:
+            type: "object"
+            required: true
+            description: "Migration request with anonymous and registered user IDs"
+          headers:
+            type: "object"
+            required: true
+            description: "Authorization header"
+        returns:
+          type: "APIResponse"
+          description: "Migration result"
+        errors:
+          - "ANONYMOUS_USER_NOT_FOUND"
+          - "REGISTERED_USER_EXISTS"
+          - "MIGRATION_FAILED"
+          - "UNAUTHORIZED"
+        async: true
+      GET /api/health:
+        description: "Health check endpoint for monitoring"
+        returns:
+          type: "APIResponse"
+          description: "Service health status"
+        errors:
+          - "SERVICE_UNAVAILABLE"
+      POST /api/admin/cleanup:
+        description: "Admin endpoint to cleanup expired anonymous users"
+        parameters:
+          headers:
+            type: "object"
+            required: true
+            description: "Admin authorization header"
+        returns:
+          type: "APIResponse"
+          description: "Cleanup operation result"
+        errors:
+          - "UNAUTHORIZED"
+          - "CLEANUP_FAILED"
+        async: true

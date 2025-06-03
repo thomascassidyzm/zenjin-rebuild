@@ -145,7 +145,53 @@ class DefaultHttpClient implements HttpClientInterface {
       if (timeoutId) clearTimeout(timeoutId);
       
       if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        // APML-compliant event-driven error handling for specific HTTP status codes
+        switch (response.status) {
+          case 409:
+            // HTTP 409 Conflict - handle as state conflict, not as error
+            const conflictData = await response.json().catch(() => ({}));
+            throw createSyncError(
+              SyncErrorCode.CONFLICT_ERROR,
+              'Data conflict detected - server state differs from client state',
+              { 
+                url: fullUrl, 
+                status: response.status,
+                conflictData,
+                shouldRetry: false // Conflicts need resolution, not retry
+              }
+            );
+          case 500:
+            // HTTP 500 Server Error - implement exponential backoff
+            throw createSyncError(
+              SyncErrorCode.SERVER_ERROR,
+              'Server internal error - will retry with backoff',
+              { 
+                url: fullUrl, 
+                status: response.status,
+                shouldRetry: true,
+                backoffMultiplier: 2
+              }
+            );
+          case 429:
+            // HTTP 429 Too Many Requests - implement rate limiting
+            const retryAfter = response.headers.get('Retry-After');
+            throw createSyncError(
+              SyncErrorCode.RATE_LIMITED,
+              'Rate limit exceeded - backing off',
+              { 
+                url: fullUrl, 
+                status: response.status,
+                retryAfter: retryAfter ? parseInt(retryAfter) * 1000 : 5000,
+                shouldRetry: true
+              }
+            );
+          default:
+            throw createSyncError(
+              SyncErrorCode.HTTP_ERROR,
+              `HTTP error ${response.status}: ${response.statusText}`,
+              { url: fullUrl, status: response.status }
+            );
+        }
       }
       
       return await response.json();
@@ -1431,16 +1477,71 @@ class SynchronizationManager implements SynchronizationManagerInterface {
         
         return response;
       } catch (error) {
+        // APML-compliant event-driven error handling
+        const shouldRetry = this.shouldRetryError(error);
+        
+        if (error.code === SyncErrorCode.CONFLICT_ERROR) {
+          // Handle conflict as state transition, not failure
+          this.emitEvent('conflict', { 
+            error, 
+            batchData: batch,
+            conflictData: error.details?.conflictData
+          });
+          
+          // Add to conflicts for manual resolution
+          if (error.details?.conflictData) {
+            const conflictKey = `batch_${Date.now()}`;
+            this.conflicts.set(conflictKey, {
+              id: conflictKey,
+              collectionName: 'batch',
+              clientData: batch,
+              serverData: error.details.conflictData,
+              timestamp: new Date().toISOString()
+            });
+          }
+          
+          // Don't retry conflicts - they need resolution
+          return;
+        }
+        
         // Update retry count for all items in the batch
         for (const item of batch) {
-          await this.queueStorage.updateItem(item.id, {
-            retryCount: item.retryCount + 1,
-            lastAttempt: Date.now(),
-            errorInfo: {
-              code: error.code || SyncErrorCode.UNKNOWN_ERROR,
-              message: error.message
-            }
-          });
+          const retryCount = item.retryCount + 1;
+          const maxRetries = options.retryLimit || 5;
+          
+          if (shouldRetry && retryCount <= maxRetries) {
+            // Calculate backoff delay for retries
+            const baseDelay = options.retryDelay || 1000;
+            const backoffMultiplier = error.details?.backoffMultiplier || 1.5;
+            const delay = baseDelay * Math.pow(backoffMultiplier, retryCount - 1);
+            
+            await this.queueStorage.updateItem(item.id, {
+              retryCount,
+              lastAttempt: Date.now(),
+              nextRetryTime: Date.now() + delay,
+              errorInfo: {
+                code: error.code || SyncErrorCode.UNKNOWN_ERROR,
+                message: error.message
+              }
+            });
+          } else {
+            // Max retries exceeded or non-retryable error
+            await this.queueStorage.updateItem(item.id, {
+              retryCount,
+              lastAttempt: Date.now(),
+              failed: true,
+              errorInfo: {
+                code: error.code || SyncErrorCode.UNKNOWN_ERROR,
+                message: error.message
+              }
+            });
+            
+            this.emitEvent('error', { 
+              error, 
+              item,
+              permanent: true 
+            });
+          }
         }
         
         throw error;
@@ -1475,6 +1576,40 @@ class SynchronizationManager implements SynchronizationManagerInterface {
     }
   }
   
+  /**
+   * Determine if an error should be retried based on APML event-driven principles
+   */
+  private shouldRetryError(error: any): boolean {
+    // Non-retryable errors (need different handling)
+    const nonRetryableErrors = [
+      SyncErrorCode.CONFLICT_ERROR,
+      SyncErrorCode.AUTHENTICATION_ERROR,
+      SyncErrorCode.INVALID_DATA,
+      SyncErrorCode.QUOTA_EXCEEDED
+    ];
+    
+    if (nonRetryableErrors.includes(error.code)) {
+      return false;
+    }
+    
+    // Check if error explicitly specifies retry behavior
+    if (error.details?.shouldRetry !== undefined) {
+      return error.details.shouldRetry;
+    }
+    
+    // Retryable errors (transient issues)
+    const retryableErrors = [
+      SyncErrorCode.NETWORK_ERROR,
+      SyncErrorCode.SERVER_ERROR,
+      SyncErrorCode.TIMEOUT_ERROR,
+      SyncErrorCode.RATE_LIMITED,
+      SyncErrorCode.UPLOAD_FAILED,
+      SyncErrorCode.DOWNLOAD_FAILED
+    ];
+    
+    return retryableErrors.includes(error.code);
+  }
+
   /**
    * Handle conflicts from server
    */

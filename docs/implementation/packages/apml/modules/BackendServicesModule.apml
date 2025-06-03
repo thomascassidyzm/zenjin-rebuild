@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="BackendServices" version="1.0.0">
+  <Purpose>
+    Provides backend services integration for the Zenjin Maths App using Supabase and Vercel serverless architecture. Handles user management, state persistence, real-time synchronization, and API endpoints with seamless anonymous-to-registered user migration.
+  </Purpose>
+  
+  <ContextBoundary size="large" tokenEstimate="12000">
+    <Rationale>
+      Backend services require extensive context due to database schema, API contracts, authentication flows, and integration patterns. The module coordinates between multiple external services (Supabase, Vercel) and must handle complex state management scenarios.
+    </Rationale>
+    <ContextInclusions>
+      <Include>Database schema and table relationships</Include>
+      <Include>Authentication and authorization patterns</Include>
+      <Include>API endpoint definitions and error handling</Include>
+      <Include>Real-time subscription patterns</Include>
+      <Include>State synchronization and conflict resolution</Include>
+      <Include>User migration and data preservation logic</Include>
+    </ContextInclusions>
+    <ContextExclusions>
+      <Exclude>Frontend component implementations</Exclude>
+      <Exclude>Detailed UI/UX specifications</Exclude>
+      <Exclude>Learning algorithm implementations</Exclude>
+      <Exclude>Detailed performance optimization code</Exclude>
+    </ContextExclusions>
+  </ContextBoundary>
+  
+  <Interfaces>
+    <Interface name="SupabaseUserStateInterface" status="scaffolded" priority="high">
+      <Purpose>Manages user state persistence and synchronization through Supabase</Purpose>
+      <CriticalMethods>
+        <Method name="getUserState" />
+        <Method name="updateUserState" />
+        <Method name="subscribeToStateChanges" />
+        <Method name="migrateAnonymousUser" />
+      </CriticalMethods>
+    </Interface>
+    
+    <Interface name="SupabaseRealTimeInterface" status="scaffolded" priority="high">
+      <Purpose>Handles real-time data synchronization using Supabase subscriptions</Purpose>
+      <CriticalMethods>
+        <Method name="subscribe" />
+        <Method name="unsubscribe" />
+        <Method name="subscribeToUserState" />
+        <Method name="broadcastEvent" />
+      </CriticalMethods>
+    </Interface>
+    
+    <Interface name="SupabaseAuthInterface" status="scaffolded" priority="high">
+      <Purpose>Manages user authentication with anonymous and registered user support</Purpose>
+      <CriticalMethods>
+        <Method name="createAnonymousUser" />
+        <Method name="registerUser" />
+        <Method name="loginUser" />
+        <Method name="migrateAnonymousToRegistered" />
+      </CriticalMethods>
+    </Interface>
+    
+    <Interface name="SupabaseDatabaseInterface" status="scaffolded" priority="medium">
+      <Purpose>Defines database schema and operations for user data and metrics</Purpose>
+      <CriticalMethods>
+        <Method name="initializeDatabase" />
+        <Method name="updateUserState" />
+        <Method name="insertSessionMetrics" />
+        <Method name="migrateUserData" />
+      </CriticalMethods>
+    </Interface>
+    
+    <Interface name="VercelAPIInterface" status="scaffolded" priority="high">
+      <Purpose>Defines REST API endpoints for frontend-backend communication</Purpose>
+      <CriticalMethods>
+        <Method name="POST /api/auth/anonymous" />
+        <Method name="POST /api/auth/register" />
+        <Method name="GET /api/users/[id]/state" />
+        <Method name="PUT /api/users/[id]/state" />
+      </CriticalMethods>
+    </Interface>
+  </Interfaces>
+  
+  <Components>
+    <Component name="SupabaseUserState" status="not-started" priority="high">
+      <Purpose>Implementation of user state management with Supabase integration</Purpose>
+      <Dependencies>
+        <Dependency interface="ConnectivityManagerInterface" module="OfflineSupport" />
+        <Dependency interface="AnonymousUserManagerInterface" module="UserManagement" />
+      </Dependencies>
+      <EstimatedComplexity>medium</EstimatedComplexity>
+    </Component>
+    
+    <Component name="SupabaseRealTime" status="not-started" priority="high">
+      <Purpose>Real-time data synchronization using Supabase real-time features</Purpose>
+      <Dependencies>
+        <Dependency interface="ConnectivityManagerInterface" module="OfflineSupport" />
+      </Dependencies>
+      <EstimatedComplexity>medium</EstimatedComplexity>
+    </Component>
+    
+    <Component name="SupabaseAuth" status="not-started" priority="high">
+      <Purpose>Authentication service with anonymous and registered user support</Purpose>
+      <Dependencies>
+        <Dependency interface="SupabaseUserStateInterface" module="BackendServices" />
+        <Dependency interface="AnonymousUserManagerInterface" module="UserManagement" />
+      </Dependencies>
+      <EstimatedComplexity>high</EstimatedComplexity>
+    </Component>
+    
+    <Component name="SupabaseDatabase" status="not-started" priority="medium">
+      <Purpose>Database operations and schema management for Supabase</Purpose>
+      <Dependencies>
+        <Dependency interface="ConnectivityManagerInterface" module="OfflineSupport" />
+      </Dependencies>
+      <EstimatedComplexity>medium</EstimatedComplexity>
+    </Component>
+    
+    <Component name="VercelAPIRoutes" status="not-started" priority="high">
+      <Purpose>Serverless API endpoints deployed on Vercel</Purpose>
+      <Dependencies>
+        <Dependency interface="SupabaseUserStateInterface" module="BackendServices" />
+        <Dependency interface="SupabaseAuthInterface" module="BackendServices" />
+        <Dependency interface="SupabaseDatabaseInterface" module="BackendServices" />
+      </Dependencies>
+      <EstimatedComplexity>high</EstimatedComplexity>
+    </Component>
+    
+    <Component name="BackendServiceOrchestrator" status="not-started" priority="medium">
+      <Purpose>Coordinates between different backend services and handles service discovery</Purpose>
+      <Dependencies>
+        <Dependency interface="SupabaseUserStateInterface" module="BackendServices" />
+        <Dependency interface="SupabaseRealTimeInterface" module="BackendServices" />
+        <Dependency interface="SupabaseAuthInterface" module="BackendServices" />
+      </Dependencies>
+      <EstimatedComplexity>medium</EstimatedComplexity>
+    </Component>
+  </Components>
+  
+  <ValidationCriteria>
+    <Criterion id="BS-001">
+      Anonymous users can be created and immediately start using the app without registration
+    </Criterion>
+    <Criterion id="BS-002">
+      Anonymous users can seamlessly convert to registered accounts with full data migration
+    </Criterion>
+    <Criterion id="BS-003">
+      User state changes are synchronized in real-time across multiple devices/sessions
+    </Criterion>
+    <Criterion id="BS-004">
+      State updates use optimistic locking to handle concurrent modifications
+    </Criterion>
+    <Criterion id="BS-005">
+      Session metrics are accurately recorded and retrievable for analytics
+    </Criterion>
+    <Criterion id="BS-006">
+      API endpoints handle authentication and authorization correctly
+    </Criterion>
+    <Criterion id="BS-007">
+      Real-time subscriptions automatically reconnect on connection failures
+    </Criterion>
+    <Criterion id="BS-008">
+      Database operations are protected by Row Level Security (RLS) policies
+    </Criterion>
+    <Criterion id="BS-009">
+      Expired anonymous users are automatically cleaned up to prevent data bloat
+    </Criterion>
+    <Criterion id="BS-010">
+      All API responses follow consistent error handling and response format
+    </Criterion>
+  </ValidationCriteria>
+  
+  <Architecture>
+    <DataFlow>
+      <Flow name="AnonymousUserCreation">
+        <Step>Frontend requests anonymous user creation via API</Step>
+        <Step>VercelAPI calls SupabaseAuth.createAnonymousUser()</Step>
+        <Step>SupabaseAuth creates user in database with TTL</Step>
+        <Step>SupabaseUserState initializes default state</Step>
+        <Step>JWT token returned to frontend for subsequent requests</Step>
+      </Flow>
+      
+      <Flow name="UserStateSync">
+        <Step>Frontend makes state changes locally</Step>
+        <Step>Frontend calls PUT /api/users/[id]/state with changes</Step>
+        <Step>VercelAPI validates JWT and user permissions</Step>
+        <Step>SupabaseUserState.updateUserState() with version check</Step>
+        <Step>Real-time subscription broadcasts change to other clients</Step>
+        <Step>Other devices receive and apply state updates</Step>
+      </Flow>
+      
+      <Flow name="UserRegistration">
+        <Step>Anonymous user decides to register</Step>
+        <Step>Frontend calls POST /api/auth/register with migration data</Step>
+        <Step>SupabaseAuth validates registration details</Step>
+        <Step>New registered user created in Supabase Auth</Step>
+        <Step>SupabaseUserState.migrateAnonymousUser() transfers all data</Step>
+        <Step>Anonymous user record marked for cleanup</Step>
+        <Step>New JWT token issued for registered user</Step>
+      </Flow>
+    </DataFlow>
+    
+    <SecurityModel>
+      <Authentication>
+        <Method name="JWT Tokens">Supabase-issued JWT tokens for API authentication</Method>
+        <Method name="Row Level Security">Database-level access control for user data</Method>
+        <Method name="API Rate Limiting">Vercel-level rate limiting to prevent abuse</Method>
+      </Authentication>
+      
+      <Authorization>
+        <Rule>Users can only access their own data (enforced by RLS)</Rule>
+        <Rule>Anonymous users have limited access compared to registered users</Rule>
+        <Rule>Admin endpoints require special authorization roles</Rule>
+      </Authorization>
+      
+      <DataProtection>
+        <Method name="Encryption at Rest">Supabase provides encryption for stored data</Method>
+        <Method name="HTTPS Only">All API communications use HTTPS</Method>
+        <Method name="JWT Expiration">Short-lived tokens with refresh capability</Method>
+        <Method name="Anonymous TTL">Anonymous users automatically expire</Method>
+      </DataProtection>
+    </SecurityModel>
+  </Architecture>
+  
+  <IntegrationPoints>
+    <Integration name="Supabase Integration">
+      <Description>Primary database and authentication provider</Description>
+      <Requirements>
+        <Requirement>Supabase project with appropriate configuration</Requirement>
+        <Requirement>Environment variables for connection strings and secrets</Requirement>
+        <Requirement>Row Level Security policies configured</Requirement>
+        <Requirement>Real-time subscriptions enabled</Requirement>
+      </Requirements>
+    </Integration>
+    
+    <Integration name="Vercel Deployment">
+      <Description>Serverless hosting for API routes and frontend</Description>
+      <Requirements>
+        <Requirement>Vercel project connected to Git repository</Requirement>
+        <Requirement>Environment variables configured in Vercel dashboard</Requirement>
+        <Requirement>API routes in /api directory for serverless functions</Requirement>
+        <Requirement>Build and deployment settings optimized</Requirement>
+      </Requirements>
+    </Integration>
+    
+    <Integration name="Frontend Integration">
+      <Description>React frontend consuming backend services</Description>
+      <Requirements>
+        <Requirement>API client configured with base URL and authentication</Requirement>
+        <Requirement>Real-time subscription management in React components</Requirement>
+        <Requirement>Error handling and retry logic for network failures</Requirement>
+        <Requirement>Local state synchronization with backend state</Requirement>
+      </Requirements>
+    </Integration>
+  </IntegrationPoints>
+  
+  <PerformanceConsiderations>
+    <DatabasePerformance>
+      <Optimization>Proper indexing on frequently queried columns</Optimization>
+      <Optimization>Connection pooling for serverless functions</Optimization>
+      <Optimization>Query optimization to minimize data transfer</Optimization>
+      <Optimization>Pagination for large data sets</Optimization>
+    </DatabasePerformance>
+    
+    <APIPerformance>
+      <Optimization>Vercel Edge Functions for geographically distributed responses</Optimization>
+      <Optimization>Response caching where appropriate</Optimization>
+      <Optimization>Compression for large payloads</Optimization>
+      <Optimization>Efficient serialization/deserialization</Optimization>
+    </APIPerformance>
+    
+    <RealTimePerformance>
+      <Optimization>Selective subscriptions to minimize bandwidth</Optimization>
+      <Optimization>Event batching for high-frequency updates</Optimization>
+      <Optimization>Automatic reconnection with exponential backoff</Optimization>
+      <Optimization>Client-side filtering to reduce processing</Optimization>
+    </RealTimePerformance>
+  </PerformanceConsiderations>
+  
+  <MonitoringAndLogging>
+    <Metrics>
+      <Metric name="API Response Times">Track average and 95th percentile response times</Metric>
+      <Metric name="Database Connection Pool">Monitor connection usage and wait times</Metric>
+      <Metric name="Real-time Subscription Count">Track active subscriptions per user</Metric>
+      <Metric name="User Migration Rate">Monitor anonymous-to-registered conversion</Metric>
+      <Metric name="Error Rates">Track API error rates by endpoint and error type</Metric>
+    </Metrics>
+    
+    <Logging>
+      <LogLevel name="Error">All errors with stack traces and context</LogLevel>
+      <LogLevel name="Warning">Performance degradation and retry attempts</LogLevel>
+      <LogLevel name="Info">User operations and significant state changes</LogLevel>
+      <LogLevel name="Debug">Detailed request/response data (non-production)</LogLevel>
+    </Logging>
+    
+    <Alerting>
+      <Alert name="High Error Rate">Alert when API error rate exceeds 5%</Alert>
+      <Alert name="Database Connection Issues">Alert on connection pool exhaustion</Alert>
+      <Alert name="Real-time Service Degradation">Alert on subscription failures</Alert>
+      <Alert name="Anonymous User Cleanup Failures">Alert on cleanup job failures</Alert>
+    </Alerting>
+  </MonitoringAndLogging>
+</Module>

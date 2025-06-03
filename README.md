@@ -1,5 +1,20 @@
 # Zenjin Maths - Distinction-Based Learning Platform
 
+## 📚 Critical Documentation
+
+### Architecture & Design
+- [System Architecture](./docs/critical/ARCHITECTURE.md) - Core architectural decisions and patterns
+- [Data Flows](./docs/critical/DATA_FLOWS.md) - How data moves through the system
+- [Service Architecture](./docs/critical/SERVICE_ARCHITECTURE.md) - Microservice design and interactions
+- [User Journeys](./docs/critical/USER_JOURNEYS.md) - Core user paths through the platform
+- [APML Framework](./docs/critical/APML_FRAMEWORK.md) - Framework guiding the rebuild
+
+### Quick Links
+- [Documentation Index](./docs/README.md) - Complete documentation overview
+- [Implementation Guides](./docs/implementation/guides/) - Step-by-step guides
+- [Component Docs](./docs/components/) - UI component documentation
+- [Engine Docs](./docs/engines/) - Business logic documentation
+
 ## Vision & Human Objectives
 
 **Transform how children learn mathematics** - from memorization to understanding, from frustration to joy, from individual struggle to supported growth.

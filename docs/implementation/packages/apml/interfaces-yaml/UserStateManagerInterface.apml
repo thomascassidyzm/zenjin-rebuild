@@ -1,0 +1,278 @@
+# UserStateManagerInterface.yaml
+# APML v2.2 Interface Definition
+# Module: UserManagement
+# Purpose: Manage user state with new content architecture
+
+interface_metadata:
+  name: "UserStateManagerInterface"
+  version: "1.0.0"
+  module: "UserManagement"
+  dependencies:
+    - "PositionManagerInterface"
+    - "TripleHelixManagerInterface"
+
+types:
+  UserTubePositions:
+    description: "User's current position maps for all tubes"
+    type: "object"
+    properties:
+      tube1:
+        type: "PositionMap"
+      tube2:
+        type: "PositionMap"
+      tube3:
+        type: "PositionMap"
+    example: |
+      {
+        "tube1": {"1": "t1-0002-0001", "8": "t1-0001-0001"},
+        "tube2": {"1": "t2-0001-0001"},
+        "tube3": {"1": "t3-0001-0001"}
+      }
+      
+  StitchProgress:
+    description: "User's progress on a specific stitch"
+    properties:
+      skip_number:
+        type: "integer"
+        enum: [4, 8, 15, 30, 100, 1000]
+        description: "Current skip number in sequence"
+      boundary_level:
+        type: "integer"
+        enum: [1, 2, 3, 4, 5]
+        description: "Current distractor difficulty level"
+      last_completed:
+        type: "string"
+        format: "iso8601"
+        nullable: true
+      total_completions:
+        type: "integer"
+        default: 0
+      perfect_completions:
+        type: "integer"
+        default: 0
+        description: "Number of 20/20 completions"
+        
+  UserContentState:
+    description: "Complete user state for content system"
+    properties:
+      user_id:
+        type: "string"
+      tube_positions:
+        type: "UserTubePositions"
+      stitch_progress:
+        type: "object"
+        additionalProperties:
+          type: "StitchProgress"
+      triple_helix_state:
+        type: "object"
+        properties:
+          active_tube:
+            type: "integer"
+            enum: [1, 2, 3]
+          rotation_count:
+            type: "integer"
+          last_rotation:
+            type: "string"
+            format: "iso8601"
+      progress_metrics:
+        type: "object"
+        properties:
+          total_points:
+            type: "integer"
+          ftc_points:
+            type: "integer"
+            description: "First Time Correct points"
+          ec_points:
+            type: "integer"
+            description: "Eventually Correct points"
+          total_questions:
+            type: "integer"
+          total_sessions:
+            type: "integer"
+      last_sync_time:
+        type: "string"
+        format: "iso8601"
+      version:
+        type: "integer"
+        description: "State version for migrations"
+
+errors:
+  USER_NOT_FOUND:
+    code: "USM_001"
+    message: "User does not exist"
+  STATE_VERSION_MISMATCH:
+    code: "USM_002"
+    message: "User state version incompatible"
+  INITIALIZATION_FAILED:
+    code: "USM_003"
+    message: "Failed to initialize user state"
+  SYNC_CONFLICT:
+    code: "USM_004"
+    message: "State sync conflict detected"
+
+interface:
+  UserStateManagerInterface:
+    methods:
+      initializeNewUser:
+        description: "Initialize state for a new user from defaults"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          user_type:
+            type: "string"
+            enum: ["anonymous", "authenticated"]
+            required: true
+        returns:
+          type: "UserContentState"
+          description: "Initialized user state"
+        errors:
+          - "INITIALIZATION_FAILED"
+        process: |
+          1. Copy default_tube_positions for all tubes
+          2. Initialize all stitches with skip_number=4, boundary_level=2
+          3. Set active_tube=1, rotation_count=0
+          4. Initialize metrics to zero
+          
+      getUserState:
+        description: "Get current state for a user"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+        returns:
+          type: "UserContentState"
+          description: "Current user state"
+        errors:
+          - "USER_NOT_FOUND"
+          
+      updateStitchProgress:
+        description: "Update progress after stitch completion"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          stitch_id:
+            type: "string"
+            required: true
+          performance:
+            type: "object"
+            properties:
+              correct:
+                type: "integer"
+              total:
+                type: "integer"
+              ftc_count:
+                type: "integer"
+                description: "First time correct answers"
+              ec_count:
+                type: "integer"
+                description: "Eventually correct answers"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            new_skip_number:
+              type: "integer"
+            new_boundary_level:
+              type: "integer"
+            position_changed:
+              type: "boolean"
+            new_position:
+              type: "integer"
+              nullable: true
+        algorithm: |
+          1. If correct=20 and total=20:
+             - Execute repositioning with current skip_number
+             - Increment skip_number in sequence
+             - Possibly increment boundary_level
+          2. If correct < 20:
+             - Reset skip_number to 4
+             - Keep at current position
+          3. Update metrics (FTC/EC points)
+          
+      rotateTubes:
+        description: "Rotate tubes after stitch completion"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            previous_active:
+              type: "integer"
+            new_active:
+              type: "integer"
+            rotation_count:
+              type: "integer"
+        process: |
+          1. LIVE → PREPARING
+          2. READY → LIVE
+          3. PREPARING → READY
+          
+      getActiveStitchWithProgress:
+        description: "Get current stitch and its progress data"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+        returns:
+          type: "object"
+          properties:
+            stitch_id:
+              type: "string"
+            tube_id:
+              type: "string"
+            logical_position:
+              type: "integer"
+            skip_number:
+              type: "integer"
+            boundary_level:
+              type: "integer"
+          nullable: true
+          
+      migrateUserState:
+        description: "Migrate user state to new version"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          from_version:
+            type: "integer"
+            required: true
+          to_version:
+            type: "integer"
+            required: true
+        returns:
+          type: "UserContentState"
+          description: "Migrated user state"
+        errors:
+          - "STATE_VERSION_MISMATCH"
+          
+      syncUserState:
+        description: "Sync user state with backend"
+        parameters:
+          user_id:
+            type: "string"
+            required: true
+          local_state:
+            type: "UserContentState"
+            required: true
+          force:
+            type: "boolean"
+            default: false
+            description: "Force overwrite conflicts"
+        returns:
+          type: "object"
+          properties:
+            synced:
+              type: "boolean"
+            conflicts:
+              type: "array"
+              items:
+                type: "string"
+            server_state:
+              type: "UserContentState"
+        errors:
+          - "SYNC_CONFLICT"

@@ -1,0 +1,293 @@
+# SupabaseUserStateInterface.apml
+# APML v2.2 Interface Definition
+# Module: BackendServices
+# Converted from XML APML format
+
+interface_metadata:
+  name: "SupabaseUserStateInterface"
+  version: "1.0.0"
+  module: "BackendServices"
+  dependencies:
+    - "[object Object]"
+    - "[object Object]"
+  description: |
+    Defines the contract for managing user state persistence and synchronization through Supabase, supporting both anonymous and registered users with real-time updates.
+
+types:
+  UserState:
+    description: "UserState"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "Unique user identifier (anonymous or registered)"
+      anonymousId:
+        type: "string"
+        required: false
+        description: "Original anonymous ID for conversion tracking"
+      stitchPositions:
+        type: "object"
+        required: true
+        description: "Current stitch positions across learning paths"
+      tripleHelixState:
+        type: "object"
+        required: true
+        description: "Current tube rotation and active learning path"
+      spacedRepetitionState:
+        type: "object"
+        required: true
+        description: "Skip numbers and progression data"
+      progressMetrics:
+        type: "object"
+        required: true
+        description: "Learning progress and performance metrics"
+      lastSyncTime:
+        type: "string"
+        required: true
+        description: "ISO timestamp of last successful sync"
+      version:
+        type: "number"
+        required: true
+        description: "State version for conflict resolution"
+      subscriptionTier:
+        type: "string"
+        required: true
+        description: "User subscription level"
+  StateUpdateRequest:
+    description: "StateUpdateRequest"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "Target user identifier"
+      stateChanges:
+        type: "object"
+        required: true
+        description: "Partial state changes to apply"
+      expectedVersion:
+        type: "number"
+        required: true
+        description: "Expected current version for optimistic updates"
+      syncSource:
+        type: "string"
+        required: true
+        description: "Source of the update (device identifier)"
+  StateUpdateResult:
+    description: "StateUpdateResult"
+    properties:
+      success:
+        type: "boolean"
+        required: true
+        description: "Whether the update was successful"
+      newVersion:
+        type: "number"
+        required: true
+        description: "New state version after update"
+      conflictResolution:
+        type: "string"
+        required: false
+        description: "How conflicts were resolved if any"
+      updatedState:
+        type: "UserState"
+        required: true
+        description: "Complete updated state"
+      timestamp:
+        type: "string"
+        required: true
+        description: "ISO timestamp of update"
+  RealtimeSubscription:
+    description: "RealtimeSubscription"
+    properties:
+      userId:
+        type: "string"
+        required: true
+        description: "User to subscribe to"
+      eventTypes:
+        type: "array"
+        required: true
+        description: "Types of events to subscribe to"
+        items:
+          type: "string"
+      callback:
+        type: "function"
+        required: true
+        description: "Function to call on updates"
+      subscriptionId:
+        type: "string"
+        required: true
+        description: "Unique subscription identifier"
+
+errors:
+  USER_NOT_FOUND:
+    code: "S_001"
+    message: "User does not exist in the database"
+  DATABASE_ERROR:
+    code: "S_002"
+    message: "Supabase database error occurred"
+  PERMISSION_DENIED:
+    code: "S_003"
+    message: "User does not have permission to access this state"
+  VERSION_CONFLICT:
+    code: "S_004"
+    message: "State version conflict detected"
+  INVALID_STATE_DATA:
+    code: "S_005"
+    message: "State data failed validation"
+  USER_ALREADY_EXISTS:
+    code: "S_006"
+    message: "User state already exists"
+  INVALID_INITIAL_STATE:
+    code: "S_007"
+    message: "Initial state data is invalid"
+  ANONYMOUS_USER_NOT_FOUND:
+    code: "S_008"
+    message: "Anonymous user does not exist"
+  REGISTERED_USER_EXISTS:
+    code: "S_009"
+    message: "Registered user already exists"
+  MIGRATION_FAILED:
+    code: "S_010"
+    message: "Migration operation failed"
+  SUBSCRIPTION_FAILED:
+    code: "S_011"
+    message: "Failed to establish real-time subscription"
+  INVALID_CALLBACK:
+    code: "S_012"
+    message: "Callback function is invalid"
+  SUBSCRIPTION_NOT_FOUND:
+    code: "S_013"
+    message: "Subscription does not exist"
+  INVALID_DATE_RANGE:
+    code: "S_014"
+    message: "Invalid date range specified"
+
+interface:
+  SupabaseUserStateInterface:
+    methods:
+      getUserState:
+        description: "Retrieves the current user state from Supabase"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "UserState"
+          description: "Current user state"
+        errors:
+          - "USER_NOT_FOUND"
+          - "DATABASE_ERROR"
+          - "PERMISSION_DENIED"
+        async: true
+      updateUserState:
+        description: "Updates user state with optimistic locking and conflict resolution"
+        parameters:
+          updateRequest:
+            type: "StateUpdateRequest"
+            required: true
+            description: "Update request with version control"
+        returns:
+          type: "StateUpdateResult"
+          description: "Result of the update operation"
+        errors:
+          - "VERSION_CONFLICT"
+          - "USER_NOT_FOUND"
+          - "INVALID_STATE_DATA"
+          - "DATABASE_ERROR"
+        async: true
+      createUserState:
+        description: "Creates initial state for a new user (anonymous or registered)"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "New user identifier"
+          initialState:
+            type: "object"
+            required: false
+            description: "Initial state data (uses defaults if not provided)"
+          userType:
+            type: "string"
+            required: true
+            description: "Type of user (anonymous or registered)"
+        returns:
+          type: "UserState"
+          description: "Created user state"
+        errors:
+          - "USER_ALREADY_EXISTS"
+          - "INVALID_INITIAL_STATE"
+          - "DATABASE_ERROR"
+        async: true
+      migrateAnonymousUser:
+        description: "Migrates anonymous user state to registered user account"
+        parameters:
+          anonymousId:
+            type: "string"
+            required: true
+            description: "Anonymous user identifier"
+          registeredUserId:
+            type: "string"
+            required: true
+            description: "New registered user identifier"
+          preserveData:
+            type: "boolean"
+            required: false
+            description: "Whether to preserve all anonymous data"
+            default: true
+        returns:
+          type: "object"
+          description: "Result of migration operation"
+        errors:
+          - "ANONYMOUS_USER_NOT_FOUND"
+          - "REGISTERED_USER_EXISTS"
+          - "MIGRATION_FAILED"
+        async: true
+      subscribeToStateChanges:
+        description: "Subscribe to real-time state changes via Supabase subscriptions"
+        parameters:
+          subscription:
+            type: "RealtimeSubscription"
+            required: true
+            description: "Subscription configuration"
+        returns:
+          type: "string"
+          description: "Unique subscription identifier"
+        errors:
+          - "SUBSCRIPTION_FAILED"
+          - "INVALID_CALLBACK"
+          - "USER_NOT_FOUND"
+      unsubscribeFromStateChanges:
+        description: "Unsubscribe from real-time state changes"
+        parameters:
+          subscriptionId:
+            type: "string"
+            required: true
+            description: "Subscription identifier to remove"
+        returns:
+          type: "boolean"
+          description: "Whether unsubscription was successful"
+        errors:
+          - "SUBSCRIPTION_NOT_FOUND"
+      getStateHistory:
+        description: "Retrieves historical state changes for audit and debugging"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+          limit:
+            type: "number"
+            required: false
+            description: "Maximum number of history entries"
+            default: 50
+          startDate:
+            type: "string"
+            required: false
+            description: "ISO date to start history from"
+        returns:
+          type: "array"
+          description: "Array of historical state changes"
+        errors:
+          - "USER_NOT_FOUND"
+          - "INVALID_DATE_RANGE"
+        async: true

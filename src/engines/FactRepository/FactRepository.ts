@@ -807,6 +807,31 @@ export class FactRepository implements FactRepositoryInterface {
   }
   
   /**
+   * Search facts by operation and additional criteria
+   * APML-compliant interface implementation for searchFacts method
+   * @param searchCriteria Search criteria including operation and filters
+   * @returns Array of matching facts
+   * @throws Error if the search criteria are invalid
+   */
+  public searchFacts(searchCriteria: { operation: string; [key: string]: any }): MathematicalFact[] {
+    try {
+      // Convert searchCriteria to FactQuery format
+      const query: FactQuery = {
+        operation: searchCriteria.operation,
+        difficulty: searchCriteria.difficulty,
+        tags: searchCriteria.tags,
+        limit: searchCriteria.limit || searchCriteria.maxFacts || 100,
+        offset: searchCriteria.offset || 0
+      };
+
+      // Use existing queryFacts implementation
+      return this.queryFacts(query);
+    } catch (error) {
+      throw new Error(`SEARCH_FAILED: ${error.message}`);
+    }
+  }
+
+  /**
    * Gets question templates for an operation and boundary level
    * @param operation Mathematical operation
    * @param boundaryLevel Boundary level (1-5)

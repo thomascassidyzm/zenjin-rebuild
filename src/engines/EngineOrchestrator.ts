@@ -237,10 +237,8 @@ export class EngineOrchestrator {
     } else {
       // Temporary fallback for backward compatibility
       // This will be removed once App.tsx is updated to use service container
-      console.warn('EngineOrchestrator created without LearningEngineService - using legacy singleton');
-      // Import the legacy singleton - this has circular dependency issues but works for backward compatibility
-      const { learningEngineService: legacyService } = require('../services/LearningEngineService');
-      this.learningEngineService = legacyService;
+      console.warn('EngineOrchestrator created without LearningEngineService - will initialize lazily');
+      // Note: learningEngineService will be initialized lazily when needed
     }
     
     // Optional Live Aid Architecture initialization
@@ -254,6 +252,45 @@ export class EngineOrchestrator {
     // For now, we'll handle questions through learningEngineService
     
     console.log(`EngineOrchestrator initialized with tube-based architecture${this.liveAidEnabled ? ' + Live Aid' : ''}`);
+  }
+  
+  /**
+   * Get the learning engine service, initializing it lazily if needed
+   */
+  private async getLearningEngineService(): Promise<LearningEngineService> {
+    if (!this.learningEngineService) {
+      // Try to get from service container first
+      try {
+        const { getService } = await import('../services/AppServiceContainer');
+        this.learningEngineService = getService('learningEngine') as LearningEngineService;
+      } catch (error) {
+        // If service container fails, create a new instance
+        console.warn('Failed to get LearningEngineService from container, creating new instance:', error);
+        const { LearningEngineService: LearningEngineClass } = await import('../services/LearningEngineService');
+        
+        // Create minimal dependencies for LearningEngineService
+        const { FactRepository } = await import('./FactRepository/FactRepository');
+        const { ContentManager } = await import('./ContentManager/ContentManager');
+        const { QuestionGenerator } = await import('./QuestionGenerator/QuestionGenerator');
+        const { DistractorGenerator } = await import('./DistractorGenerator/DistractorGenerator');
+        const { DistinctionManager } = await import('./DistinctionManager/DistinctionManager');
+        
+        const factRepository = new FactRepository();
+        const contentManager = new ContentManager(factRepository);
+        const questionGenerator = new QuestionGenerator();
+        const distractorGenerator = new DistractorGenerator();
+        const distinctionManager = new DistinctionManager();
+        
+        this.learningEngineService = new LearningEngineClass({
+          factRepository,
+          contentManager,
+          questionGenerator,
+          distractorGenerator,
+          distinctionManager
+        });
+      }
+    }
+    return this.learningEngineService;
   }
   
   /**

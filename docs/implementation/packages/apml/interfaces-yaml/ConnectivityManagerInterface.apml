@@ -1,0 +1,188 @@
+# ConnectivityManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: OfflineSupport
+# Converted from XML APML format
+
+interface_metadata:
+  name: "ConnectivityManagerInterface"
+  version: "1.0.0"
+  module: "OfflineSupport"
+  dependencies:
+    - "undefined"
+  description: |
+    Defines the contract for the ConnectivityManager component that manages network connectivity detection and provides real-time connection status updates.
+
+types:
+  ConnectionStatus:
+    description: "ConnectionStatus"
+    properties:
+      isOnline:
+        type: "boolean"
+        required: true
+        description: "Whether the device is currently online"
+      connectionType:
+        type: "string"
+        required: true
+        description: "Type of connection ('wifi', 'cellular', 'ethernet', 'unknown')"
+      effectiveType:
+        type: "string"
+        required: false
+        description: "Effective connection type ('slow-2g', '2g', '3g', '4g')"
+      downlink:
+        type: "number"
+        required: false
+        description: "Downlink speed in Mbps"
+      rtt:
+        type: "number"
+        required: false
+        description: "Round-trip time in milliseconds"
+      lastChecked:
+        type: "string"
+        required: true
+        description: "ISO date string of last connectivity check"
+  ConnectivityEvent:
+    description: "ConnectivityEvent"
+    properties:
+      type:
+        type: "string"
+        required: true
+        description: "Event type ('online', 'offline', 'slow', 'fast')"
+      status:
+        type: "ConnectionStatus"
+        required: true
+        description: "Current connection status"
+      previousStatus:
+        type: "ConnectionStatus"
+        required: false
+        description: "Previous connection status"
+      timestamp:
+        type: "string"
+        required: true
+        description: "ISO date string of when event occurred"
+  NetworkQualityMetrics:
+    description: "NetworkQualityMetrics"
+    properties:
+      latency:
+        type: "number"
+        required: true
+        description: "Network latency in milliseconds"
+      bandwidth:
+        type: "number"
+        required: true
+        description: "Available bandwidth in Mbps"
+      packetLoss:
+        type: "number"
+        required: true
+        description: "Packet loss percentage (0-100)"
+      reliability:
+        type: "number"
+        required: true
+        description: "Connection reliability score (0-1)"
+      measuredAt:
+        type: "string"
+        required: true
+        description: "ISO date string of measurement"
+
+errors:
+  CONNECTIVITY_CHECK_FAILED:
+    code: "C_001"
+    message: "Failed to check connectivity status"
+  INVALID_EVENT_TYPE:
+    code: "C_002"
+    message: "The specified event type is invalid"
+  INVALID_CALLBACK:
+    code: "C_003"
+    message: "The callback function is invalid"
+  LISTENER_NOT_FOUND:
+    code: "C_004"
+    message: "The specified listener was not found"
+  MEASUREMENT_FAILED:
+    code: "C_005"
+    message: "Failed to measure network quality"
+  OFFLINE:
+    code: "C_006"
+    message: "Cannot measure quality while offline"
+  MONITORING_ALREADY_ACTIVE:
+    code: "C_007"
+    message: "Monitoring is already active"
+  INVALID_INTERVAL:
+    code: "C_008"
+    message: "The specified interval is invalid"
+  MONITORING_NOT_ACTIVE:
+    code: "C_009"
+    message: "Monitoring is not currently active"
+
+interface:
+  ConnectivityManagerInterface:
+    methods:
+      getConnectionStatus:
+        description: "Gets the current connection status"
+        returns:
+          type: "ConnectionStatus"
+          description: "Current connection status"
+        errors:
+          - "CONNECTIVITY_CHECK_FAILED"
+      isOnline:
+        description: "Checks if the device is currently online"
+        returns:
+          type: "boolean"
+          description: "Whether the device is online"
+      addEventListener:
+        description: "Adds an event listener for connectivity changes"
+        parameters:
+          eventType:
+            type: "string"
+            required: true
+            description: "Event type to listen for ('online', 'offline', 'change')"
+          callback:
+            type: "function"
+            required: true
+            description: "Callback function to execute on event"
+        returns:
+          type: "string"
+          description: "Unique identifier for the listener"
+        errors:
+          - "INVALID_EVENT_TYPE"
+          - "INVALID_CALLBACK"
+      removeEventListener:
+        description: "Removes an event listener"
+        parameters:
+          listenerId:
+            type: "string"
+            required: true
+            description: "Unique identifier of the listener to remove"
+        returns:
+          type: "boolean"
+          description: "Whether the listener was successfully removed"
+        errors:
+          - "LISTENER_NOT_FOUND"
+      measureNetworkQuality:
+        description: "Measures current network quality metrics"
+        returns:
+          type: "NetworkQualityMetrics"
+          description: "Network quality measurements"
+        errors:
+          - "MEASUREMENT_FAILED"
+          - "OFFLINE"
+        async: true
+      startMonitoring:
+        description: "Starts continuous connectivity monitoring"
+        parameters:
+          interval:
+            type: "number"
+            required: false
+            description: "Monitoring interval in milliseconds"
+            default: 5000
+        returns:
+          type: "boolean"
+          description: "Whether monitoring was successfully started"
+        errors:
+          - "MONITORING_ALREADY_ACTIVE"
+          - "INVALID_INTERVAL"
+      stopMonitoring:
+        description: "Stops continuous connectivity monitoring"
+        returns:
+          type: "boolean"
+          description: "Whether monitoring was successfully stopped"
+        errors:
+          - "MONITORING_NOT_ACTIVE"

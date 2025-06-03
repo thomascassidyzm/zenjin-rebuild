@@ -1,0 +1,155 @@
+# DistractorGeneratorInterface.apml
+# APML v2.2 Interface Definition
+# Module: LearningEngine
+# Converted from XML APML format
+
+interface_metadata:
+  name: "DistractorGeneratorInterface"
+  version: "1.1.0"
+  module: "LearningEngine"
+  dependencies:
+    - "[object Object]"
+    - "[object Object]"
+  description: |
+    Defines the contract for the DistractorGenerator component that generates appropriate distractors based on the boundary level and mathematical fact.
+
+types:
+  DistractorRequest:
+    description: "DistractorRequest"
+    properties:
+      factId:
+        type: "string"
+        required: true
+        description: "Mathematical fact identifier"
+      boundaryLevel:
+        type: "number"
+        required: true
+        description: "Boundary level (1-5)"
+      correctAnswer:
+        type: "string"
+        required: true
+        description: "The correct answer"
+      count:
+        type: "number"
+        required: false
+        description: "Number of distractors to generate"
+        default: 1
+  Distractor:
+    description: "Distractor"
+    properties:
+      value:
+        type: "string"
+        required: true
+        description: "The distractor value"
+      boundaryLevel:
+        type: "number"
+        required: true
+        description: "The boundary level this distractor targets"
+      explanation:
+        type: "string"
+        required: false
+        description: "Explanation of why this distractor was chosen"
+      difficulty:
+        type: "number"
+        required: false
+        description: "Difficulty rating (0.0-1.0)"
+
+errors:
+  INVALID_FACT:
+    code: "D_001"
+    message: "The specified fact is invalid or not found"
+  INVALID_BOUNDARY_LEVEL:
+    code: "D_002"
+    message: "The specified boundary level is invalid"
+  GENERATION_FAILED:
+    code: "D_003"
+    message: "Failed to generate a distractor"
+  INVALID_DISTRACTOR:
+    code: "D_004"
+    message: "The specified distractor is invalid"
+
+interface:
+  DistractorGeneratorInterface:
+    methods:
+      generateDistractor:
+        description: "Generates a distractor based on the boundary level and mathematical fact"
+        parameters:
+          request:
+            type: "DistractorRequest"
+            required: true
+            description: "Distractor generation request"
+        returns:
+          type: "Distractor"
+          description: "Generated distractor"
+        errors:
+          - "INVALID_FACT"
+          - "INVALID_BOUNDARY_LEVEL"
+          - "GENERATION_FAILED"
+      generateMultipleDistractors:
+        description: "Generates multiple distractors based on the boundary level and mathematical fact"
+        parameters:
+          request:
+            type: "DistractorRequest"
+            required: true
+            description: "Distractor generation request"
+        returns:
+          type: "array"
+          description: "Array of generated distractors"
+        errors:
+          - "INVALID_FACT"
+          - "INVALID_BOUNDARY_LEVEL"
+          - "GENERATION_FAILED"
+      getDistractorExplanation:
+        description: "Gets an explanation for why a distractor was chosen"
+        parameters:
+          factId:
+            type: "string"
+            required: true
+            description: "Mathematical fact identifier"
+          distractor:
+            type: "string"
+            required: true
+            description: "The distractor value"
+          boundaryLevel:
+            type: "number"
+            required: true
+            description: "Boundary level (1-5)"
+        returns:
+          type: "string"
+          description: "Explanation of why the distractor was chosen"
+        errors:
+          - "INVALID_FACT"
+          - "INVALID_DISTRACTOR"
+          - "INVALID_BOUNDARY_LEVEL"
+      validateDistractor:
+        description: "Validates whether a distractor is appropriate for the given boundary level and fact"
+        parameters:
+          factId:
+            type: "string"
+            required: true
+            description: "Mathematical fact identifier"
+          distractor:
+            type: "string"
+            required: true
+            description: "The distractor value"
+          boundaryLevel:
+            type: "number"
+            required: true
+            description: "Boundary level (1-5)"
+          correctAnswer:
+            type: "string"
+            required: true
+            description: "The correct answer"
+        returns:
+          type: "object"
+          description: "Validation result"
+          properties:
+            isValid:
+              type: "boolean"
+              description: "Whether the distractor is valid"
+            reason:
+              type: "string"
+              description: "Reason for validation result"
+        errors:
+          - "INVALID_FACT"
+          - "INVALID_BOUNDARY_LEVEL"

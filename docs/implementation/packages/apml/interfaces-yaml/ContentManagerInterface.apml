@@ -1,0 +1,131 @@
+# ContentManagerInterface.apml
+# APML v2.2 Interface Definition
+# Module: undefined
+# Converted from XML APML format
+
+interface_metadata:
+  name: "ContentManagerInterface"
+  version: "1.0.0"
+  module: "undefined"
+  dependencies:
+    - "[object Object]"
+  description: |
+    Provide an administrative interface for managing mathematical facts and curriculum content
+
+interface:
+  ContentManagerInterface:
+    methods:
+      createFact:
+        description: "Creates a new mathematical fact in the repository"
+        parameters:
+          factInput:
+            type: "MathematicalFactInput"
+            required: true
+            description: "Fact data to create"
+        returns:
+          type: "MathematicalFact"
+          description: "The created mathematical fact"
+      updateFact:
+        description: "Updates an existing mathematical fact in the repository"
+        parameters:
+          factId:
+            type: "string"
+            required: true
+            description: "ID of the fact to update"
+          factUpdates:
+            type: "Partial<MathematicalFactInput>"
+            required: true
+            description: "Fact data updates"
+        returns:
+          type: "MathematicalFact"
+          description: "The updated mathematical fact"
+      deleteFact:
+        description: "Deletes a mathematical fact from the repository"
+        parameters:
+          factId:
+            type: "string"
+            required: true
+            description: "ID of the fact to delete"
+        returns:
+          type: "boolean"
+          description: "Whether the deletion was successful"
+      importCurriculum:
+        description: "Imports curriculum content from JSON format"
+        parameters:
+          jsonData:
+            type: "string"
+            required: true
+            description: "JSON curriculum data"
+          options:
+            type: "ImportOptions"
+            required: false
+            description: "Import options"
+        returns:
+          type: "ImportResult"
+          description: "Import operation result"
+      exportCurriculum:
+        description: "Exports curriculum content to JSON format"
+        parameters:
+          curriculumName:
+            type: "string"
+            required: true
+            description: "Name for the exported curriculum"
+          description:
+            type: "string"
+            required: false
+            description: "Description of the curriculum"
+          query:
+            type: "FactQuery"
+            required: false
+            description: "Optional query to filter facts to export"
+        returns:
+          type: "string"
+          description: "JSON curriculum data"
+      generateFactRelationships:
+        description: "Automatically generates relationships between facts"
+        parameters:
+          factIds:
+            type: "array"
+            required: false
+            description: "IDs of facts to process (all if not specified)"
+          relationshipTypes:
+            type: "array"
+            required: false
+            description: "Types of relationships to generate"
+        returns:
+          type: "number"
+          description: "Number of facts updated with new relationships"
+      generateDifficultyRatings:
+        description: "Automatically calculates difficulty ratings for facts"
+        parameters:
+          factIds:
+            type: "array"
+            required: false
+            description: "IDs of facts to process (all if not specified)"
+          algorithm:
+            type: "string"
+            required: false
+            description: "Difficulty calculation algorithm to use"
+        returns:
+          type: "number"
+          description: "Number of facts updated with new difficulty ratings"
+      listCurriculumSets:
+        description: "Lists available curriculum sets"
+        parameters:
+          tags:
+            type: "array"
+            required: false
+            description: "Filter by tags"
+        returns:
+          type: "array"
+          description: "Available curriculum sets"
+      getCurriculumSet:
+        description: "Gets a specific curriculum set"
+        parameters:
+          curriculumId:
+            type: "string"
+            required: true
+            description: "Curriculum identifier"
+        returns:
+          type: "Curriculum"
+          description: "The curriculum data"

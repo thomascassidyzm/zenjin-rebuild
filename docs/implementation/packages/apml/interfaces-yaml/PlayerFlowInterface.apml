@@ -1,0 +1,176 @@
+# PlayerFlowInterface.apml
+# APML v2.2 Interface Definition
+# Module: PlayerFlow
+# Purpose: Interface-first design for post-authentication player experience
+
+interface_metadata:
+  name: "PlayerFlowInterface"
+  version: "1.0.0"
+  module: "PlayerFlow"
+  dependencies:
+    - "StitchManagerInterface"
+  description: |
+    Defines the contract for player flow after authentication,
+    managing the learning experience from pre-engagement through session completion.
+
+types:
+  PlayerState:
+    description: "Current state of the player flow"
+    type: "string"
+    enum: ["PRE_ENGAGEMENT", "LOADING_CONTENT", "ACTIVE_LEARNING", "SESSION_COMPLETE"]
+    
+  SessionProgress:
+    description: "Progress tracking for current session"
+    properties:
+      questionsAnswered:
+        type: "integer"
+        required: true
+        description: "Number of questions answered"
+      totalQuestions:
+        type: "integer"
+        required: true
+        description: "Total questions in current stitch"
+      currentPoints:
+        type: "integer"
+        required: true
+        description: "Points earned in session"
+      startTime:
+        type: "string"
+        format: "iso8601"
+        required: true
+        description: "Session start time"
+        
+  PlayerFlowState:
+    description: "Complete state of player flow"
+    properties:
+      currentState:
+        type: "PlayerState"
+        required: true
+        description: "Current player state"
+      userType:
+        type: "string"
+        enum: ["authenticated", "anonymous"]
+        required: true
+        description: "Type of user"
+      currentStitchId:
+        type: "string"
+        required: false
+        description: "ID of current stitch being played"
+      sessionProgress:
+        type: "SessionProgress"
+        required: false
+        description: "Progress in current session"
+      isLoading:
+        type: "boolean"
+        required: true
+        description: "Whether content is loading"
+
+errors:
+  NO_ACTIVE_SESSION:
+    code: "PF_001"
+    message: "No active session found"
+  CONTENT_LOAD_FAILED:
+    code: "PF_002"
+    message: "Failed to load learning content"
+  SESSION_ALREADY_ACTIVE:
+    code: "PF_003"
+    message: "A session is already active"
+  INVALID_STATE_TRANSITION:
+    code: "PF_004"
+    message: "Invalid state transition attempted"
+  USER_NOT_INITIALIZED:
+    code: "PF_005"
+    message: "User state not properly initialized"
+
+interface:
+  PlayerFlowInterface:
+    methods:
+      showBigPlayButton:
+        description: "Check if big play button should be shown (pre-engagement state)"
+        returns:
+          type: "boolean"
+          description: "Whether to show big play button"
+          
+      startLearningSession:
+        description: "Start a new learning session"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "object"
+          properties:
+            sessionId:
+              type: "string"
+              description: "New session identifier"
+            stitchId:
+              type: "string"
+              description: "Active stitch identifier"
+        errors:
+          - "SESSION_ALREADY_ACTIVE"
+          - "USER_NOT_INITIALIZED"
+          - "CONTENT_LOAD_FAILED"
+          
+      loadNextStitch:
+        description: "Load content for next stitch"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier"
+        returns:
+          type: "object"
+          properties:
+            stitchId:
+              type: "string"
+              description: "Loaded stitch identifier"
+            questions:
+              type: "array"
+              description: "Questions for the stitch"
+        errors:
+          - "NO_ACTIVE_SESSION"
+          - "CONTENT_LOAD_FAILED"
+          
+      transitionToActivelearning:
+        description: "Transition from loading to active learning state"
+        returns:
+          type: "boolean"
+          description: "Whether transition was successful"
+        errors:
+          - "INVALID_STATE_TRANSITION"
+          - "CONTENT_LOAD_FAILED"
+          
+      completeSession:
+        description: "Complete the current learning session"
+        parameters:
+          sessionId:
+            type: "string"
+            required: true
+            description: "Session identifier"
+        returns:
+          type: "object"
+          properties:
+            totalPoints:
+              type: "integer"
+              description: "Total points earned"
+            questionsCompleted:
+              type: "integer"
+              description: "Number of questions completed"
+            sessionDuration:
+              type: "integer"
+              description: "Session duration in seconds"
+        errors:
+          - "NO_ACTIVE_SESSION"
+          
+      getCurrentState:
+        description: "Get current player flow state"
+        returns:
+          type: "PlayerFlowState"
+          description: "Current player flow state"
+          
+      resetToPreEngagement:
+        description: "Reset player to pre-engagement state"
+        returns:
+          type: "boolean"
+          description: "Whether reset was successful"

@@ -1,0 +1,138 @@
+# Build Badge Interface
+# APML Version: 2.2
+# Interface for build versioning and timestamp display for testing validation
+
+interface_metadata:
+  name: BuildBadgeInterface
+  version: 1.0.0
+  module: UserInterface
+  description: |
+    APML-compliant build versioning and timestamp interface for testing validation.
+    Provides evidence-based testing capability with clear build identification across all pages.
+  dependencies:
+    - React
+  evidence_base:
+    user_research: Testing requires immediate visual confirmation of deployed version to avoid false debugging
+    technical_evidence: Build timestamps eliminate deployment uncertainty during rapid iteration cycles
+    apml_requirement: Evidence-based testing demands clear version identification for all validation activities
+
+types:
+  BuildEnvironment:
+    type: enum
+    values:
+      - development
+      - production
+    description: Environment type for build
+
+  BuildInfo:
+    type: object
+    properties:
+      buildTimestamp:
+        type: string
+        required: true
+        format: ISO8601
+        description: ISO timestamp of build creation
+      buildNumber:
+        type: string
+        required: true
+        description: Unique build identifier
+      gitCommit:
+        type: string
+        required: false
+        description: Git commit hash for build
+      environment:
+        type: BuildEnvironment
+        required: true
+        description: Build environment type
+
+interface:
+  getBuildInfo:
+    description: Retrieve current build information
+    parameters: {}
+    returns:
+      type: BuildInfo
+    behavior:
+      validation_standard: Must return accurate build data or fail clearly
+
+  formatDisplayText:
+    description: Format build information for display
+    parameters:
+      buildInfo:
+        type: BuildInfo
+        required: true
+    returns:
+      type: string
+    behavior:
+      validation_standard: Must create human-readable build identification string
+
+component_behaviors:
+  VisualDisplay:
+    description: Fixed position badge showing build timestamp
+    trigger: Component mount
+    validation_criteria: Badge appears within 100ms of page load
+
+  ClickInteraction:
+    description: Click to show detailed build information
+    trigger: User click on badge
+    validation_criteria: Detailed info modal opens within 200ms
+
+validation_criteria:
+  - id: visibility
+    measurement: visual_prominence
+    target: clearly_visible_on_all_pages
+    description: Build badge must be immediately visible on every page
+  - id: accuracy
+    measurement: timestamp_precision
+    target: second_level_accuracy
+    description: Build timestamp accurate to the second
+  - id: persistence
+    measurement: display_consistency
+    target: 100_percent_uptime
+    description: Badge displays consistently across all routes and states
+  - id: non_interference
+    measurement: ui_integration
+    target: no_layout_disruption
+    description: Badge does not interfere with existing UI elements
+
+integration_specification:
+  AppWideDisplay:
+    description: Build badge integrated into root App component for universal display
+    requirements:
+      - Badge must appear on every route without exception
+      - Badge position must not interfere with existing navigation or content
+      - Badge must be accessible for testing automation
+
+  BuildProcessIntegration:
+    description: Build timestamp generation during Vite build process
+    requirements:
+      - Build timestamp must be injected at build time, not runtime
+      - Build information must be accessible to all components
+      - Build process must fail if timestamp generation fails
+
+user_flows:
+  TestingValidation:
+    steps:
+      - Tester loads any page in application
+      - Build badge is immediately visible with current build timestamp
+      - Tester can click badge to see detailed build information
+      - Tester confirms they are testing the expected build version
+    expected_outcome: Clear evidence of build version being tested
+
+  DeploymentVerification:
+    steps:
+      - Developer deploys new build
+      - Developer loads application
+      - Build badge shows updated timestamp confirming new deployment
+      - Developer proceeds with testing knowing correct version is live
+    expected_outcome: Immediate confirmation of successful deployment
+
+implementation_guidelines:
+  - category: APML_Compliance
+    principle: Interface specification must precede implementation
+    application: This specification defines exact behavior before component creation
+  - category: Evidence_Based_Design
+    principle: All design decisions must be evidence-based
+    application: Build badge placement and behavior based on testing validation requirements
+  - category: Fail_Fast_Approach
+    principle: Component must work or fail clearly with no degraded states
+    application: Build info retrieval succeeds completely or throws clear error

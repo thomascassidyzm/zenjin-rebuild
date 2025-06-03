@@ -1,0 +1,247 @@
+# MetricsCalculatorInterface.apml
+# APML v2.2 Interface Definition
+# Module: MetricsSystem
+# Converted from XML APML format
+
+interface_metadata:
+  name: "MetricsCalculatorInterface"
+  version: "2.0.0"
+  module: "MetricsSystem"
+  dependencies:
+    - "ConsistencyTrackerInterface"
+  description: |
+    Defines the contract for the MetricsCalculator component that performs calculations for various metrics in the system.
+    Uses MAX() bonus system and correct point values: FTC=3, EC=1.
+
+constants:
+  FIRST_TIME_CORRECT_POINTS:
+    description: "Points awarded for first-time correct answers"
+    type: "number"
+    value: 3
+  EVENTUALLY_CORRECT_POINTS:
+    description: "Points awarded for eventually correct answers"
+    type: "number"
+    value: 1
+  INCORRECT_POINTS:
+    description: "Points awarded for incorrect answers"
+    type: "number"
+    value: 0
+  MIN_QUESTIONS_VALID_SESSION:
+    description: "Minimum questions required for a session to be considered valid"
+    type: "number"
+    value: 100
+  BONUS_MULTIPLIER_RANGE:
+    description: "Range of bonus multipliers from x2 to x30"
+    type: "object"
+    properties:
+      min:
+        type: "number"
+        value: 2.0
+      max:
+        type: "number"
+        value: 30.0
+
+types:
+  SessionData:
+    description: "SessionData"
+    properties:
+      duration:
+        type: "number"
+        required: true
+        description: "Session duration in milliseconds"
+      questionCount:
+        type: "number"
+        required: true
+        description: "Number of questions answered"
+      ftcCount:
+        type: "number"
+        required: true
+        description: "Number of first-time correct answers"
+      ecCount:
+        type: "number"
+        required: true
+        description: "Number of eventually correct answers"
+      incorrectCount:
+        type: "number"
+        required: true
+        description: "Number of incorrect answers"
+      responseTimeData:
+        type: "array"
+        required: false
+        description: "Array of response times in milliseconds"
+        items:
+          type: "number"
+  MetricsResult:
+    description: "MetricsResult"
+    properties:
+      ftcPoints:
+        type: "number"
+        required: true
+        description: "First-time correct points"
+      ecPoints:
+        type: "number"
+        required: true
+        description: "Eventually correct points"
+      basePoints:
+        type: "number"
+        required: true
+        description: "Base points (FTC + EC)"
+      consistency:
+        type: "number"
+        required: true
+        description: "Consistency score (0.0-1.0)"
+      accuracy:
+        type: "number"
+        required: true
+        description: "Accuracy score (0.0-1.0)"
+      speed:
+        type: "number"
+        required: true
+        description: "Speed score (0.0-1.0)"
+      bonusMultiplier:
+        type: "number"
+        required: true
+        description: "Bonus multiplier (x2 to x30 range)"
+      consistencyMultiplier:
+        type: "number"
+        required: true
+        description: "Consistency bonus multiplier based on valid sessions over time"
+      excellenceMultiplier:
+        type: "number"
+        required: true
+        description: "Excellence bonus multiplier based on FTC percentage"
+      speedMultiplier:
+        type: "number"
+        required: true
+        description: "Speed bonus multiplier based on blink speed"
+      blinkSpeed:
+        type: "number"
+        required: true
+        description: "Blink speed (ms per FTC answer)"
+      totalPoints:
+        type: "number"
+        required: true
+        description: "Total points (base × bonus)"
+
+errors:
+  INVALID_SESSION_DATA:
+    code: "M_001"
+    message: "The session data is invalid"
+  CALCULATION_FAILED:
+    code: "M_002"
+    message: "Failed to calculate metrics"
+  INVALID_COUNT:
+    code: "M_003"
+    message: "The count is invalid"
+  INVALID_SCORE:
+    code: "M_004"
+    message: "One or more scores are invalid"
+  INVALID_DURATION:
+    code: "M_005"
+    message: "The duration is invalid"
+  DIVISION_BY_ZERO:
+    code: "M_006"
+    message: "Cannot calculate blink speed with zero FTC answers"
+  INVALID_POINTS:
+    code: "M_007"
+    message: "The points value is invalid"
+  INVALID_BLINK_SPEED:
+    code: "M_008"
+    message: "The blink speed is invalid"
+
+interface:
+  MetricsCalculatorInterface:
+    methods:
+      calculateSessionMetrics:
+        description: "Calculates metrics for a learning session"
+        parameters:
+          sessionData:
+            type: "SessionData"
+            required: true
+            description: "Session data for calculation"
+        returns:
+          type: "MetricsResult"
+          description: "Calculated metrics"
+        errors:
+          - "INVALID_SESSION_DATA"
+          - "CALCULATION_FAILED"
+      calculateFTCPoints:
+        description: "Calculates first-time correct points (FTC count × 3)"
+        parameters:
+          ftcCount:
+            type: "number"
+            required: true
+            description: "Number of first-time correct answers"
+        returns:
+          type: "number"
+          description: "Calculated FTC points (ftcCount × 3)"
+        errors:
+          - "INVALID_COUNT"
+      calculateECPoints:
+        description: "Calculates eventually correct points (EC count × 1)"
+        parameters:
+          ecCount:
+            type: "number"
+            required: true
+            description: "Number of eventually correct answers"
+        returns:
+          type: "number"
+          description: "Calculated EC points (ecCount × 1)"
+        errors:
+          - "INVALID_COUNT"
+      calculateBonusMultiplier:
+        description: "Calculates bonus multiplier using MAX(consistency, excellence, speed) formula"
+        parameters:
+          consistencyMultiplier:
+            type: "number"
+            required: true
+            description: "Consistency bonus multiplier based on valid sessions over time"
+          excellenceMultiplier:
+            type: "number"
+            required: true
+            description: "Excellence bonus multiplier based on FTC percentage"
+          speedMultiplier:
+            type: "number"
+            required: true
+            description: "Speed bonus multiplier based on blink speed"
+        returns:
+          type: "number"
+          description: "Maximum of the three bonus multipliers (x2 to x30 range)"
+        errors:
+          - "INVALID_SCORE"
+      calculateBlinkSpeed:
+        description: "Calculates blink speed (ms per FTC answer)"
+        parameters:
+          duration:
+            type: "number"
+            required: true
+            description: "Session duration in milliseconds"
+          ftcCount:
+            type: "number"
+            required: true
+            description: "Number of first-time correct answers"
+        returns:
+          type: "number"
+          description: "Calculated blink speed"
+        errors:
+          - "INVALID_DURATION"
+          - "INVALID_COUNT"
+          - "DIVISION_BY_ZERO"
+      calculateEvolution:
+        description: "Calculates the Evolution metric"
+        parameters:
+          totalPoints:
+            type: "number"
+            required: true
+            description: "Total points"
+          blinkSpeed:
+            type: "number"
+            required: true
+            description: "Blink speed in milliseconds"
+        returns:
+          type: "number"
+          description: "Calculated Evolution metric"
+        errors:
+          - "INVALID_POINTS"
+          - "INVALID_BLINK_SPEED"
+          - "DIVISION_BY_ZERO"

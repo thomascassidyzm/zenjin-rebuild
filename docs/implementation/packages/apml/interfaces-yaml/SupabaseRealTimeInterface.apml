@@ -1,0 +1,279 @@
+# SupabaseRealTimeInterface.apml
+# APML v2.2 Interface Definition
+# Module: BackendServices
+# Converted from XML APML format
+
+interface_metadata:
+  name: "SupabaseRealTimeInterface"
+  version: "1.0.0"
+  module: "BackendServices"
+  dependencies:
+    - "[object Object]"
+  description: |
+    Defines the contract for real-time data synchronization using Supabase real-time subscriptions, enabling live updates for learning progress, metrics, and collaborative features.
+
+types:
+  RealtimeEvent:
+    description: "RealtimeEvent"
+    properties:
+      eventType:
+        type: "string"
+        required: true
+        description: "Type of database event (INSERT, UPDATE, DELETE)"
+      table:
+        type: "string"
+        required: true
+        description: "Database table that changed"
+      record:
+        type: "object"
+        required: true
+        description: "The affected record data"
+      oldRecord:
+        type: "object"
+        required: false
+        description: "Previous record data for UPDATE events"
+      timestamp:
+        type: "string"
+        required: true
+        description: "ISO timestamp of the event"
+      userId:
+        type: "string"
+        required: false
+        description: "User associated with the change"
+  SubscriptionConfig:
+    description: "SubscriptionConfig"
+    properties:
+      table:
+        type: "string"
+        required: true
+        description: "Database table to subscribe to"
+      event:
+        type: "string"
+        required: true
+        description: "Event type to listen for (*,INSERT,UPDATE,DELETE)"
+      filter:
+        type: "string"
+        required: false
+        description: "SQL filter for subscription (e.g., user_id=eq.123)"
+      schema:
+        type: "string"
+        required: false
+        description: "Database schema name"
+        default: public
+  SubscriptionStatus:
+    description: "SubscriptionStatus"
+    properties:
+      subscriptionId:
+        type: "string"
+        required: true
+        description: "Unique subscription identifier"
+      status:
+        type: "string"
+        required: true
+        description: "Subscription status (SUBSCRIBED, CLOSED, TIMED_OUT, CHANNEL_ERROR)"
+      config:
+        type: "SubscriptionConfig"
+        required: true
+        description: "Subscription configuration"
+      lastEvent:
+        type: "string"
+        required: false
+        description: "Timestamp of last received event"
+      eventCount:
+        type: "number"
+        required: true
+        description: "Total events received"
+  RealtimeMetrics:
+    description: "RealtimeMetrics"
+    properties:
+      activeSubscriptions:
+        type: "number"
+        required: true
+        description: "Number of active subscriptions"
+      totalEventsReceived:
+        type: "number"
+        required: true
+        description: "Total events received across all subscriptions"
+      connectionStatus:
+        type: "string"
+        required: true
+        description: "Real-time connection status"
+      lastHeartbeat:
+        type: "string"
+        required: true
+        description: "Last heartbeat timestamp"
+      averageLatency:
+        type: "number"
+        required: true
+        description: "Average event latency in milliseconds"
+
+errors:
+  SUBSCRIPTION_FAILED:
+    code: "S_001"
+    message: "Failed to create subscription"
+  INVALID_FILTER:
+    code: "S_002"
+    message: "Subscription filter is invalid"
+  TABLE_NOT_FOUND:
+    code: "S_003"
+    message: "Specified table does not exist"
+  PERMISSION_DENIED:
+    code: "S_004"
+    message: "User lacks permission to subscribe to this table"
+  CONNECTION_FAILED:
+    code: "S_005"
+    message: "Real-time connection failed"
+  SUBSCRIPTION_NOT_FOUND:
+    code: "S_006"
+    message: "Subscription does not exist"
+  UNSUBSCRIBE_FAILED:
+    code: "S_007"
+    message: "Failed to remove subscription"
+  RECONNECTION_FAILED:
+    code: "S_008"
+    message: "Failed to reconnect to real-time service"
+  ALREADY_CONNECTED:
+    code: "S_009"
+    message: "Connection is already active"
+  USER_NOT_FOUND:
+    code: "S_010"
+    message: "User does not exist"
+  BROADCAST_FAILED:
+    code: "S_011"
+    message: "Failed to broadcast event"
+  INVALID_CHANNEL:
+    code: "S_012"
+    message: "Channel name is invalid"
+  PAYLOAD_TOO_LARGE:
+    code: "S_013"
+    message: "Payload exceeds size limit"
+
+interface:
+  SupabaseRealTimeInterface:
+    methods:
+      subscribe:
+        description: "Creates a real-time subscription to database changes"
+        parameters:
+          config:
+            type: "SubscriptionConfig"
+            required: true
+            description: "Subscription configuration"
+          callback:
+            type: "function"
+            required: true
+            description: "Function to call when events occur"
+        returns:
+          type: "string"
+          description: "Unique subscription identifier"
+        errors:
+          - "SUBSCRIPTION_FAILED"
+          - "INVALID_FILTER"
+          - "TABLE_NOT_FOUND"
+          - "PERMISSION_DENIED"
+          - "CONNECTION_FAILED"
+      unsubscribe:
+        description: "Removes a real-time subscription"
+        parameters:
+          subscriptionId:
+            type: "string"
+            required: true
+            description: "Subscription identifier to remove"
+        returns:
+          type: "boolean"
+          description: "Whether unsubscription was successful"
+        errors:
+          - "SUBSCRIPTION_NOT_FOUND"
+          - "UNSUBSCRIBE_FAILED"
+      getSubscriptionStatus:
+        description: "Gets the current status of a subscription"
+        parameters:
+          subscriptionId:
+            type: "string"
+            required: true
+            description: "Subscription identifier"
+        returns:
+          type: "SubscriptionStatus"
+          description: "Current subscription status"
+        errors:
+          - "SUBSCRIPTION_NOT_FOUND"
+      getAllSubscriptions:
+        description: "Gets status of all active subscriptions"
+        returns:
+          type: "array"
+          description: "Array of all subscription statuses"
+      getConnectionStatus:
+        description: "Gets the current real-time connection status"
+        returns:
+          type: "string"
+          description: "Connection status (OPEN, CLOSED, CONNECTING, CLOSING)"
+      reconnect:
+        description: "Manually reconnect the real-time connection"
+        returns:
+          type: "boolean"
+          description: "Whether reconnection was successful"
+        errors:
+          - "RECONNECTION_FAILED"
+          - "ALREADY_CONNECTED"
+        async: true
+      getMetrics:
+        description: "Gets real-time performance and usage metrics"
+        returns:
+          type: "RealtimeMetrics"
+          description: "Current real-time metrics"
+      subscribeToUserState:
+        description: "Convenience method to subscribe to user state changes"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier to monitor"
+          callback:
+            type: "function"
+            required: true
+            description: "Function to call on state changes"
+        returns:
+          type: "string"
+          description: "Unique subscription identifier"
+        errors:
+          - "USER_NOT_FOUND"
+          - "SUBSCRIPTION_FAILED"
+      subscribeToSessionMetrics:
+        description: "Convenience method to subscribe to session metrics changes"
+        parameters:
+          userId:
+            type: "string"
+            required: true
+            description: "User identifier to monitor"
+          callback:
+            type: "function"
+            required: true
+            description: "Function to call on metrics changes"
+        returns:
+          type: "string"
+          description: "Unique subscription identifier"
+        errors:
+          - "USER_NOT_FOUND"
+          - "SUBSCRIPTION_FAILED"
+      broadcastEvent:
+        description: "Broadcast custom events to other clients"
+        parameters:
+          channel:
+            type: "string"
+            required: true
+            description: "Channel name to broadcast to"
+          event:
+            type: "string"
+            required: true
+            description: "Event name"
+          payload:
+            type: "object"
+            required: true
+            description: "Event payload data"
+        returns:
+          type: "boolean"
+          description: "Whether broadcast was successful"
+        errors:
+          - "BROADCAST_FAILED"
+          - "INVALID_CHANNEL"
+          - "PAYLOAD_TOO_LARGE"
+        async: true
