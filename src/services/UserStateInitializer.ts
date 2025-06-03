@@ -46,14 +46,17 @@ export class UserStateInitializer {
   private userStateService: SupabaseUserState;
   private curriculumMapper: CurriculumMapper;
 
-  constructor() {
-    // Initialize dependencies
-    const factRepository = new FactRepository();
+  constructor(factRepository?: FactRepository) {
+    // Initialize dependencies - use injected FactRepository or create fallback
+    if (!factRepository) {
+      console.warn('⚠️ UserStateInitializer: No FactRepository injected, creating fallback instance');
+      factRepository = new FactRepository();
+    }
     this.stitchLibrary = new StitchLibrary(factRepository);
     this.tripleHelixManager = new TripleHelixManager();
     this.stitchManager = new StitchManager();
     this.userStateService = new SupabaseUserState();
-    this.curriculumMapper = new CurriculumMapper();
+    this.curriculumMapper = new CurriculumMapper(factRepository);
   }
 
   /**

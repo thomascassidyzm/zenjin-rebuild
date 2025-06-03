@@ -57,6 +57,21 @@ class SubscriptionManager {
     const tier = await this.getSubscriptionTier(userId);
     return tier !== 'Free';
   }
+  
+  // Methods expected by ContentGatingEngine
+  checkSubscriptionStatus(userId: string) {
+    return {
+      hasActiveSubscription: false, // Always false for now
+      tier: 'Free'
+    };
+  }
+  
+  getUserSubscription(userId: string) {
+    return {
+      planId: 'free',
+      tier: 'free'
+    };
+  }
 }
 
 /**

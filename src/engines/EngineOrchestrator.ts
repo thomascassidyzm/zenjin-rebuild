@@ -244,8 +244,10 @@ export class EngineOrchestrator {
     }
     
     // Optional Live Aid Architecture initialization
+    // Disabled by default to prevent multiple FactRepository instances
     if (enableLiveAid) {
-      this.initializeLiveAid();
+      console.warn('Live Aid initialization disabled - use service container for proper DI');
+      // this.initializeLiveAid();
     }
     
     // Note: questionGenerator will be injected when proper implementation is available

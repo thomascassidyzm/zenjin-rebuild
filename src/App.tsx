@@ -13,7 +13,7 @@ import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
-// LearningEngineService will be retrieved from service container
+import { getServiceContainer } from './services/ServiceContainer';
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { ConnectivityManager } from './engines/ConnectivityManager';
@@ -424,6 +424,8 @@ const LearningSession: React.FC<LearningSessionProps> = ({
           timestamp: new Date().toISOString()
         };
         
+        const container = await getServiceContainer();
+        const learningEngineService = await container.getService('LearningEngineService');
         const responseResult = await learningEngineService.processUserResponse(
           currentQuestion.metadata.sessionId,
           currentQuestion.id,
@@ -834,22 +836,22 @@ const AppContent: React.FC = () => {
 
   // Stable callbacks to prevent unnecessary re-renders
   const handleAnimationComplete = useCallback(async () => {
-    authToPlayerEventBus.animationCompleted();
+    authToPlayerEventBus.instance.animationCompleted();
   }, []);
 
   const handlePlayButtonClicked = useCallback(async () => {
-    authToPlayerEventBus.playButtonClicked();
+    authToPlayerEventBus.instance.playButtonClicked();
   }, []);
 
   // Handle Auth-to-Player flow events
   useEffect(() => {
     // Listen for state changes
-    const unsubscribeState = authToPlayerEventBus.on('state:changed', ({ to }) => {
+    const unsubscribeState = authToPlayerEventBus.instance.on('state:changed', ({ to }) => {
       setAuthToPlayerState(to);
     });
 
     // Listen for player ready event - use Auth-to-Player flow
-    const unsubscribePlayer = authToPlayerEventBus.on('player:ready', (data) => {
+    const unsubscribePlayer = authToPlayerEventBus.instance.on('player:ready', (data) => {
       console.log('🎮 Auth-to-Player flow complete, transitioning to ACTIVE_LEARNING');
       console.log('🎮 Player content received:', data.content);
       console.log('🎮 Session data received:', data.sessionData);
@@ -906,8 +908,15 @@ const AppContent: React.FC = () => {
     if (authToPlayerState === 'ACTIVE_LEARNING') {
       console.log('🚪 Requesting session exit to navigate to:', page);
       // Request session exit through event bus
-      authToPlayerEventBus.requestSessionExit('navigation', page);
+      authToPlayerEventBus.instance.requestSessionExit('navigation', page);
       // Don't navigate yet - wait for session summary to complete
+      return;
+    }
+    
+    // Handle Play button - trigger Auth-to-Player flow
+    if (page === 'session') {
+      console.log('🎮 Play button clicked - starting Auth-to-Player flow');
+      handlePlayButtonClicked();
       return;
     }
     
@@ -943,7 +952,7 @@ const AppContent: React.FC = () => {
           };
           
           console.log('✅ Starting Auth-to-Player flow for anonymous user to PreEngagement');
-          authToPlayerEventBus.startFlow(anonymousUserContext);
+          authToPlayerEventBus.instance.startFlow(anonymousUserContext);
           break;
         case UserAuthChoice.SIGN_IN:
           // Sign in flow will be handled by dedicated form component
@@ -1139,7 +1148,8 @@ const AppContent: React.FC = () => {
             loadingProgress={0}
             onDashboardClick={() => {
               // Exit Auth-to-Player flow and go to dashboard
-              authToPlayerEventBus.exitToDashboard();
+              console.log('🏠 Exiting to dashboard from PreEngagement');
+              authToPlayerEventBus.instance.exitToDashboard();
               setCurrentPage('dashboard');
             }}
           />
@@ -1193,7 +1203,7 @@ const AppContent: React.FC = () => {
               isExiting={authToPlayerState === 'SESSION_ENDING'}
               onSessionSummaryShown={() => {
                 // Emit event to complete the exit flow
-                authToPlayerEventBus.emit('session:summary-shown', {
+                authToPlayerEventBus.instance.emit('session:summary-shown', {
                   sessionMetrics: {} // LearningSession will provide actual metrics
                 });
                 // Navigate to requested page after a short delay
@@ -1211,6 +1221,10 @@ const AppContent: React.FC = () => {
       case 'IDLE':
         // Don't show auth-to-player content, let normal app render
         authToPlayerContent = null;
+        // Ensure we're back to a valid page
+        if (currentPage !== 'dashboard' && currentPage !== 'settings' && currentPage !== 'project-status') {
+          setCurrentPage('dashboard');
+        }
         break;
       
       default:
@@ -1223,7 +1237,8 @@ const AppContent: React.FC = () => {
             loadingProgress={0}
             onDashboardClick={() => {
               // Exit Auth-to-Player flow and go to dashboard
-              authToPlayerEventBus.exitToDashboard();
+              console.log('🏠 Exiting to dashboard from PreEngagement');
+              authToPlayerEventBus.instance.exitToDashboard();
               setCurrentPage('dashboard');
             }}
           />
@@ -1338,7 +1353,12 @@ const AppContent: React.FC = () => {
 
 
   // Main app content with smooth launch transition
-  console.log('🐛 DEBUG Rendering mainAppContent with currentPage:', currentPage);
+  console.log('🐛 DEBUG Rendering mainAppContent with:', {
+    currentPage,
+    authToPlayerState,
+    hasAuthToPlayerContent: !!authToPlayerContent,
+    shouldShowFullScreen: authToPlayerContent && (authToPlayerState === 'PRE_ENGAGEMENT' || authToPlayerState === 'LOADING_WITH_ANIMATION')
+  });
   
   // Determine what content to show
   const contentToRender = authToPlayerContent || renderCurrentPage();
@@ -1352,7 +1372,7 @@ const AppContent: React.FC = () => {
   const mainAppContent = (
     <div className="min-h-screen bg-gray-950">
       <NavigationHeader 
-        currentPage={authToPlayerState === 'ACTIVE_LEARNING' ? 'learning' : currentPage} 
+        currentPage={authToPlayerState === 'ACTIVE_LEARNING' || authToPlayerState === 'SESSION_ENDING' ? 'session' : currentPage} 
         onNavigate={handleNavigate}
         isOnline={effectiveOnlineStatus}
         connectionType={connectionType}

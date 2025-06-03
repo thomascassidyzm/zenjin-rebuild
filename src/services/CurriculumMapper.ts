@@ -40,8 +40,12 @@ export class CurriculumMapper {
   private factRepository: FactRepository;
   private stitchGroupings: StitchGrouping[] = [];
 
-  constructor() {
-    this.factRepository = new FactRepository();
+  constructor(factRepository?: FactRepository) {
+    if (!factRepository) {
+      console.warn('⚠️ CurriculumMapper: No FactRepository injected, creating fallback instance');
+      factRepository = new FactRepository();
+    }
+    this.factRepository = factRepository;
     this.stitchLibrary = new StitchLibrary(this.factRepository);
     this.initializeStitchGroupings();
   }

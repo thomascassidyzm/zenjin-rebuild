@@ -51,6 +51,8 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   };
 
   constructor() {
+    // For now, let UserStateInitializer create its own FactRepository
+    // TODO: Inject FactRepository from service container
     this.userStateInitializer = new UserStateInitializer();
     this.setupEventHandlers();
   }
@@ -498,5 +500,23 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   }
 }
 
-// Singleton instance
-export const authToPlayerEventBus = new AuthToPlayerEventBus();
+// Export class for proper instantiation via service container
+export { AuthToPlayerEventBus };
+
+// Lazy singleton - only created when first accessed
+let _authToPlayerEventBusInstance: AuthToPlayerEventBus | null = null;
+
+export function getAuthToPlayerEventBus(): AuthToPlayerEventBus {
+  if (!_authToPlayerEventBusInstance) {
+    console.log('📦 Creating AuthToPlayerEventBus singleton...');
+    _authToPlayerEventBusInstance = new AuthToPlayerEventBus();
+  }
+  return _authToPlayerEventBusInstance;
+}
+
+// Create a getter property instead of immediate instantiation
+export const authToPlayerEventBus = {
+  get instance() {
+    return getAuthToPlayerEventBus();
+  }
+};
