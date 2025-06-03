@@ -420,18 +420,23 @@ export class LearningEngineService implements LearningEngineServiceInterface {
         masteryUpdate: {} // Will be populated by mastery update
       };
       
-      // Determine if session should continue
-      const maxQuestions = session.configuration.maxQuestions || 10;
-      const sessionComplete = session.responses.length >= maxQuestions;
+      // Determine if session should continue based on pre-generated stitch length
+      const totalStitchQuestions = session.questions.length;
+      const sessionComplete = session.responses.length >= totalStitchQuestions;
       
-      // Generate next question if session continues
+      // Get next question from pre-generated stitch if session continues
       let nextQuestion: Question | null = null;
       if (!sessionComplete) {
-        try {
-          nextQuestion = await this.generateQuestion(sessionId, session.userId);
-        } catch (error) {
-          // If we can't generate more questions, end the session
-          this.log(`Unable to generate next question, ending session: ${sessionId}`);
+        // Increment question index to next question in the pre-generated stitch
+        session.currentQuestionIndex++;
+        
+        // Get next question from stored questions array (smooth stitch flow)
+        if (session.currentQuestionIndex < session.questions.length) {
+          nextQuestion = session.questions[session.currentQuestionIndex];
+          this.log(`Serving pre-generated question ${session.currentQuestionIndex + 1}/${session.questions.length} from stitch`);
+        } else {
+          // All questions in the stitch have been completed
+          this.log(`All ${session.questions.length} questions in stitch completed`);
         }
       }
       
