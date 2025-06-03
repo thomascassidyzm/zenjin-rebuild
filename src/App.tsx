@@ -443,94 +443,29 @@ const LearningSession: React.FC<LearningSessionProps> = ({
         console.log(`Response processed: ${responseResult.feedback.isCorrect ? 'correct' : 'incorrect'}`);
         console.log(`Encouragement: ${responseResult.feedback.encouragement}`);
         
-        // If there's a next question from the service, add it to our queue
-        if (responseResult.nextQuestion && !responseResult.sessionComplete) {
-          const nextQ: Question = {
-            id: responseResult.nextQuestion.id,
-            text: responseResult.nextQuestion.questionText,
-            correctAnswer: responseResult.nextQuestion.correctAnswer,
-            distractor: (responseResult.nextQuestion.distractors && responseResult.nextQuestion.distractors[0]) || 'Unknown',
-            boundaryLevel: responseResult.nextQuestion.boundaryLevel || 1,
-            factId: responseResult.nextQuestion.factId || 'unknown',
-            metadata: {
-              factId: responseResult.nextQuestion.factId,
-              boundaryLevel: responseResult.nextQuestion.boundaryLevel,
-              difficulty: responseResult.nextQuestion.difficulty,
-              sessionId: currentQuestion.metadata.sessionId,
-              ...responseResult.nextQuestion.metadata
-            }
-          };
-          
-          setQuestions(prev => [...prev, nextQ]);
-        }
+        // Don't add questions during session - just use the pre-loaded 20 questions
       } catch (error) {
         console.error('Failed to process response through LearningEngineService:', error);
       }
     }
 
-    // Only move to next question if answer was correct
+    // Question progression logic - simplified
     if (response.isCorrect) {
-      setTimeout(async () => {
-        // Check if there are repeated questions in the queue first
-        if (questionQueue.length > 0) {
-          // Take the first question from the queue
-          const nextQuestion = questionQueue[0];
-          setQuestionQueue(prev => prev.slice(1));
-          
-          // Replace current question with the queued one
-          const newQuestions = [...questions];
-          newQuestions[currentQuestionIndex] = nextQuestion;
-          setQuestions(newQuestions);
-        } else if (currentQuestionIndex < questions.length - 1) {
-          // Move to next question in sequence
+      // Correct answer: Move to next question after brief pause
+      setTimeout(() => {
+        if (currentQuestionIndex < questions.length - 1) {
           setCurrentQuestionIndex(currentQuestionIndex + 1);
-        } else if (correctAnswers.size >= 20) {
-          // Stitch complete (all 20 questions answered correctly)
-          console.log('Stitch complete with all 20 questions answered correctly!');
-        
-        // Complete current stitch and rotate tubes
-        await handleSessionCompletion({
-          correct: correctAnswers.size,
-          total: sessionScore.total
-        });
-        
-        // Load next stitch questions without showing completion screen
-        try {
-          const { EngineOrchestrator } = await import('./engines/EngineOrchestrator');
-          const orchestrator = new EngineOrchestrator();
-          
-          // Get next stitch content
-          const nextStitch = await orchestrator.getNextStitch(userId);
-          if (nextStitch && nextStitch.questions) {
-            const playerQuestions = nextStitch.questions.map((q: any, index: number) => ({
-              id: q.id || `stitch-q${index + 1}-${Date.now()}`,
-              text: q.questionText || q.text,
-              correctAnswer: q.correctAnswer,
-              distractor: (q.distractors && q.distractors[0]) || q.distractor || 'Unknown',
-              boundaryLevel: q.boundaryLevel || 1,
-              factId: q.factId || 'unknown',
-              metadata: {
-                factId: q.factId,
-                boundaryLevel: q.boundaryLevel,
-                stitchId: nextStitch.stitchId,
-                sessionId: nextStitch.sessionId || sessionId
-              }
-            }));
-            
-            // Seamlessly continue with new questions
-            setQuestions(playerQuestions);
-            setCurrentQuestionIndex(0);
-            setQuestionQueue([]); // Clear queue for new stitch
-            setCorrectAnswers(new Set()); // Reset correct answers for new stitch
-            
-            console.log(`Seamlessly transitioned to next stitch: ${nextStitch.stitchId}`);
-          }
-        } catch (error) {
-          console.error('Failed to load next stitch:', error);
-        }
+        } else {
+          // Session complete - all questions attempted
+          console.log('Session complete - all questions attempted');
+          handleSessionCompletion({
+            correct: correctAnswers.size,
+            total: sessionScore.total
+          });
         }
       }, 1500);
     }
+    // For incorrect answers: question is automatically re-presented by PlayerCard
   };
 
   const handleSessionCompletion = async (finalScore: { correct: number; total: number }) => {

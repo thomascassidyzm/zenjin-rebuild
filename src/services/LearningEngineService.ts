@@ -427,10 +427,12 @@ export class LearningEngineService implements LearningEngineServiceInterface {
       // Get next question from pre-generated stitch if session continues
       let nextQuestion: Question | null = null;
       if (!sessionComplete) {
-        // Increment question index to next question in the pre-generated stitch
-        session.currentQuestionIndex++;
+        // Only increment question index for CORRECT answers
+        if (userResponse.isCorrect) {
+          session.currentQuestionIndex++;
+        }
         
-        // Get next question from stored questions array (smooth stitch flow)
+        // Get next/current question from stored questions array
         if (session.currentQuestionIndex < session.questions.length) {
           nextQuestion = session.questions[session.currentQuestionIndex];
           this.log(`Serving pre-generated question ${session.currentQuestionIndex + 1}/${session.questions.length} from stitch`);

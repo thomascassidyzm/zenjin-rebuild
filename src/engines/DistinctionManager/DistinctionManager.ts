@@ -375,10 +375,9 @@ export class DistinctionManager implements DistinctionManagerInterface {
     
     // Check if fact exists in the fact repository
     if (!this.factRepository.factExists(factId)) {
-      throw new DistinctionManagerError(
-        DistinctionManagerErrorCode.FACT_NOT_FOUND,
-        `Mathematical fact not found: ${factId}`
-      );
+      // For fallback facts, just log a warning instead of throwing error
+      console.warn(`DistinctionManager: Skipping mastery update for missing fact: ${factId}`);
+      return; // Skip mastery update for non-existent facts
     }
   }
 
