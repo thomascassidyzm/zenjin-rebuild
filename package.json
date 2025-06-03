@@ -8,6 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:typecheck": "tsc && vite build",
+    "build:validate": "npm run build && node scripts/build-contracts.js",
+    "build:production": "NODE_ENV=production npm run build:validate",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -19,7 +21,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,md}\"",
     "clean": "rm -rf dist node_modules/.vite",
     "find-unused": "eslint . --ext ts,tsx --rule 'no-unused-vars: error' --quiet",
-    "generate:interfaces": "node scripts/apml-to-ts-fixed.js"
+    "generate:interfaces": "node scripts/apml-to-ts-fixed.js",
+    "validate:contracts": "node scripts/build-contracts.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

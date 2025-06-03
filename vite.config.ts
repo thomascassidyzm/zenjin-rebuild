@@ -16,7 +16,7 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
-  // Optimized for Vercel deployment
+  // APML v3.1 Context-based build configuration
   build: {
     // Generate sourcemaps for better debugging
     sourcemap: true,
@@ -24,21 +24,115 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
+        // APML Context-based manual chunks
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+          // Infrastructure context - always loaded
+          'core': [
+            'react', 
+            'react-dom', 
+            'react-router-dom',
+            'zustand',
+            'localforage'
+          ],
+          
+          // UI vendor libraries
+          'ui-vendor': [
+            'framer-motion', 
+            'lucide-react', 
+            'clsx', 
+            'tailwind-merge',
+            'react-hot-toast'
+          ],
+          
+          // Payment context vendors
+          'payment-vendor': [
+            '@stripe/stripe-js',
+            'stripe'
+          ],
+          
+          // Data visualization
+          'charts-vendor': [
+            'chart.js',
+            'react-chartjs-2'
+          ],
+          
+          // Animation libraries
+          'animation-vendor': [
+            'gsap',
+            'canvas-confetti'
+          ],
+          
+          // Backend services
+          'backend-vendor': [
+            '@supabase/supabase-js',
+            'jsonwebtoken'
+          ],
+          
+          // Form handling
+          'forms-vendor': [
+            'react-hook-form',
+            '@hookform/resolvers',
+            'zod'
+          ]
+        },
+        
+        // Ensure proper chunk naming for context identification
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : '';
+          
+          // Context-based naming
+          if (facadeModuleId?.includes('Context')) {
+            return 'contexts/[name]-[hash].js';
+          }
+          
+          // Component naming
+          if (facadeModuleId?.includes('components')) {
+            return 'components/[name]-[hash].js';
+          }
+          
+          // Default
+          return 'assets/[name]-[hash].js';
         }
+      }
+    },
+    
+    // Terser options for production optimization
+    terserOptions: {
+      compress: {
+        // Remove console statements in production
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.debug', 'console.trace'],
+        passes: 2
+      },
+      mangle: {
+        safari10: true
+      },
+      format: {
+        comments: false
       }
     }
   },
-  // Make SPA routing work correctly
+  
+  // Development server configuration
   server: {
     host: true,
     port: 5432,
     strictPort: false
   },
-  // Support absolute imports
+  
+  // Dependency optimization
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion']
+    include: [
+      'react', 
+      'react-dom', 
+      'react-router-dom', 
+      'framer-motion',
+      '@supabase/supabase-js',
+      'zustand'
+    ],
+    exclude: [
+      '@stripe/stripe-js' // Exclude payment SDKs from pre-bundling
+    ]
   }
 })
