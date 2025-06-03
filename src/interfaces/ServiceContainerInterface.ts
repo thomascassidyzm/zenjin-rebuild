@@ -84,6 +84,7 @@ export interface ServiceLifecycleInterface {
 export type ServiceType = 
   | 'SubscriptionManager'
   | 'ContentGatingEngine'
+  | 'OfflineContentManager'
   | 'PaymentProcessor'
   | 'UserSessionManager'
   | 'EngineOrchestrator'

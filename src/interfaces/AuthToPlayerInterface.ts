@@ -10,6 +10,39 @@
  * Ensures authenticated users always have required identifiers while anonymous users have optional fields.
  */
 /**
+ * States in the Auth-to-Player flow
+ */
+export type AuthToPlayerState = 
+  | 'AUTH_SUCCESS'
+  | 'PRE_ENGAGEMENT' 
+  | 'LOADING_WITH_ANIMATION'
+  | 'ACTIVE_LEARNING'
+  | 'SESSION_ENDING'  // New state for showing session summary
+  | 'IDLE';          // New state for normal app navigation
+
+/**
+ * Events that can occur in the Auth-to-Player flow
+ */
+export interface AuthToPlayerEvents {
+  'auth:success': UserContext;
+  'preengagement:play-clicked': {};
+  'loading:animation-started': {};
+  'loading:animation-completed': {};
+  'loading:content-ready': { content: any };
+  'background:dashboard-loaded': { dashboardData: any };
+  'background:content-prepared': { firstStitch: any };
+  'player:ready': { content: any; userLearningState?: any; sessionData?: any };
+  'state:changed': { from: AuthToPlayerState; to: AuthToPlayerState };
+  'session:exit-requested': { reason: 'navigation' | 'end-button' | 'completion'; targetPage?: string };
+  'session:summary-shown': { sessionMetrics: any };
+}
+
+/**
+ * Unified user context type
+ */
+export type UserContext = AuthenticatedUserContext | AnonymousUserContext;
+
+/**
  * Type of user in the system
  */
 export interface UserType {

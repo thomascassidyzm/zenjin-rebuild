@@ -13,7 +13,7 @@ import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
-import { learningEngineService } from './services/LearningEngineService';
+// LearningEngineService will be retrieved from service container
 import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { ConnectivityManager } from './engines/ConnectivityManager';
@@ -29,6 +29,7 @@ import SubscriptionCancelled from './components/SubscriptionCancelled';
 import ContentGatingPrompt from './components/ContentGatingPrompt';
 import OfflineContentManager from './components/OfflineContentManager';
 import { contentGatingEngine } from './engines/ContentGatingEngine';
+import { initializeServiceContainer, isServiceContainerInitialized, getService } from './services/AppServiceContainer';
 import './App.css';
 
 // Mock data for initial testing
@@ -87,6 +88,9 @@ const mockDashboardData: DashboardData = {
 const generateQuestionsForStitch = async (learningPathId: string, userId: string = 'default-user'): Promise<Question[]> => {
   try {
     console.log(`Generating questions for learning path: ${learningPathId}, user: ${userId}`);
+    
+    // Get LearningEngineService from container
+    const learningEngineService = getService<any>('LearningEngineService');
     
     // Use LearningEngineService for session-based question generation
     const sessionResult = await learningEngineService.initializeLearningSession(
@@ -201,9 +205,17 @@ interface LearningSessionProps {
   initialQuestionFromBus?: Question;
   sessionIdFromBus?: string;
   sessionDataFromBus?: any; // Full session data with all questions
+  isExiting?: boolean; // Whether the session is exiting
+  onSessionSummaryShown?: () => void; // Callback when session summary is shown
 }
 
-const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBus, sessionIdFromBus, sessionDataFromBus }) => {
+const LearningSession: React.FC<LearningSessionProps> = ({ 
+  initialQuestionFromBus, 
+  sessionIdFromBus, 
+  sessionDataFromBus,
+  isExiting = false,
+  onSessionSummaryShown
+}) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [sessionScore, setSessionScore] = useState({ correct: 0, total: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
@@ -225,6 +237,14 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   // Backend integration via UserSession context
   const { state: sessionState, recordSessionMetrics } = useUserSession();
   const userId = sessionState.user?.id || sessionState.user?.anonymousId || 'anon_' + Date.now();
+  
+  // Handle session exit request
+  useEffect(() => {
+    if (isExiting && !sessionComplete) {
+      // Trigger session completion
+      setSessionComplete(true);
+    }
+  }, [isExiting, sessionComplete]);
 
   // Initialize session using LearningEngineService with proper user ID
   useEffect(() => {
@@ -609,6 +629,28 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
   if (sessionComplete) {
     const percentage = Math.round((sessionScore.correct / sessionScore.total) * 100);
     
+    // Log session summary
+    console.log('📊 Session Summary:', {
+      totalQuestions: sessionScore.total,
+      correctAnswers: sessionScore.correct,
+      accuracy: percentage,
+      sessionTime: Date.now() - sessionStartTime,
+      ftcPoints,
+      ecPoints,
+      totalPoints,
+    });
+    
+    // Notify that session summary is shown (for exit flow)
+    useEffect(() => {
+      if (sessionComplete && isExiting && onSessionSummaryShown) {
+        // Call the callback after a brief delay to ensure UI is rendered
+        const timer = setTimeout(() => {
+          onSessionSummaryShown();
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }, [sessionComplete, isExiting, onSessionSummaryShown]);
+    
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-gray-800 rounded-xl p-8 text-center">
@@ -632,8 +674,13 @@ const LearningSession: React.FC<LearningSessionProps> = ({ initialQuestionFromBu
           </button>
           <button
             onClick={() => {
-              // Reset auth-to-player state to allow new sessions
-              window.location.reload(); // Simple reload to reset state
+              if (onSessionSummaryShown) {
+                // If we have a callback, use it (for proper navigation)
+                onSessionSummaryShown();
+              } else {
+                // Otherwise, reload to reset state
+                window.location.reload();
+              }
             }}
             className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
           >
@@ -762,6 +809,27 @@ const AppContent: React.FC = () => {
   const [playerContent, setPlayerContent] = useState<any>(null);
   const [sessionData, setSessionData] = useState<any>(null);
 
+  // Initialize service container on app start
+  const [containerInitialized, setContainerInitialized] = useState(false);
+  const [containerError, setContainerError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    // Initialize service container once
+    if (!isServiceContainerInitialized()) {
+      initializeServiceContainer()
+        .then(() => {
+          console.log('✅ Service container initialized successfully');
+          setContainerInitialized(true);
+        })
+        .catch((error) => {
+          console.error('❌ Failed to initialize service container:', error);
+          setContainerError(error);
+        });
+    } else {
+      setContainerInitialized(true);
+    }
+  }, []);
+
   // Stable callbacks to prevent unnecessary re-renders
   const handleAnimationComplete = useCallback(async () => {
     authToPlayerEventBus.animationCompleted();
@@ -832,16 +900,16 @@ const AppContent: React.FC = () => {
   }, []);
 
   const handleNavigate = (page: string) => {
-    // If we're in ACTIVE_LEARNING state, exit the learning session first
+    // If we're in ACTIVE_LEARNING state, request session exit
     if (authToPlayerState === 'ACTIVE_LEARNING') {
-      console.log('🚪 Exiting learning session to navigate to:', page);
-      // Reset to AUTH_SUCCESS state to clear authToPlayerContent and enable normal navigation
-      setAuthToPlayerState('AUTH_SUCCESS');
-      // Clear any player content
-      setPlayerContent(null);
-      setSessionData(null);
+      console.log('🚪 Requesting session exit to navigate to:', page);
+      // Request session exit through event bus
+      authToPlayerEventBus.requestSessionExit('navigation', page);
+      // Don't navigate yet - wait for session summary to complete
+      return;
     }
     
+    // Normal navigation when not in active learning
     setCurrentPage(page);
   };
 
@@ -889,6 +957,21 @@ const AppContent: React.FC = () => {
       throw error; // Let LaunchInterface handle the error
     }
   };
+
+  // Check if service container is still initializing
+  if (!containerInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Initializing services...</p>
+          {containerError && (
+            <p className="text-red-400 mt-2">Error: {containerError.message}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Phase 1: User Choice (Launch Interface - immediate start page)
   console.log('🐛 Phase 1 check - userAuthChoice:', userAuthChoice);
@@ -1067,6 +1150,7 @@ const AppContent: React.FC = () => {
         break;
       
       case 'ACTIVE_LEARNING':
+      case 'SESSION_ENDING':  // Still show learning session during exit
         if (!playerContent) {
           authToPlayerContent = (
             <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -1099,9 +1183,27 @@ const AppContent: React.FC = () => {
               initialQuestionFromBus={playerQuestion} 
               sessionIdFromBus={playerQuestion.metadata?.sessionId}
               sessionDataFromBus={sessionData}
+              isExiting={authToPlayerState === 'SESSION_ENDING'}
+              onSessionSummaryShown={() => {
+                // Emit event to complete the exit flow
+                authToPlayerEventBus.emit('session:summary-shown', {
+                  sessionMetrics: {} // LearningSession will provide actual metrics
+                });
+                // Navigate to requested page after a short delay
+                // The target page was stored when navigation was clicked
+                setTimeout(() => {
+                  // Get current page from state or default to dashboard
+                  setCurrentPage(prevPage => prevPage || 'dashboard');
+                }, 100);
+              }}
             />
           );
         }
+        break;
+      
+      case 'IDLE':
+        // Don't show auth-to-player content, let normal app render
+        authToPlayerContent = null;
         break;
       
       default:

@@ -7,7 +7,8 @@
  */
 
 import { UserStateInitializer, UserLearningState } from './UserStateInitializer';
-import { learningEngineService } from './LearningEngineService';
+import { getService } from './AppServiceContainer';
+import type { LearningEngineService } from './LearningEngineService';
 import { 
   AuthToPlayerInterface,
   AuthToPlayerEvents,
@@ -40,6 +41,14 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   private userStateInitializer: UserStateInitializer;
   private currentUserContext?: UserContext;
   private isCreatingUser = false; // Guard against duplicate user creation
+  
+  // Session tracking for proper exit handling
+  private sessionMetrics = {
+    startTime: Date.now(),
+    questionsAnswered: 0,
+    correctAnswers: 0,
+    targetPage: ''
+  };
 
   constructor() {
     this.userStateInitializer = new UserStateInitializer();
@@ -127,6 +136,29 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
 
     // LOADING_WITH_ANIMATION → ACTIVE_LEARNING transition
     // Only when both animation is complete AND content is ready
+    
+    // New: Handle session exit requests
+    this.on('session:exit-requested', (data) => {
+      if (this.currentState === 'ACTIVE_LEARNING') {
+        // Store the target page for after session summary
+        this.sessionMetrics.targetPage = data.targetPage || 'dashboard';
+        this.setState('SESSION_ENDING');
+        
+        // Session summary will be shown by the LearningSession component
+        // which should emit session:summary-shown when done
+      }
+    });
+    
+    // New: Handle session summary completion
+    this.on('session:summary-shown', (data) => {
+      if (this.currentState === 'SESSION_ENDING') {
+        // Transition to IDLE state to allow normal navigation
+        this.setState('IDLE');
+        
+        // Reset for potential new sessions
+        this.resetForNewSession();
+      }
+    });
   }
 
   private checkTransitionToPlayer(): void {
@@ -184,6 +216,7 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
       // Use LearningEngineService to generate real question content
       try {
         const learningPathId = userLearningState.currentStitch.learningPathId || 'addition';
+        const learningEngineService = getService<LearningEngineService>('LearningEngineService');
         const sessionData = await learningEngineService.initializeLearningSession(userId, learningPathId);
         
         if (sessionData.initialQuestions && sessionData.initialQuestions.length > 0) {
@@ -289,6 +322,7 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
       
       console.log('🔄 Loading content from LearningEngine for user:', userId);
       
+      const learningEngineService = getService<LearningEngineService>('LearningEngineService');
       const sessionData = await learningEngineService.initializeLearningSession(userId, learningPath);
       
       if (sessionData.initialQuestions && sessionData.initialQuestions.length > 0) {
@@ -431,6 +465,28 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
     this.backgroundData = { dashboardLoaded: false, contentPrepared: false };
     this.isAnimationCompleted = false;
     this.contentReady = false;
+  }
+  
+  // Reset for new session after summary shown
+  private resetForNewSession(): void {
+    // Clear session-specific data
+    this.isAnimationCompleted = false;
+    this.contentReady = false;
+    this.backgroundData.firstStitch = undefined;
+    this.backgroundData.sessionData = undefined;
+    
+    // Reset session metrics
+    this.sessionMetrics = {
+      startTime: Date.now(),
+      questionsAnswered: 0,
+      correctAnswers: 0,
+      targetPage: ''
+    };
+  }
+  
+  // Public method to request session exit
+  requestSessionExit(reason: 'navigation' | 'end-button' | 'completion', targetPage?: string): void {
+    this.emit('session:exit-requested', { reason, targetPage });
   }
 }
 

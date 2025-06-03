@@ -25,9 +25,9 @@ import { StitchCache } from '../engines/StitchCache/StitchCache';
 import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
 import { TripleHelixManager } from '../engines/TripleHelixManager/TripleHelixManager';
 
-// Import Content Gating
-import { contentGatingEngine, ContentGatingResult } from '../engines/ContentGatingEngine';
-import { offlineContentManager } from '../engines/OfflineContentManager';
+// Import Content Gating types only (no singletons)
+import type { ContentGatingResult } from '../engines/ContentGatingEngine';
+import type { OfflineContentManager } from '../engines/OfflineContentManager';
 
 // Import component types
 import type { 
@@ -157,10 +157,18 @@ export class LearningEngineService {
   // Service state
   private isInitialized: boolean = false;
   
+  // Injected dependencies
+  private contentGatingEngine: any;
+  private offlineContentManager: any;
+  
   /**
    * Initialize LearningEngine service with component dependencies
+   * @param contentGatingEngine Content gating service (optional for backward compatibility)
+   * @param offlineContentManager Offline content service (optional for backward compatibility)
    */
-  constructor() {
+  constructor(contentGatingEngine?: any, offlineContentManager?: any) {
+    this.contentGatingEngine = contentGatingEngine;
+    this.offlineContentManager = offlineContentManager;
     this.initializeComponents();
   }
   
@@ -698,7 +706,7 @@ export class LearningEngineService {
       const currentStitchId = await this.getCurrentStitchId(userId, tubeId);
       
       // Check if user can access this content
-      const accessResult = await contentGatingEngine.canAccessStitch(userId, currentStitchId, tubeId);
+      const accessResult = await this.getContentGatingEngine().canAccessStitch(userId, currentStitchId, tubeId);
       
       if (!accessResult.hasAccess) {
         // If content is gated, use free alternative or throw gating error
@@ -720,7 +728,7 @@ export class LearningEngineService {
       }
 
       // Check if offline content is available (for premium users)
-      const offlineStitch = await offlineContentManager.getOfflineStitch(currentStitchId);
+      const offlineStitch = await this.getOfflineContentManager().getOfflineStitch(currentStitchId);
       if (offlineStitch.isAvailable) {
         this.log(`Using offline content for stitch: ${currentStitchId}`);
         return await this.generateQuestionsFromOfflineContent(offlineStitch, config);
@@ -1127,6 +1135,52 @@ export class LearningEngineService {
    */
   private log(message: string): void {
     console.log(`[LearningEngineService] ${message}`);
+  }
+  
+  /**
+   * Get content gating engine with fallback to dynamic import
+   * @private
+   */
+  private async getContentGatingEngine(): Promise<any> {
+    if (this.contentGatingEngine) {
+      return this.contentGatingEngine;
+    }
+    
+    // Fallback to dynamic import for backward compatibility
+    try {
+      const { contentGatingEngine } = await import('../engines/ContentGatingEngine');
+      this.contentGatingEngine = contentGatingEngine;
+      return contentGatingEngine;
+    } catch (error) {
+      throw new LearningEngineError(
+        'LE-DEP-001',
+        'ContentGatingEngine not available',
+        { error: String(error) }
+      );
+    }
+  }
+  
+  /**
+   * Get offline content manager with fallback to dynamic import
+   * @private
+   */
+  private async getOfflineContentManager(): Promise<any> {
+    if (this.offlineContentManager) {
+      return this.offlineContentManager;
+    }
+    
+    // Fallback to dynamic import for backward compatibility
+    try {
+      const { offlineContentManager } = await import('../engines/OfflineContentManager');
+      this.offlineContentManager = offlineContentManager;
+      return offlineContentManager;
+    } catch (error) {
+      throw new LearningEngineError(
+        'LE-DEP-002',
+        'OfflineContentManager not available',
+        { error: String(error) }
+      );
+    }
   }
 }
 
