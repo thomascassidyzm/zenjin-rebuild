@@ -294,6 +294,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    * 
    * @param userId User identifier
    * @param initialDifficulty Initial difficulty level (1-5), defaults to 2
+   * @param defaultStitches Optional array of default stitches for each tube
    * @returns Initial triple helix state
    * @throws USER_NOT_FOUND if the specified user was not found
    * @throws ALREADY_INITIALIZED if triple helix already initialized for this user
@@ -301,7 +302,8 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
    */
   public initializeTripleHelix(
     userId: string,
-    initialDifficulty: number = 2
+    initialDifficulty: number = 2,
+    defaultStitches?: string[]
   ): TripleHelixState {
     // 3-Layer Architecture: No user validation needed - provide default tube configs for anyone
     // Validate difficulty
@@ -314,12 +316,15 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
     }
     
     try {
+      // Use provided default stitches or fallback to defaults
+      const stitches = defaultStitches || ['stitch001', 'stitch002', 'stitch003'];
+      
       // Create the three initial learning paths
       const path1: LearningPath = {
         id: 'path1',
         name: 'Addition Facts',
         description: 'Basic addition facts from 1+1 to 12+12',
-        currentStitchId: 'stitch001',
+        currentStitchId: stitches[0],
         difficulty: initialDifficulty,
         status: 'active',
         metadata: {
@@ -332,7 +337,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
         id: 'path2',
         name: 'Multiplication Facts',
         description: 'Basic multiplication facts from 1×1 to 12×12',
-        nextStitchId: 'stitch002',
+        nextStitchId: stitches[1],
         difficulty: initialDifficulty,
         status: 'preparing',
         metadata: {
@@ -345,7 +350,7 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
         id: 'path3',
         name: 'Division Facts',
         description: 'Basic division facts',
-        nextStitchId: 'stitch003',
+        nextStitchId: stitches[2],
         difficulty: initialDifficulty,
         status: 'preparing',
         metadata: {
@@ -468,8 +473,35 @@ export class TripleHelixManager implements TripleHelixManagerInterface {
       this.users.add(userId);
     }
     
-    // Initialize triple helix if not exists
+    // Initialize triple helix if not exists - with default tube configurations
     if (!this.tripleHelixStates.has(userId)) {
+      await this.initializeTripleHelixWithDefaults(userId);
+    }
+  }
+
+  /**
+   * Initialize triple helix with default tube configurations from database
+   * @param userId User identifier
+   */
+  private async initializeTripleHelixWithDefaults(userId: string): Promise<void> {
+    try {
+      // Get default tube positions using TubeConfigurationService
+      const { tubeConfigurationService } = await import('../../services/TubeConfigurationService');
+      const defaultPositions = await tubeConfigurationService.getDefaultTubePositions();
+      
+      // Initialize with default stitches
+      const defaultStitches = ['t1-0001-add', 't2-0001-mult', 't3-0001-sub'];
+      if (defaultPositions.length > 0) {
+        // Use actual default positions
+        defaultStitches[0] = defaultPositions.find(p => p.tube_id === 'tube1')?.stitch_id || 't1-0001-add';
+        defaultStitches[1] = defaultPositions.find(p => p.tube_id === 'tube2')?.stitch_id || 't2-0001-mult';
+        defaultStitches[2] = defaultPositions.find(p => p.tube_id === 'tube3')?.stitch_id || 't3-0001-sub';
+      }
+      
+      this.initializeTripleHelix(userId, 2, defaultStitches);
+    } catch (error) {
+      console.warn('Failed to load default tube positions, using fallback:', error);
+      // Fallback to default initialization
       this.initializeTripleHelix(userId);
     }
   }

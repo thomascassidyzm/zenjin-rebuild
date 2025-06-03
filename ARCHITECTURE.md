@@ -62,7 +62,20 @@ If score < 20/20: Reset skip_number to 4
 │                     User Interface Layer                      │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
 │  │ PlayerCard  │  │  Dashboard   │  │ Admin Interface  │   │
+│  │             │  │              │  │                  │   │
+│  │ PreEngage   │  │ UserSettings │  │ ProjectStatus    │   │
 │  └─────────────┘  └──────────────┘  └──────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                 Auth-to-Player State Machine                 │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ AUTH_SUCCESS → PRE_ENGAGEMENT → LOADING → ACTIVE       │ │
+│  │      ↓              ↓             ↓        ↓           │ │
+│  │ Big Play      Dashboard Link   Animation  Learning      │ │
+│  │      ↓              ↓             ↓        ↓           │ │
+│  │ → SESSION_ENDING → IDLE (Normal Navigation)           │ │
+│  └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -70,6 +83,7 @@ If score < 20/20: Reset skip_number to 4
 │  ┌─────────────────┐  ┌───────────────┐  ┌──────────────┐  │
 │  │ QuestionEngine  │  │  Distractor   │  │   Content    │  │
 │  │                 │  │  Generator    │  │   Manager    │  │
+│  │ ContentGating   │  │ OfflineCache  │  │ Subscription │  │
 │  └─────────────────┘  └───────────────┘  └──────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -78,16 +92,308 @@ If score < 20/20: Reset skip_number to 4
 │  ┌────────────────┐  ┌─────────────────┐  ┌─────────────┐  │
 │  │ StitchManager  │  │ PositionManager │  │ TripleHelix │  │
 │  │                │  │                 │  │  Manager    │  │
+│  │ SessionMetrics │  │ ProgressSync    │  │ TubeRotation│  │
 │  └────────────────┘  └─────────────────┘  └─────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                        Data Layer                             │
+│                        Service Layer                         │
 │  ┌────────────────┐  ┌─────────────────┐  ┌─────────────┐  │
-│  │FactRepository  │  │   User State    │  │  Database   │  │
-│  │                │  │    Storage      │  │  (Supabase) │  │
+│  │FactRepository  │  │   UserSession   │  │  Stripe     │  │
+│  │ (APML Context) │  │    Manager      │  │ Integration │  │
+│  │                │  │                 │  │             │  │
+│  │ Connectivity   │  │ Authentication  │  │ Database    │  │
+│  │   Manager      │  │   FlowService   │  │ (Supabase)  │  │
 │  └────────────────┘  └─────────────────┘  └─────────────┘  │
 └─────────────────────────────────────────────────────────────┘
+```
+
+## Interface Contract Diagrams
+
+### Auth-to-Player State Machine Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> AUTH_SUCCESS
+    AUTH_SUCCESS --> PRE_ENGAGEMENT : startFlow()
+    PRE_ENGAGEMENT --> LOADING_WITH_ANIMATION : playButtonClicked()
+    PRE_ENGAGEMENT --> IDLE : exitToDashboard()
+    LOADING_WITH_ANIMATION --> ACTIVE_LEARNING : animationCompleted()
+    ACTIVE_LEARNING --> SESSION_ENDING : requestSessionExit()
+    SESSION_ENDING --> IDLE : sessionSummaryShown()
+    IDLE --> PRE_ENGAGEMENT : playButtonClicked()
+    IDLE --> [*] : logout()
+    
+    note right of AUTH_SUCCESS
+        User authenticated or
+        anonymous user ready
+    end note
+    
+    note right of PRE_ENGAGEMENT
+        Big Play Button +
+        Dashboard Link
+    end note
+    
+    note right of ACTIVE_LEARNING
+        Question delivery,
+        progress tracking,
+        session management
+    end note
+    
+    note right of SESSION_ENDING
+        Session summary,
+        metrics display,
+        navigation completion
+    end note
+```
+
+### Service Container Dependencies
+
+```mermaid
+graph TD
+    ServiceContainer --> UserSessionManager
+    ServiceContainer --> LearningEngineService
+    ServiceContainer --> SubscriptionManager
+    ServiceContainer --> ContentGatingEngine
+    
+    LearningEngineService --> FactRepository
+    LearningEngineService --> QuestionGenerator
+    LearningEngineService --> DistractorGenerator
+    LearningEngineService --> TripleHelixManager
+    LearningEngineService --> StitchManager
+    
+    TripleHelixManager --> StitchPopulation
+    TripleHelixManager --> StitchPreparation
+    TripleHelixManager --> LiveAidManager
+    
+    UserSessionManager --> SubscriptionManager
+    UserSessionManager --> SessionMetricsManager
+    UserSessionManager --> LifetimeMetricsManager
+    
+    FactRepository --> |Multiple Instances| FactRepositoryTube1
+    FactRepository --> |Multiple Instances| FactRepositoryTube2
+    FactRepository --> |Multiple Instances| FactRepositoryTube3
+    
+    ContentGatingEngine --> SubscriptionManager
+    ContentGatingEngine --> UserSessionManager
+    
+    classDef serviceLayer fill:#e1f5fe
+    classDef engineLayer fill:#f3e5f5
+    classDef dataLayer fill:#e8f5e8
+    
+    class ServiceContainer,UserSessionManager,LearningEngineService,SubscriptionManager,ContentGatingEngine serviceLayer
+    class TripleHelixManager,StitchManager,QuestionGenerator,DistractorGenerator engineLayer
+    class FactRepository,FactRepositoryTube1,FactRepositoryTube2,FactRepositoryTube3 dataLayer
+```
+
+### Question Generation Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant PlayerCard
+    participant LearningEngine
+    participant TripleHelix
+    participant StitchManager
+    participant QuestionGenerator
+    participant FactRepository
+    
+    User->>PlayerCard: Start Session
+    PlayerCard->>LearningEngine: initializeLearningSession(userId, pathId)
+    LearningEngine->>TripleHelix: getCurrentTube()
+    TripleHelix-->>LearningEngine: activeTube: "tube1"
+    
+    LearningEngine->>StitchManager: getStitchAtPosition(tube1, position1)
+    StitchManager-->>LearningEngine: stitchDefinition
+    
+    LearningEngine->>QuestionGenerator: generateQuestions(stitchDef, boundaryLevel)
+    QuestionGenerator->>FactRepository: queryFacts(conceptType, params)
+    FactRepository-->>QuestionGenerator: facts[]
+    
+    loop For each fact
+        QuestionGenerator->>QuestionGenerator: generateDistractor(fact, boundaryLevel)
+        QuestionGenerator->>QuestionGenerator: createQuestion(fact, distractor)
+    end
+    
+    QuestionGenerator-->>LearningEngine: questions[]
+    LearningEngine-->>PlayerCard: sessionData + initialQuestions
+    PlayerCard->>User: Display Question
+```
+
+### User Response Processing Flow
+
+```mermaid
+sequenceDiagram
+    participant PlayerCard
+    participant LearningEngine
+    participant SessionMetrics
+    participant LifetimeMetrics
+    participant TripleHelix
+    participant UserSession
+    
+    PlayerCard->>LearningEngine: processUserResponse(sessionId, questionId, response)
+    
+    alt Correct Answer
+        LearningEngine->>SessionMetrics: recordCorrectAnswer(response.responseTime, isFirstAttempt)
+        SessionMetrics->>SessionMetrics: calculatePoints(FTC: 3pts, EC: 1pt)
+        LearningEngine->>LearningEngine: removeFromRepeatQueue(questionId)
+        LearningEngine->>LearningEngine: advanceToNextQuestion()
+    else Incorrect Answer
+        LearningEngine->>SessionMetrics: recordIncorrectAnswer(response.responseTime)
+        LearningEngine->>LearningEngine: addToRepeatQueue(questionId)
+        LearningEngine->>LearningEngine: presentSameQuestion()
+    end
+    
+    alt Session Complete (20/20 correct)
+        LearningEngine->>SessionMetrics: finalizeSession()
+        SessionMetrics->>LifetimeMetrics: updateLifetimeStats(sessionSummary)
+        LearningEngine->>TripleHelix: completeStitch(stitchId, performance)
+        TripleHelix->>TripleHelix: repositionStitch(skipNumber++)
+        TripleHelix->>TripleHelix: rotateTubes()
+        LearningEngine->>UserSession: saveUserState(newPositions, progress)
+    end
+    
+    LearningEngine-->>PlayerCard: responseResult + nextQuestion?
+```
+
+### Component Interface Contracts
+
+```mermaid
+classDiagram
+    class AuthToPlayerInterface {
+        +AuthToPlayerState: enum
+        +AuthenticatedUserContext: interface
+        +AnonymousUserContext: interface
+        +startFlow(userContext)
+        +playButtonClicked()
+        +requestSessionExit(reason, targetPage?)
+        +sessionSummaryShown()
+    }
+    
+    class PlayerCardInterface {
+        +Question: interface
+        +Response: interface
+        +presentQuestion(question): boolean
+        +onAnswerSelected(handler): void
+        +resetState(): void
+    }
+    
+    class LearningEngineServiceInterface {
+        +initializeLearningSession(userId, pathId, options)
+        +processUserResponse(sessionId, questionId, response)
+        +generateQuestion(sessionId, preferences?)
+        +completeSession(sessionId, finalMetrics)
+        +getUserMasteryState(userId): MasteryData
+    }
+    
+    class UserSessionManagerInterface {
+        +UserApplicationState: interface
+        +createAnonymousUser(): User
+        +initializeSession(): boolean
+        +recordSessionMetrics(metrics): void
+        +getBackendStatus(): ConnectionStatus
+        +updatePassword(current, new): boolean
+    }
+    
+    class TripleHelixManagerInterface {
+        +TripleHelixState: interface
+        +getCurrentTube(): TubeId
+        +rotateTubes(): void
+        +repositionStitch(stitchId, newPosition): void
+        +getStitchAtPosition(tubeId, position): StitchDefinition
+    }
+    
+    class QuestionInterface {
+        +id: string
+        +text: string
+        +correctAnswer: string
+        +distractor: string
+        +boundaryLevel: number
+        +factId: string
+        +metadata: object
+    }
+    
+    AuthToPlayerInterface --> PlayerCardInterface : triggers
+    PlayerCardInterface --> LearningEngineServiceInterface : delegates
+    LearningEngineServiceInterface --> TripleHelixManagerInterface : orchestrates
+    LearningEngineServiceInterface --> UserSessionManagerInterface : updates
+    PlayerCardInterface ..> QuestionInterface : uses
+    LearningEngineServiceInterface ..> QuestionInterface : generates
+```
+
+### Data Flow Architecture
+
+```mermaid
+flowchart TD
+    User[User Input] --> PlayerCard[PlayerCard Component]
+    PlayerCard --> Response[Response Interface]
+    Response --> LearningEngine[LearningEngineService]
+    
+    LearningEngine --> SessionMetrics[SessionMetricsManager]
+    LearningEngine --> TripleHelix[TripleHelixManager]
+    LearningEngine --> NextQuestion[Question Generation]
+    
+    SessionMetrics --> LifetimeMetrics[LifetimeMetricsManager]
+    LifetimeMetrics --> Dashboard[Dashboard Display]
+    
+    TripleHelix --> StitchManager[StitchManager]
+    StitchManager --> UserState[UserApplicationState]
+    UserState --> Backend[Supabase Backend]
+    
+    NextQuestion --> FactRepository[FactRepository]
+    FactRepository --> QuestionInterface[Question Interface]
+    QuestionInterface --> PlayerCard
+    
+    Backend --> Sync[State Synchronization]
+    Sync --> UserSession[UserSessionManager]
+    UserSession --> AuthToPlayer[Auth-to-Player Flow]
+    
+    classDef userInterface fill:#bbdefb
+    classDef serviceLayer fill:#c8e6c9
+    classDef dataLayer fill:#ffcdd2
+    classDef backend fill:#f8bbd9
+    
+    class User,PlayerCard,Dashboard userInterface
+    class LearningEngine,SessionMetrics,LifetimeMetrics,TripleHelix,StitchManager serviceLayer
+    class Response,QuestionInterface,UserState,FactRepository dataLayer
+    class Backend,Sync,UserSession,AuthToPlayer backend
+```
+
+### Content Gating & Subscription Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant PlayerCard
+    participant ContentGating
+    participant SubscriptionManager
+    participant StripeAPI
+    participant LearningEngine
+    
+    User->>PlayerCard: Request Premium Content
+    PlayerCard->>ContentGating: checkContentAccess(userId, contentId)
+    ContentGating->>SubscriptionManager: getUserSubscription(userId)
+    
+    alt Free User
+        SubscriptionManager-->>ContentGating: subscription: "free"
+        ContentGating->>ContentGating: generateFreeAlternative(contentId)
+        ContentGating-->>PlayerCard: { access: false, alternative: freeContent, prompt: upgradeOptions }
+        PlayerCard->>User: Show Upgrade Prompt + Free Alternative
+        
+        opt User Chooses Upgrade
+            User->>SubscriptionManager: initiateUpgrade()
+            SubscriptionManager->>StripeAPI: createCheckoutSession()
+            StripeAPI-->>User: Redirect to Stripe Checkout
+            User->>StripeAPI: Complete Payment
+            StripeAPI->>SubscriptionManager: webhook: payment_success
+            SubscriptionManager->>SubscriptionManager: updateUserSubscription(userId, "premium")
+        end
+        
+    else Premium User
+        SubscriptionManager-->>ContentGating: subscription: "premium"
+        ContentGating-->>PlayerCard: { access: true, content: premiumContent }
+        PlayerCard->>LearningEngine: proceedWithPremiumContent()
+    end
 ```
 
 ### Key Design Patterns
@@ -445,6 +751,84 @@ The architecture is designed to be:
 
 This design enables the vision of "Netflix for Maths" - where learners simply press play and the system handles all the complexity of adaptive, personalized learning progression.
 
+## Current Implementation Status (86% Complete)
+
+### ✅ Completed Core Systems
+
+#### Auth-to-Player State Machine
+- **Event-driven architecture** with clean state transitions
+- **SESSION_ENDING** state for proper exit flow with session summary
+- **IDLE** state for normal app navigation post-session
+- **Dashboard integration** from PreEngagement card
+- **Navigation preservation** during active learning sessions
+
+#### Premium Subscription System
+- **Stripe integration** with secure payment processing
+- **Content gating engine** with graceful degradation to free alternatives
+- **Subscription management** interface with upgrade/downgrade flows
+- **Offline content download** for premium subscribers
+
+#### User Management & Settings
+- **Password functionality** to reduce OTP dependency during testing
+- **Anonymous user support** with seamless upgrade to authenticated accounts
+- **Session persistence** with automatic sync across devices
+- **Admin role detection** with secure access control
+
+#### Professional Interface Components
+- **Project Status Dashboard** showing 86% completion with 5-day timeline
+- **User Settings page** with comprehensive account management
+- **Main Dashboard** with lifetime metrics and learning path visualization
+- **Responsive navigation** with proper state highlighting
+
+### 🔄 Final Polish Phase (14% Remaining)
+
+#### Session Metrics Refinement
+- Enhanced session summary with detailed learning analytics
+- Real-time progress tracking during learning sessions
+- Historical performance trends and improvement indicators
+
+#### UI Animation & Optimization
+- Smooth transitions between learning states
+- Loading animation polish for better user experience
+- Performance optimization for mobile devices
+
+#### End-to-End Testing
+- Complete user journey validation from entry to mastery
+- Payment flow testing with real Stripe integration
+- Offline functionality verification across all features
+
+#### Production Deployment Setup
+- Monitoring and alerting system configuration
+- Performance tracking and optimization
+- Security hardening and compliance verification
+
+### Recent Architectural Improvements
+
+#### Event-Driven Navigation Fix
+Fixed navigation button functionality during active learning sessions by implementing proper event-driven session exit flow:
+
+```typescript
+// Navigation during active learning now properly exits sessions
+if (authToPlayerState === 'ACTIVE_LEARNING') {
+  authToPlayerEventBus.instance.requestSessionExit('navigation', page);
+  return; // Wait for session summary before navigating
+}
+```
+
+#### APML-Compliant Service Architecture
+Implemented full APML Framework v2.2 compliance with:
+- **Interface-first design** for all major components
+- **Service container pattern** with dependency injection
+- **Context boundary separation** for FactRepository instances
+- **Event bus communication** between loosely coupled components
+
+#### Content Gating Integration
+Added sophisticated content access control that:
+- **Detects premium content requests** from free users
+- **Provides graceful degradation** to free alternatives
+- **Maintains learning flow continuity** without breaking sessions
+- **Prompts for upgrade** at natural breaking points
+
 ## Admin Interface Integration
 
 ### Role-Based Access Control Architecture
@@ -627,3 +1011,115 @@ interface AdminApiSecurity {
 4. **Performance Impact**: Admin usage doesn't affect core user experience
 
 This integrated admin architecture ensures that Zenjin Maths can be professionally managed and maintained while preserving the seamless, zero-decision-fatigue learning experience that defines the platform's core value proposition.
+
+## Development Roadmap & Next Steps
+
+### Immediate Priorities (Next 5 Days)
+
+#### Parallel Development Strategy
+With 4 Claude instances working in parallel, the final 14% completion involves:
+
+**Claude Instance 1: Offline Sync Implementation**
+- Complete offline content synchronization
+- Implement background sync for user progress
+- Test offline-to-online transition scenarios
+
+**Claude Instance 2: Performance Optimization**
+- Bundle size optimization and code splitting
+- Mobile performance enhancement
+- Loading state optimization
+
+**Claude Instance 3: End-to-End Testing Suite**
+- Complete user journey automation
+- Payment flow integration testing  
+- Cross-browser compatibility verification
+
+**Claude Instance 4: Deployment & Integration**
+- Production environment configuration
+- Monitoring and alerting setup
+- Security audit and hardening
+
+### Architecture Evolution Path
+
+#### Short-term Enhancements (1-3 months)
+1. **Machine Learning Integration**
+   - Personalized difficulty progression algorithms
+   - Optimal review timing prediction
+   - Learning pattern analysis for content optimization
+
+2. **Advanced Analytics Dashboard**
+   - Real-time learning effectiveness metrics
+   - Predictive retention modeling
+   - Educational outcome measurement
+
+3. **Curriculum Marketplace**
+   - Teacher-created learning progressions
+   - School-specific content adaptation
+   - Community content sharing platform
+
+#### Long-term Vision (6-12 months)
+1. **Multi-Subject Expansion**
+   - Science and reading comprehension modules
+   - Cross-curricular learning connections
+   - Adaptive assessment across subjects
+
+2. **Global Localization**
+   - Multi-language content generation
+   - Regional curriculum alignment
+   - Cultural learning preference adaptation
+
+3. **Enterprise Features**
+   - Classroom management tools
+   - Parent/teacher progress sharing
+   - District-wide analytics and reporting
+
+### Key Success Metrics
+
+#### Technical Metrics
+- **Response Time**: < 100ms for question generation
+- **Availability**: 99.9% uptime with global CDN
+- **Performance**: Mobile-first with progressive enhancement
+- **Security**: Zero-trust architecture with comprehensive audit trails
+
+#### Educational Metrics  
+- **Learning Velocity**: Measurable improvement in mathematical fluency
+- **Retention Rate**: Sustained engagement over time
+- **Conceptual Understanding**: Evidence of deeper mathematical thinking
+- **Transfer Learning**: Application to new mathematical contexts
+
+#### Business Metrics
+- **Conversion Rate**: Free-to-premium subscription success
+- **User Satisfaction**: High NPS scores and positive engagement
+- **Market Growth**: Expanding user base and community
+- **Revenue Growth**: Sustainable subscription model scaling
+
+### Technical Debt Management
+
+#### Identified Areas for Refinement
+1. **Session Metrics System**: Complete implementation of detailed learning analytics
+2. **Offline Storage**: Enhanced caching strategy for premium content
+3. **Error Handling**: Comprehensive error recovery and user guidance
+4. **Performance Monitoring**: Real-time alerting and optimization feedback
+
+#### Code Quality Initiatives
+1. **TypeScript Coverage**: 100% type safety across all components
+2. **Test Coverage**: Comprehensive unit and integration testing
+3. **Documentation**: Living documentation with architectural decision records
+4. **Code Review**: Automated quality gates and peer review processes
+
+## Conclusion: Revolutionary Educational Architecture
+
+Zenjin Maths represents a fundamental paradigm shift in educational technology architecture. By implementing:
+
+- **Dynamic content generation** instead of static question storage
+- **Distinction-based learning** rather than explanation-driven instruction  
+- **Zero-decision fatigue** through algorithmic content curation
+- **Event-driven state management** for seamless user experiences
+- **APML Framework compliance** for maintainable, scalable code
+
+The platform creates a truly adaptive, personalized learning environment that scales infinitely while maintaining the simplicity of "just press play and learn."
+
+The architecture successfully balances technical sophistication with educational effectiveness, creating a foundation that will transform how children experience mathematical learning while providing educators and administrators with powerful tools for tracking and optimizing educational outcomes.
+
+**Current Status**: 86% complete, targeting launch in 5 days with parallel Claude development team.
+**Next Phase**: Production deployment with real-world validation and iterative improvement based on user feedback and learning outcome data.

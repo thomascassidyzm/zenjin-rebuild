@@ -145,26 +145,65 @@ export default async function handler(
       });
     }
 
-    // Create initial user state
+    // Get default tube positions from database
+    const { data: defaultTubePositions, error: tubePositionsError } = await supabase
+      .from('default_tube_positions')
+      .select('*')
+      .order('tube_id')
+      .order('logical_position');
+
+    if (tubePositionsError) {
+      console.error('Error fetching default tube positions:', tubePositionsError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch default tube positions',
+        errorCode: 'DATABASE_ERROR',
+        timestamp,
+        requestId
+      });
+    }
+
+    // Convert default positions to user tube_positions format
+    const tubePositions: any = {};
+    if (defaultTubePositions) {
+      defaultTubePositions.forEach((position: any) => {
+        if (!tubePositions[position.tube_id]) {
+          tubePositions[position.tube_id] = {};
+        }
+        tubePositions[position.tube_id][position.logical_position.toString()] = position.stitch_id;
+      });
+    }
+
+    // Create initial user state with proper tube positions
     const defaultState = {
-      stitch_positions: {},
+      tube_positions: tubePositions,
       triple_helix_state: {
-        currentTube: 1,
-        activeSessions: [],
-        completedGroupings: {},
-        sessionProgress: {}
+        activeTube: 1,
+        tubes: {
+          tube1: { status: 'live', activeStitchId: null, totalStitches: 0 },
+          tube2: { status: 'ready', activeStitchId: null, totalStitches: 0 },
+          tube3: { status: 'preparing', activeStitchId: null, totalStitches: 0 }
+        },
+        rotationCount: 0,
+        sessionCount: 0
       },
       spaced_repetition_state: {
-        intervals: {},
-        nextReview: {},
-        masteryLevels: {}
+        sequence: [4, 8, 15, 30, 100, 1000],
+        globalPosition: 1
       },
       progress_metrics: {
-        totalStitchesCompleted: 0,
-        totalTimeSpent: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        averageAccuracy: 0
+        totalSessions: 0,
+        totalQuestions: 0,
+        totalCorrect: 0,
+        totalPoints: 0,
+        lifetimeMetrics: {
+          ftcPoints: 0,
+          ecPoints: 0,
+          basePoints: 0,
+          evolution: 0,
+          averageBlinkSpeed: 0,
+          globalRanking: null
+        }
       }
     };
 
@@ -172,7 +211,7 @@ export default async function handler(
       .from('user_state')
       .insert({
         user_id: userId,
-        stitch_positions: defaultState.stitch_positions,
+        tube_positions: defaultState.tube_positions,
         triple_helix_state: defaultState.triple_helix_state,
         spaced_repetition_state: defaultState.spaced_repetition_state,
         progress_metrics: defaultState.progress_metrics,
@@ -215,7 +254,7 @@ export default async function handler(
       },
       userState: {
         userId: newUserState.user_id,
-        stitchPositions: newUserState.stitch_positions,
+        tubePositions: newUserState.tube_positions,
         tripleHelixState: newUserState.triple_helix_state,
         spacedRepetitionState: newUserState.spaced_repetition_state,
         progressMetrics: newUserState.progress_metrics,

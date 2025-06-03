@@ -520,6 +520,66 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     const randomIndex = Math.floor(Math.random() * templates.length);
     return templates[randomIndex];
   }
+
+  /**
+   * Formats a question template with actual values from a fact
+   * @param factId Fact identifier
+   * @param template Question template
+   * @returns Formatted question text
+   */
+  private formatQuestionText(factId: string, template: string): string {
+    const fact = this.factRepository.getFactById(factId);
+    
+    if (!fact) {
+      throw new Error('INVALID_FACT');
+    }
+    
+    // Replace template placeholders with actual values
+    let questionText = template;
+    
+    // Extract operands from the fact
+    const operands = this.extractOperands(fact);
+    
+    questionText = questionText.replace(/\{\{operand1\}\}/g, operands.operand1.toString());
+    questionText = questionText.replace(/\{\{operand2\}\}/g, operands.operand2.toString());
+    questionText = questionText.replace(/\{\{result\}\}/g, fact.result.toString());
+    questionText = questionText.replace(/\{\{operation\}\}/g, fact.operation);
+    
+    return questionText;
+  }
+
+  /**
+   * Extracts operands from a mathematical fact
+   * @param fact Mathematical fact
+   * @returns Operands object
+   */
+  private extractOperands(fact: any): { operand1: number; operand2: number } {
+    // For facts with ID like "mult-6-4", extract operands from ID
+    const factIdParts = fact.id.split('-');
+    
+    if (factIdParts.length >= 3) {
+      const operand1 = parseInt(factIdParts[1], 10);
+      const operand2 = parseInt(factIdParts[2], 10);
+      
+      if (!isNaN(operand1) && !isNaN(operand2)) {
+        return { operand1, operand2 };
+      }
+    }
+    
+    // Fallback: try to extract from statement if available
+    if (fact.statement) {
+      const statementMatch = fact.statement.match(/(\d+)\s*[+\-×÷*\/]\s*(\d+)/);
+      if (statementMatch) {
+        return {
+          operand1: parseInt(statementMatch[1], 10),
+          operand2: parseInt(statementMatch[2], 10)
+        };
+      }
+    }
+    
+    // Final fallback: use default values
+    return { operand1: 1, operand2: 1 };
+  }
   
   /**
    * Adds a fact ID to the recent questions cache for a user
