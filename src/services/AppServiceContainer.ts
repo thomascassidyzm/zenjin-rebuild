@@ -1,94 +1,141 @@
 /**
- * APML v2.2 Application Service Container
+ * APML v2.2 Compliant Service Architecture
  * 
- * This is the global service container instance for the application.
- * It's built once during app initialization and provides infallible service resolution.
+ * Following APML Axiom F6 - Context Boundary Principle:
+ * "Formal interfaces are required only when interactions cross defined context boundaries.
+ * Within boundaries, implementation is free."
+ * 
+ * Multiple FactRepository instances are CORRECT - each context boundary manages its own services.
+ * This removes inappropriate singleton constraints within context boundaries.
  */
 
-import { ImmutableServiceContainer, BuildException } from '../interfaces/ServiceResolutionV2Interface';
-import { createServiceContainer } from './ServiceContainerV2';
-import { registerAllServices } from './ServiceFactoriesV2';
+import { FactRepository } from '../engines/FactRepository/FactRepository';
+import { LearningEngineService } from './LearningEngineService';
+import { ContentManager } from '../engines/ContentManager/ContentManager';
+import { QuestionGenerator } from '../engines/QuestionGenerator/QuestionGenerator';
+import { DistractorGenerator } from '../engines/DistractorGenerator/DistractorGenerator';
+import { DistinctionManager } from '../engines/DistinctionManager/DistinctionManager';
+import { TripleHelixManager } from '../engines/TripleHelixManager/TripleHelixManager';
+import { StitchPopulation } from '../engines/StitchPopulation/StitchPopulation';
+import { StitchPreparation } from '../engines/StitchPreparation/StitchPreparation';
+import { StitchCache } from '../engines/StitchCache/StitchCache';
+import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
+import { ContentGatingEngine } from '../engines/ContentGatingEngine';
+import { offlineContentManager } from '../engines/OfflineContentManager';
 
-let serviceContainer: ImmutableServiceContainer | null = null;
-let initializationPromise: Promise<ImmutableServiceContainer> | null = null;
+// APML-compliant service instances - each context boundary owns its services
+let learningEngineService: LearningEngineService | null = null;
 
 /**
- * Initialize the service container
- * This should be called once during app startup
+ * Initialize services following APML v2.2 Context Boundary Principle
+ * Creates service instances within appropriate context boundaries
  */
-export async function initializeServiceContainer(): Promise<ImmutableServiceContainer> {
-  // If already initializing, return the same promise
-  if (initializationPromise) {
-    return initializationPromise;
+export async function initializeServiceContainer(): Promise<void> {
+  if (learningEngineService) {
+    return; // Already initialized
   }
   
-  // If already initialized, return the container
-  if (serviceContainer) {
-    return serviceContainer;
-  }
-  
-  // Start initialization
-  initializationPromise = (async () => {
-    try {
-      console.log('🏗️ Building service container...');
-      
-      const builder = createServiceContainer();
-      registerAllServices(builder);
-      
-      // Validate before building
-      const validation = builder.validate();
-      if (!validation.valid) {
-        console.error('❌ Service container validation failed:', validation.errors);
-        throw new BuildException(
-          'Service container validation failed',
-          validation.errors,
-          validation.warnings
-        );
-      }
-      
-      // Build the container
-      const container = await builder.build();
-      serviceContainer = container;
-      
-      console.log('✅ Service container built successfully');
-      console.log('📦 Registered services:', container.getRegisteredTypes());
-      
-      return container;
-    } catch (error) {
-      console.error('❌ Failed to build service container:', error);
-      initializationPromise = null; // Reset so it can be retried
-      throw error;
-    }
-  })();
-  
-  return initializationPromise;
-}
-
-/**
- * Get the service container
- * @throws Error if container not initialized
- */
-export function getServiceContainer(): ImmutableServiceContainer {
-  if (!serviceContainer) {
-    throw new Error(
-      'Service container not initialized. Call initializeServiceContainer() first.'
+  try {
+    console.log('🏗️ Initializing APML-compliant service architecture...');
+    
+    // Content Generation Context - can have its own FactRepository
+    const contentFactRepo = new FactRepository();
+    console.log('📦 FactRepository created for content generation context');
+    
+    const contentManager = new ContentManager(contentFactRepo);
+    const distinctionManager = new DistinctionManager(contentFactRepo);
+    const distractorGenerator = new DistractorGenerator(contentFactRepo);
+    
+    // Engine Context - can have its own FactRepository  
+    const engineFactRepo = new FactRepository();
+    console.log('📦 FactRepository created for engine context');
+    
+    const tripleHelixManager = new TripleHelixManager();
+    const stitchCache = new StitchCache();
+    const stitchPopulation = new StitchPopulation(engineFactRepo);
+    
+    const questionGenerator = new QuestionGenerator(
+      engineFactRepo,
+      distinctionManager,
+      tripleHelixManager as any,
+      distractorGenerator
     );
+    
+    const stitchPreparation = new StitchPreparation(
+      engineFactRepo,
+      distinctionManager,
+      distractorGenerator,
+      questionGenerator
+    );
+    
+    const liveAidManager = new LiveAidManager(
+      stitchCache,
+      stitchPreparation,
+      stitchPopulation,
+      tripleHelixManager as any
+    );
+    
+    // Application Context - cross-boundary services
+    const contentGatingEngine = new ContentGatingEngine({} as any); // Mock for now
+    
+    // Learning Engine Service - orchestrates across contexts
+    learningEngineService = new LearningEngineService({
+      factRepository: contentFactRepo, // Uses content context FactRepository
+      contentManager,
+      questionGenerator,
+      distractorGenerator,
+      distinctionManager,
+      tripleHelixManager,
+      stitchPopulation,
+      stitchPreparation,
+      stitchCache,
+      liveAidManager,
+      contentGatingEngine,
+      offlineContentManager
+    });
+    
+    console.log('✅ APML-compliant service architecture initialized');
+    console.log('📊 Multiple FactRepository instances created (APML-compliant)');
+    
+  } catch (error) {
+    console.error('❌ Failed to initialize service architecture:', error);
+    throw error;
   }
-  return serviceContainer;
 }
 
 /**
- * Check if the service container is initialized
- */
-export function isServiceContainerInitialized(): boolean {
-  return serviceContainer !== null;
-}
-
-/**
- * Type-safe service getter
- * This provides compile-time type safety for service resolution
+ * Get service following APML context boundaries
+ * @throws Error if services not initialized
  */
 export function getService<T>(type: string): T {
-  const container = getServiceContainer();
-  return container.getService<T>(type);
+  if (!learningEngineService) {
+    throw new Error(
+      'Services not initialized. Call initializeServiceContainer() first.'
+    );
+  }
+  
+  switch (type) {
+    case 'LearningEngineService':
+      return learningEngineService as unknown as T;
+    default:
+      throw new Error(`Service '${type}' not available. APML-compliant architecture provides specific services.`);
+  }
+}
+
+/**
+ * Check if services are initialized
+ */
+export function isServiceContainerInitialized(): boolean {
+  return learningEngineService !== null;
+}
+
+/**
+ * Get the LearningEngineService directly
+ * This is the main service orchestrator that crosses context boundaries
+ */
+export function getLearningEngineService(): LearningEngineService {
+  if (!learningEngineService) {
+    throw new Error('LearningEngineService not initialized');
+  }
+  return learningEngineService;
 }

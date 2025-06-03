@@ -85,12 +85,12 @@ const mockDashboardData: DashboardData = {
   streakDays: 7
 };
 
-// Generate questions for current stitch in learning path using LearningEngineService
+// Generate questions for current stitch in learning path using APML-compliant service
 const generateQuestionsForStitch = async (learningPathId: string, userId: string = 'default-user'): Promise<Question[]> => {
   try {
     console.log(`Generating questions for learning path: ${learningPathId}, user: ${userId}`);
     
-    // Get LearningEngineService from container
+    // Get LearningEngineService following APML context boundaries
     const learningEngineService = getService<any>('LearningEngineService');
     
     // Use LearningEngineService for session-based question generation
@@ -248,7 +248,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({
     }
   }, [isExiting, sessionComplete]);
 
-  // Initialize session using LearningEngineService with proper user ID
+  // Initialize session using APML-compliant service architecture
   useEffect(() => {
     // Prevent re-initialization on every render
     if (hasInitialized) return;
@@ -311,10 +311,13 @@ const LearningSession: React.FC<LearningSessionProps> = ({
         setHasInitialized(true);
         console.log(`LearningSession initialized from bus: ${sessionIdFromBus} with 1 question`);
       } else {
-        // Initialize by fetching new questions
+        // Initialize by fetching new questions using APML-compliant service
         try {
+          // Get the learning engine service following APML context boundaries
+          const learningService = getService<any>('LearningEngineService');
+          
           // Use tube-based system (defaults to tube1 = doubling/halving)
-          const sessionResult = await learningEngineService.initializeLearningSession(
+          const sessionResult = await learningService.initializeLearningSession(
             userId,
             'addition', // Maps to tube1 in the service
             { maxQuestions: 20 }
@@ -343,7 +346,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({
           setSessionComplete(false);
           setSessionStartTime(Date.now());
           
-          console.log(`LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
+          console.log(`APML LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
           setHasInitialized(true);
         } catch (error) {
           console.error('Failed to initialize learning session:', error);
@@ -424,8 +427,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({
           timestamp: new Date().toISOString()
         };
         
-        const container = await getServiceContainer();
-        const learningEngineService = await container.getService('LearningEngineService');
+        const learningEngineService = getService<any>('LearningEngineService');
         const responseResult = await learningEngineService.processUserResponse(
           currentQuestion.metadata.sessionId,
           currentQuestion.id,
@@ -594,8 +596,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({
         
         console.log(`Loading next stitch: ${nextStitch.stitchId}`);
       } else {
-        // Fallback: Start new session
-        const sessionResult = await learningEngineService.initializeLearningSession(
+        // Fallback: Start new session using APML-compliant service
+        const learningService = getService<any>('LearningEngineService');
+        const sessionResult = await learningService.initializeLearningSession(
           userId,
           'addition',
           { maxQuestions: 20 }
@@ -818,15 +821,16 @@ const AppContent: React.FC = () => {
   const [containerError, setContainerError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Initialize service container once
+    // Initialize APML-compliant service architecture
     if (!isServiceContainerInitialized()) {
       initializeServiceContainer()
         .then(() => {
-          console.log('✅ Service container initialized successfully');
+          console.log('✅ APML-compliant service architecture initialized successfully');
+          console.log('📦 Multiple FactRepository instances created per APML Context Boundary Principle');
           setContainerInitialized(true);
         })
         .catch((error) => {
-          console.error('❌ Failed to initialize service container:', error);
+          console.error('❌ Failed to initialize APML service architecture:', error);
           setContainerError(error);
         });
     } else {
