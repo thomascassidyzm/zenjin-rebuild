@@ -76,7 +76,23 @@ export async function initializeServiceContainer(): Promise<void> {
     );
     
     // Application Context - cross-boundary services
-    const contentGatingEngine = new ContentGatingEngine({} as any); // Mock for now
+    // Create a proper subscription manager for ContentGatingEngine
+    const mockPaymentProcessor = {
+      async processPayment() { return true; },
+      async refund() { return true; }
+    };
+    const subscriptionManager = {
+      checkSubscriptionStatus: (userId: string) => ({
+        hasActiveSubscription: false,
+        tier: 'Free'
+      }),
+      getUserSubscription: (userId: string) => ({
+        planId: 'free',
+        tier: 'free'
+      })
+    };
+    
+    const contentGatingEngine = new ContentGatingEngine(subscriptionManager);
     
     // Learning Engine Service - orchestrates across contexts
     learningEngineService = new LearningEngineService({
