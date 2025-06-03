@@ -245,38 +245,58 @@ const features: Feature[] = [
 
 const recentMilestones: Milestone[] = [
   {
-    date: '2025-05-26',
-    title: 'User Management System Complete',
-    description: 'Full authentication flow with anonymous users and APML compliance',
-    impact: 'high'
-  },
-  {
-    date: '2025-05-25',
-    title: 'Backend Services Integration',
-    description: 'Supabase integration with real-time sync and state persistence',
-    impact: 'high'
-  },
-  {
-    date: '2025-05-24',
-    title: 'Subscription System Functional',
-    description: 'Payment processing with tier-based access control',
+    date: '2025-06-03',
+    title: 'Complete Interface Documentation',
+    description: 'Added comprehensive mermaid diagrams for all interface contracts and system flows',
     impact: 'medium'
   },
   {
-    date: '2025-05-23',
-    title: 'UI/UX Framework Complete',
-    description: 'All visual components with animations and responsive design',
+    date: '2025-06-03',
+    title: 'Auth-to-Player Flow Functional',
+    description: 'Full state machine working with session exit, navigation, and dashboard integration',
     impact: 'high'
   },
   {
-    date: '2025-05-22',
-    title: 'Learning Engine Operational',
-    description: 'Core pedagogy with distinction-based learning implemented',
+    date: '2025-06-02',
+    title: 'Settings & Password Management',
+    description: 'Complete user settings interface with password functionality to reduce OTP dependency',
+    impact: 'medium'
+  },
+  {
+    date: '2025-06-01',
+    title: 'Premium Content Gating Complete',
+    description: 'Stripe integration with graceful degradation and content access control',
+    impact: 'high'
+  },
+  {
+    date: '2025-05-30',
+    title: 'Navigation & State Management Fixed',
+    description: 'Event-driven navigation with proper session exit flow during active learning',
     impact: 'high'
   }
 ];
 
 const remainingTasks: RemainingTask[] = [
+  {
+    id: 'critical-bug-fixes',
+    title: 'Fix Critical Runtime Bugs',
+    description: 'Address FactRepository interface mismatch, EngineOrchestrator require() error, and backend state sync issues',
+    estimatedSessions: 1,
+    priority: 'critical',
+    technicalNotes: 'Fix: LiveAidManager.searchFacts(), EngineOrchestrator import, HTTP 409 conflicts',
+    parallelizable: false,
+    claudeInstance: 1
+  },
+  {
+    id: 'session-flow-polish',
+    title: 'Polish Session Exit & Summary Flow',
+    description: 'Fix React error #310 in session completion, improve session metrics accuracy',
+    estimatedSessions: 1,
+    priority: 'high',
+    technicalNotes: 'useEffect cleanup in session summary component',
+    parallelizable: true,
+    claudeInstance: 2
+  },
   {
     id: 'offline-sync',
     title: 'Complete Offline Sync Implementation',
@@ -285,27 +305,7 @@ const remainingTasks: RemainingTask[] = [
     priority: 'high',
     technicalNotes: 'Focus on conflict resolution and data integrity',
     parallelizable: true,
-    claudeInstance: 1
-  },
-  {
-    id: 'content-preload',
-    title: 'Implement Content Pre-caching',
-    description: 'Service Worker setup for offline content availability',
-    estimatedSessions: 1,
-    priority: 'medium',
-    dependencies: ['offline-sync'],
-    parallelizable: false,
-    claudeInstance: 1
-  },
-  {
-    id: 'performance-audit',
-    title: 'Performance Optimization Pass',
-    description: 'Profile and optimize bundle size, lazy loading, and render performance',
-    estimatedSessions: 1,
-    priority: 'high',
-    technicalNotes: 'Target < 3s initial load, maintain 60fps animations',
-    parallelizable: true,
-    claudeInstance: 2
+    claudeInstance: 3
   },
   {
     id: 'e2e-testing',
@@ -315,7 +315,7 @@ const remainingTasks: RemainingTask[] = [
     priority: 'critical',
     technicalNotes: 'Cypress or Playwright for test automation',
     parallelizable: true,
-    claudeInstance: 3
+    claudeInstance: 4
   },
   {
     id: 'deployment-prep',
@@ -323,9 +323,9 @@ const remainingTasks: RemainingTask[] = [
     description: 'Configure CI/CD, monitoring, and launch procedures',
     estimatedSessions: 1,
     priority: 'critical',
-    dependencies: ['e2e-testing', 'performance-audit'],
+    dependencies: ['critical-bug-fixes', 'e2e-testing'],
     parallelizable: false,
-    claudeInstance: 4
+    claudeInstance: 1
   }
 ];
 
@@ -345,7 +345,7 @@ const calculateRemainingTime = () => {
   
   // With 4 Claude instances working in parallel
   const totalSessions = remainingTasks.reduce((sum, task) => sum + task.estimatedSessions, 0);
-  const daysRemaining = 5; // Target: 5 days with parallel execution
+  const daysRemaining = 3; // Updated: 3 days with parallel execution (down from 5)
   
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() + daysRemaining);
@@ -585,13 +585,13 @@ export const ProjectStatusDashboard: React.FC = () => {
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-green-400">Completed Work</span>
-                        <span className="text-green-400 font-semibold">88%</span>
+                        <span className="text-green-400 font-semibold">92%</span>
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-3">
                         <motion.div
                           className="h-3 rounded-full bg-gradient-to-r from-green-500 to-green-400"
                           initial={{ width: 0 }}
-                          animate={{ width: '88%' }}
+                          animate={{ width: '92%' }}
                           transition={{ duration: 1, ease: "easeOut" }}
                         />
                       </div>
@@ -599,13 +599,13 @@ export const ProjectStatusDashboard: React.FC = () => {
                     <div>
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-orange-400">Remaining Work</span>
-                        <span className="text-orange-400 font-semibold">12%</span>
+                        <span className="text-orange-400 font-semibold">8%</span>
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-3">
                         <motion.div
                           className="h-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-400"
                           initial={{ width: 0 }}
-                          animate={{ width: '12%' }}
+                          animate={{ width: '8%' }}
                           transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
                         />
                       </div>
