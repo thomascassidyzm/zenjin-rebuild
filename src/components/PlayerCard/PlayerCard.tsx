@@ -74,6 +74,16 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
   // Tracking if a question has been attempted before
   const [attemptedQuestions, setAttemptedQuestions] = useState<Set<string>>(new Set());
 
+  // APML-compliant component lifecycle cleanup
+  const isMountedRef = useRef(true);
+  
+  // Safe state setter that checks if component is still mounted
+  const safeSetState = useCallback((setter: () => void) => {
+    if (isMountedRef.current) {
+      setter();
+    }
+  }, []);
+
   /**
    * Presents a question to the user with binary choices
    * @param question The question to present
@@ -185,7 +195,7 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       console.error('FEEDBACK_FAILED: Failed to show feedback due to rendering issues', error);
       return { processed: false, feedbackShown: false };
     }
-  }, [safeSetState]);
+  }, [safeSetState, presentQuestion, currentQuestion]);
 
   /**
    * Handles timeout when user doesn't respond within the allocated time
@@ -300,9 +310,6 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
     reset
   }), [presentQuestion, handleResponse, handleTimeout, reset]);
 
-  // APML-compliant component lifecycle cleanup
-  const isMountedRef = useRef(true);
-  
   useEffect(() => {
     isMountedRef.current = true;
     
@@ -316,13 +323,6 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
         timeoutRef.current = null;
       }
     };
-  }, []);
-  
-  // Safe state setter that checks if component is still mounted
-  const safeSetState = useCallback((setter: () => void) => {
-    if (isMountedRef.current) {
-      setter();
-    }
   }, []);
 
   // Determine card background class based on feedback state
