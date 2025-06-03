@@ -342,7 +342,7 @@ export class EngineOrchestrator {
     return {
       id: question.id,
       factId: question.factId,
-      text: question.questionText,
+      text: question.text || question.questionText || 'Question text missing',
       correctAnswer: question.correctAnswer,
       distractor: question.distractors && question.distractors.length > 0 
         ? question.distractors[0] 

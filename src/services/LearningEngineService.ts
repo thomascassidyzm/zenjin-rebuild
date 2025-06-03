@@ -771,12 +771,12 @@ export class LearningEngineService implements LearningEngineServiceInterface {
         // Convert ReadyQuestion format to Question format
         const questions: Question[] = readyStitch.questions.map(rq => ({
           id: rq.id,
-          questionText: rq.text,
+          questionText: rq.text || 'Question text missing',
           correctAnswer: rq.correctAnswer,
           distractors: [rq.distractor],
           boundaryLevel: rq.boundaryLevel,
           difficulty: 1,
-          factId: rq.factId,
+          factId: rq.metadata?.factId || rq.factId,
           metadata: {
             ...rq.metadata,
             learningPathId: learningPathId,
@@ -1075,19 +1075,20 @@ export class LearningEngineService implements LearningEngineServiceInterface {
    */
   private extractTubeIdFromPath(learningPathId: string): string {
     // Learning path might be something like "addition" -> map to tube ID
+    // Return format that matches LiveAidManager cache keys
     switch (learningPathId) {
       case 'addition':
       case 'subtraction':
       case 'doubling':
       case 'halving':
-        return 't1';
+        return 'tube1';
       case 'multiplication':
-        return 't2';
+        return 'tube2';
       case 'division':
       case 'algebra':
-        return 't3';
+        return 'tube3';
       default:
-        return 't1'; // Default tube
+        return 'tube1'; // Default tube
     }
   }
 
@@ -1101,7 +1102,10 @@ export class LearningEngineService implements LearningEngineServiceInterface {
     // Use tube positions to determine stitch ID
     // This is a simplified version - in production, this would track actual progress
     const stitchPosition = 1; // Start at first stitch
-    const stitchId = `${tubeId}-${String(stitchPosition).padStart(4, '0')}-0001`;
+    
+    // Convert tubeId format for stitch ID (tube1 -> t1)
+    const shortTubeId = tubeId.replace('tube', 't');
+    const stitchId = `${shortTubeId}-${String(stitchPosition).padStart(4, '0')}-0001`;
     return stitchId;
   }
 
