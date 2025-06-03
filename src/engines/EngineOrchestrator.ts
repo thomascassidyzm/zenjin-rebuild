@@ -5,7 +5,7 @@
  * UPDATED: Tube-based architecture following APML Framework v1.4.2
  */
 
-import { LearningEngineService, learningEngineService } from '../services/LearningEngineService';
+import { LearningEngineService } from '../services/LearningEngineService';
 
 // Import updated tube-based interfaces
 import { StitchManagerInterface, StitchId, TubeId } from '../interfaces/StitchManagerInterface';
@@ -223,10 +223,20 @@ export class EngineOrchestrator {
   // Active learning sessions for each user
   private activeSessions: Map<string, string> = new Map();
   
-  constructor(enableLiveAid: boolean = false) {
+  constructor(
+    private contentGatingEngine?: any,
+    learningEngineService?: LearningEngineService,
+    enableLiveAid: boolean = false
+  ) {
     // Initialize tube-based components
     this.tripleHelixManager = new TempTripleHelixManager();
-    this.learningEngineService = learningEngineService;
+    
+    // Accept injected learningEngineService
+    if (learningEngineService) {
+      this.learningEngineService = learningEngineService;
+    } else {
+      throw new Error('LearningEngineService is required');
+    }
     
     // Optional Live Aid Architecture initialization
     if (enableLiveAid) {

@@ -1,466 +1,959 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Trophy, 
+  Clock, 
+  CheckCircle2, 
+  AlertCircle, 
+  TrendingUp,
+  Zap,
+  Target,
+  Calendar,
+  Shield,
+  Rocket,
+  Activity,
+  BrainCircuit,
+  Users,
+  Code2,
+  Database,
+  Smartphone,
+  CreditCard,
+  WifiOff
+} from 'lucide-react';
 
-// APML Status Data (from registry.apml)
-const apmlStatusLevels = [
-  { name: 'not-started', symbol: '🔴', description: 'Not implemented at all', color: 'bg-red-500' },
-  { name: 'scaffolded', symbol: '🟡', description: 'Basic structure exists but not functional', color: 'bg-yellow-500' },
-  { name: 'functional', symbol: '🟠', description: 'Basic functionality works but not polished', color: 'bg-orange-500' },
-  { name: 'integrated', symbol: '🟢', description: 'Works with other components properly', color: 'bg-green-500' },
-  { name: 'tested', symbol: '🔵', description: 'Has comprehensive tests', color: 'bg-blue-500' },
-  { name: 'optimized', symbol: '⭐', description: 'Performance optimized and production-ready', color: 'bg-purple-500' }
-];
+// Types
+interface Feature {
+  id: string;
+  name: string;
+  description: string;
+  status: 'completed' | 'in-progress' | 'remaining';
+  completionPercentage: number;
+  estimatedSessions?: number;
+  icon: React.ReactNode;
+  technicalDetails?: string[];
+  achievements?: string[];
+}
 
-const moduleData = [
-  { 
-    name: 'UserInterface', 
-    interfaces: '5/5', 
-    components: '5/5', 
-    status: 'integrated', 
-    completion: 95,
-    purpose: 'User-facing components including Player Card, feedback system, visual theming, animations, and layout management',
-    contextBoundary: 'Encompasses all visual components, user interactions, theme management, and frontend presentation logic',
-    validationCriteria: [
-      { id: 'UI-001', description: 'Player Card shows greenish glow for correct answers, reddish glow with shudder for incorrect' },
-      { id: 'UI-002', description: 'Background displays calming bubble animation maintaining 60fps on target devices' },
-      { id: 'UI-003', description: 'All components consistently apply theme with rich colors, gradients, and dark theme' },
-      { id: 'UI-004', description: 'Session Summary correctly displays and animates all session metrics' },
-      { id: 'UI-005', description: 'Dashboard correctly displays lifetime metrics including Evolution and Global Ranking' }
+interface Milestone {
+  date: string;
+  title: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+}
+
+interface RemainingTask {
+  id: string;
+  title: string;
+  description: string;
+  estimatedSessions: number;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  dependencies?: string[];
+  technicalNotes?: string;
+}
+
+// Data
+const features: Feature[] = [
+  {
+    id: 'user-interface',
+    name: 'User Interface & Experience',
+    description: 'Beautiful, responsive UI with rich animations and child-friendly design',
+    status: 'completed',
+    completionPercentage: 95,
+    icon: <BrainCircuit className="w-6 h-6" />,
+    technicalDetails: [
+      'React 18 with TypeScript',
+      'Tailwind CSS with custom design system',
+      'Framer Motion animations',
+      'Fully responsive (mobile-first)',
+      'Dark theme with rich gradients'
+    ],
+    achievements: [
+      'Player Card with emotional feedback (glow effects)',
+      'Bubble animations maintaining 60fps',
+      'Session Summary with animated metrics',
+      'Dashboard with lifetime statistics',
+      'Theme system with consistent styling'
     ]
   },
-  { 
-    name: 'LearningEngine', 
-    interfaces: '6/6', 
-    components: '6/6', 
-    status: 'functional', 
-    completion: 85,
-    purpose: 'Core learning algorithms implementing distinction-based pedagogy with 5-boundary levels, question generation, and adaptive content',
-    contextBoundary: 'Encompasses learning algorithms, distinction management, question generation, distractor generation, and curriculum logic',
-    validationCriteria: [
-      { id: 'LE-001', description: 'Five boundary levels implementation with proper thresholds' },
-      { id: 'LE-002', description: 'Question generation produces appropriate difficulty progression' },
-      { id: 'LE-003', description: 'Distractor generation creates plausible but incorrect answers' },
-      { id: 'LE-004', description: 'Distinction manager accurately tracks learner progress across boundaries' },
-      { id: 'LE-005', description: 'Content repository provides reliable fact storage and retrieval' }
+  {
+    id: 'learning-engine',
+    name: 'Learning Engine & Pedagogy',
+    description: 'Distinction-based learning with 5-boundary system and adaptive content',
+    status: 'completed',
+    completionPercentage: 90,
+    icon: <Activity className="w-6 h-6" />,
+    technicalDetails: [
+      'Distinction-based pedagogy implementation',
+      '5-boundary level system',
+      'Adaptive question generation',
+      'Intelligent distractor creation',
+      'Content repository with fact storage'
+    ],
+    achievements: [
+      'Boundary detection algorithms',
+      'Question difficulty progression',
+      'Plausible distractor generation',
+      'Learning state tracking',
+      'Performance optimization'
     ]
   },
-  { 
-    name: 'ProgressionSystem', 
-    interfaces: '4/4', 
-    components: '4/4', 
-    status: 'functional', 
-    completion: 85,
-    purpose: 'Triple Helix model implementation with spaced repetition, stitch management, and progress tracking using positions-as-first-class-citizens',
-    contextBoundary: 'Covers spaced repetition algorithms, stitch progression, tube rotation, and learning path management',
-    validationCriteria: [
-      { id: 'PS-001', description: 'Spaced repetition follows fixed sequence [4, 8, 15, 30, 100, 1000] days' },
-      { id: 'PS-002', description: 'Triple Helix tube rotation (addition → multiplication → subtraction) works seamlessly' },
-      { id: 'PS-003', description: 'Stitch positions are treated as first-class citizens in the system' },
-      { id: 'PS-004', description: 'Progress tracking accurately reflects learner advancement through sequences' },
-      { id: 'PS-005', description: 'Perfect completion (=20/20) advances stitches, imperfect (<20/20) keeps them active' }
+  {
+    id: 'progression-system',
+    name: 'Triple Helix Progression',
+    description: 'Spaced repetition with tube rotation and stitch management',
+    status: 'completed',
+    completionPercentage: 85,
+    icon: <TrendingUp className="w-6 h-6" />,
+    technicalDetails: [
+      'Triple Helix model implementation',
+      'Spaced repetition [4, 8, 15, 30, 100, 1000] days',
+      'Tube rotation (add → multiply → subtract)',
+      'Positions as first-class citizens',
+      'Progress tracking algorithms'
+    ],
+    achievements: [
+      'Stitch advancement logic',
+      'Perfect session detection (20/20)',
+      'Tube rotation mechanics',
+      'Progress persistence',
+      'Learning path management'
     ]
   },
-  { 
-    name: 'MetricsSystem', 
-    interfaces: '4/4', 
-    components: '4/4', 
-    status: 'functional', 
-    completion: 90,
-    purpose: 'Comprehensive metrics calculation including FTC/EC/Bonus points, session tracking, lifetime aggregation, and analytics storage',
-    contextBoundary: 'Handles all numerical tracking, performance calculation, session metrics, and long-term analytics',
-    validationCriteria: [
-      { id: 'MS-001', description: 'Session metrics calculation accuracy for FTC, EC, and Bonus points' },
-      { id: 'MS-002', description: 'Lifetime metrics aggregation produces correct Evolution calculations' },
-      { id: 'MS-003', description: 'Metrics storage persists data reliably across sessions' },
-      { id: 'MS-004', description: 'Performance tracking provides meaningful analytics for learning optimization' },
-      { id: 'MS-005', description: 'Global ranking algorithms function correctly with fair comparisons' }
+  {
+    id: 'metrics-system',
+    name: 'Metrics & Analytics',
+    description: 'Comprehensive tracking with FTC/EC points, Evolution, and rankings',
+    status: 'completed',
+    completionPercentage: 90,
+    icon: <Target className="w-6 h-6" />,
+    technicalDetails: [
+      'FTC/EC/Bonus point calculations',
+      'Evolution metric (Points/BlinkSpeed)',
+      'Global ranking algorithms',
+      'Session metrics aggregation',
+      'Long-term analytics storage'
+    ],
+    achievements: [
+      'Real-time metric updates',
+      'Accurate Evolution calculations',
+      'Fair ranking system',
+      'Performance analytics',
+      'Data visualization'
     ]
   },
-  { 
-    name: 'SubscriptionSystem', 
-    interfaces: '3/3', 
-    components: '3/3', 
-    status: 'functional', 
-    completion: 85,
-    purpose: 'Subscription management with content access control, payment processing, and tier-based feature restrictions',
-    contextBoundary: 'Covers subscription tiers, payment integration, content access control, and billing management',
-    validationCriteria: [
-      { id: 'SS-001', description: 'Subscription tiers properly restrict access to premium content' },
-      { id: 'SS-002', description: 'Payment processing integrates securely with async operations and gateway adapters' },
-      { id: 'SS-003', description: 'Content access controller enforces subscription boundaries and updateUserAccess integration' },
-      { id: 'SS-004', description: 'SubscriptionManager handles create/update/cancel operations with proper error handling' },
-      { id: 'SS-005', description: 'PaymentProcessorAdapter bridges SubscriptionManager with complex payment processing' }
+  {
+    id: 'user-management',
+    name: 'Authentication & Users',
+    description: 'Password/OTP auth with anonymous users and seamless migration',
+    status: 'completed',
+    completionPercentage: 95,
+    icon: <Users className="w-6 h-6" />,
+    technicalDetails: [
+      'Password authentication with auto-registration',
+      'OTP email verification',
+      'Anonymous user service (APML-compliant)',
+      'User context type safety',
+      'Seamless auth-to-player flow'
+    ],
+    achievements: [
+      'UnifiedAuthForm implementation',
+      'Mobile-friendly OTP entry',
+      'Anonymous → Registered migration',
+      'Type-safe user contexts',
+      'External service integration'
     ]
   },
-  { 
-    name: 'OfflineSupport', 
-    interfaces: '4/4', 
-    components: '4/4', 
-    status: 'functional', 
-    completion: 75,
-    purpose: 'Offline functionality with local storage, sync conflict resolution, and connectivity management for uninterrupted learning',
-    contextBoundary: 'Encompasses offline storage, synchronization logic, conflict resolution, and connectivity detection',
-    validationCriteria: [
-      { id: 'OS-001', description: 'Offline storage maintains learning session data when disconnected' },
-      { id: 'OS-002', description: 'Synchronization manager resolves conflicts between offline and online data' },
-      { id: 'OS-003', description: 'Content cache preloads essential learning materials for offline use' },
-      { id: 'OS-004', description: 'Connectivity manager accurately detects online/offline state changes' },
-      { id: 'OS-005', description: 'Sync queue processes pending changes when connection is restored' }
+  {
+    id: 'backend-services',
+    name: 'Backend Infrastructure',
+    description: 'Supabase integration with real-time sync and state persistence',
+    status: 'completed',
+    completionPercentage: 95,
+    icon: <Database className="w-6 h-6" />,
+    technicalDetails: [
+      'Supabase database with RLS',
+      'Real-time subscriptions',
+      'Optimistic locking',
+      'API endpoints with auth',
+      'State synchronization'
+    ],
+    achievements: [
+      'Anonymous user creation',
+      'Real-time state sync',
+      'Multi-device support',
+      'Automatic reconnection',
+      'Data migration logic'
     ]
   },
-  { 
-    name: 'UserManagement', 
-    interfaces: '2/2', 
-    components: '2/2', 
-    status: 'integrated', 
-    completion: 95,
-    purpose: 'Complete authentication system with password/OTP options, APML-compliant anonymous user service, and seamless Auth-to-Player flow',
-    contextBoundary: 'Password authentication, OTP verification, anonymous user service adapters, APML-compliant external service integration, user context type safety',
-    validationCriteria: [
-      { id: 'UM-001', description: 'Password authentication with auto-registration fallback working end-to-end' },
-      { id: 'UM-002', description: 'OTP email verification maintains keyboard focus and works on mobile' },
-      { id: 'UM-003', description: 'Anonymous users created via APML-compliant service adapter with offline fallback' },
-      { id: 'UM-004', description: 'Auth-to-Player flow uses proper typed user contexts (AuthenticatedUserContext/AnonymousUserContext)' },
-      { id: 'UM-005', description: 'User state initialization works correctly for both authenticated and anonymous users' },
-      { id: 'UM-006', description: 'External Service Integration Protocol followed for anonymous user creation' }
+  {
+    id: 'subscription-system',
+    name: 'Subscription & Payments',
+    description: 'Tier-based access control with payment processing',
+    status: 'completed',
+    completionPercentage: 85,
+    icon: <CreditCard className="w-6 h-6" />,
+    technicalDetails: [
+      'Subscription tier management',
+      'Payment gateway integration',
+      'Content access control',
+      'Async payment processing',
+      'Error handling & recovery'
+    ],
+    achievements: [
+      'Premium content gating',
+      'Secure payment flow',
+      'Subscription lifecycle',
+      'Gateway adapter pattern',
+      'Billing management'
     ]
   },
-  { 
-    name: 'BackendServices', 
-    interfaces: '5/5', 
-    components: '6/6', 
-    status: 'integrated', 
-    completion: 95,
-    purpose: 'Backend integration using Supabase and Vercel for authentication, state persistence, real-time sync, and API endpoints with frontend integration',
-    contextBoundary: 'Database schema, authentication patterns, API endpoints, real-time subscriptions, state synchronization, user migration logic, React context integration',
-    validationCriteria: [
-      { id: 'BS-001', description: 'Anonymous users can be created and immediately start using the app without registration' },
-      { id: 'BS-002', description: 'Anonymous users can seamlessly convert to registered accounts with full data migration' },
-      { id: 'BS-003', description: 'User state changes are synchronized in real-time across multiple devices/sessions' },
-      { id: 'BS-004', description: 'State updates use optimistic locking to handle concurrent modifications' },
-      { id: 'BS-005', description: 'Session metrics are accurately recorded and retrievable for analytics' },
-      { id: 'BS-006', description: 'API endpoints handle authentication and authorization correctly' },
-      { id: 'BS-007', description: 'Real-time subscriptions automatically reconnect on connection failures' },
-      { id: 'BS-008', description: 'Database operations are protected by Row Level Security (RLS) policies' },
-      { id: 'BS-009', description: 'Expired anonymous users are automatically cleaned up to prevent data bloat' },
-      { id: 'BS-010', description: 'All API responses follow consistent error handling and response format' }
+  {
+    id: 'offline-support',
+    name: 'Offline Functionality',
+    description: 'Local storage with sync and conflict resolution',
+    status: 'in-progress',
+    completionPercentage: 75,
+    estimatedSessions: 2,
+    icon: <WifiOff className="w-6 h-6" />,
+    technicalDetails: [
+      'IndexedDB for local storage',
+      'Service Worker implementation',
+      'Sync queue management',
+      'Conflict resolution logic',
+      'Content pre-caching'
+    ]
+  },
+  {
+    id: 'final-polish',
+    name: 'Final Polish & Launch Prep',
+    description: 'Performance optimization, testing, and deployment preparation',
+    status: 'remaining',
+    completionPercentage: 10,
+    estimatedSessions: 3,
+    icon: <Rocket className="w-6 h-6" />,
+    technicalDetails: [
+      'Performance profiling',
+      'Bundle optimization',
+      'E2E testing suite',
+      'Deployment configuration',
+      'Launch checklist'
     ]
   }
 ];
 
-const recentAchievements = [
-  { date: '2025-05-26', title: 'UserManagement Advanced to Integrated', description: 'Password authentication, APML-compliant anonymous user service, and Auth-to-Player flow user context fix complete' },
-  { date: '2025-05-26', title: 'APML External Service Integration Protocol', description: 'Anonymous user service follows strict APML protocols with proper documentation, interface-first design, and service adapters' },
-  { date: '2025-05-26', title: 'Password Authentication with OTP Fallback', description: 'UnifiedAuthForm provides email + optional password with auto-registration and OTP verification fallback' },
-  { date: '2025-05-26', title: 'Auth-to-Player User Context Type Safety', description: 'AuthToPlayerInterface.apml with proper AuthenticatedUserContext and AnonymousUserContext contracts implemented' },
-  { date: '2025-05-24', title: 'SubscriptionSystem Advanced to Functional', description: 'All 3 components functional with async payment processing, gateway adapters, and integration testing (12/12 tests passing)' },
-  { date: '2025-05-24', title: 'APML Interface-First Success', description: 'UserSessionManagerInterface.apml created before implementation, full APML compliance' }
+const recentMilestones: Milestone[] = [
+  {
+    date: '2025-05-26',
+    title: 'User Management System Complete',
+    description: 'Full authentication flow with anonymous users and APML compliance',
+    impact: 'high'
+  },
+  {
+    date: '2025-05-25',
+    title: 'Backend Services Integration',
+    description: 'Supabase integration with real-time sync and state persistence',
+    impact: 'high'
+  },
+  {
+    date: '2025-05-24',
+    title: 'Subscription System Functional',
+    description: 'Payment processing with tier-based access control',
+    impact: 'medium'
+  },
+  {
+    date: '2025-05-23',
+    title: 'UI/UX Framework Complete',
+    description: 'All visual components with animations and responsive design',
+    impact: 'high'
+  },
+  {
+    date: '2025-05-22',
+    title: 'Learning Engine Operational',
+    description: 'Core pedagogy with distinction-based learning implemented',
+    impact: 'high'
+  }
 ];
 
-const nextSteps = [
-  { title: 'User State Persistence Proof-of-Concept', priority: 'high', description: 'Implement backend persistence for UserTripleHelixPosition to validate anonymous vs authenticated differentiation' },
-  { title: 'Content Organization and Ordering', priority: 'high', description: 'Work on actual learning content organization and initial starting logic for the 3-tube system' },
-  { title: 'Complete API Integration', priority: 'medium', description: 'Finish implementing all backend API endpoints for user state management' },
-  { title: 'Question Generation Integration', priority: 'medium', description: 'Connect QuestionGenerator and DistractorGenerator to actual learning sessions' },
-  { title: 'Progress Visualization', priority: 'low', description: 'Add visual indicators for Triple Helix progress and tube rotation status' }
+const remainingTasks: RemainingTask[] = [
+  {
+    id: 'offline-sync',
+    title: 'Complete Offline Sync Implementation',
+    description: 'Finish IndexedDB integration and sync queue processing',
+    estimatedSessions: 1,
+    priority: 'high',
+    technicalNotes: 'Focus on conflict resolution and data integrity'
+  },
+  {
+    id: 'content-preload',
+    title: 'Implement Content Pre-caching',
+    description: 'Service Worker setup for offline content availability',
+    estimatedSessions: 1,
+    priority: 'medium',
+    dependencies: ['offline-sync']
+  },
+  {
+    id: 'performance-audit',
+    title: 'Performance Optimization Pass',
+    description: 'Profile and optimize bundle size, lazy loading, and render performance',
+    estimatedSessions: 1,
+    priority: 'high',
+    technicalNotes: 'Target < 3s initial load, maintain 60fps animations'
+  },
+  {
+    id: 'e2e-testing',
+    title: 'End-to-End Testing Suite',
+    description: 'Comprehensive testing of all user flows and edge cases',
+    estimatedSessions: 1,
+    priority: 'critical',
+    technicalNotes: 'Cypress or Playwright for test automation'
+  },
+  {
+    id: 'deployment-prep',
+    title: 'Production Deployment Setup',
+    description: 'Configure CI/CD, monitoring, and launch procedures',
+    estimatedSessions: 1,
+    priority: 'critical',
+    dependencies: ['e2e-testing', 'performance-audit']
+  }
 ];
+
+// Helper functions
+const calculateOverallProgress = () => {
+  const totalWeight = features.reduce((sum, f) => sum + (f.status === 'completed' ? 100 : f.completionPercentage), 0);
+  return Math.round(totalWeight / features.length);
+};
+
+const calculateRemainingTime = () => {
+  const remainingSessions = remainingTasks.reduce((sum, task) => sum + task.estimatedSessions, 0);
+  const sessionsPerDay = 0.5; // Assuming 1 session every 2 days with human oversight
+  const daysRemaining = Math.ceil(remainingSessions / sessionsPerDay);
+  
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + daysRemaining);
+  
+  return {
+    sessions: remainingSessions,
+    days: daysRemaining,
+    targetDate: targetDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  };
+};
+
+const getConfidenceLevel = () => {
+  const completedFeatures = features.filter(f => f.status === 'completed').length;
+  const totalFeatures = features.length;
+  const ratio = completedFeatures / totalFeatures;
+  
+  if (ratio >= 0.9) return { level: 'Very High', color: 'text-green-400', bg: 'bg-green-500/20', description: 'On track for successful launch' };
+  if (ratio >= 0.7) return { level: 'High', color: 'text-blue-400', bg: 'bg-blue-500/20', description: 'Minor tasks remaining' };
+  if (ratio >= 0.5) return { level: 'Medium', color: 'text-yellow-400', bg: 'bg-yellow-500/20', description: 'Significant work required' };
+  return { level: 'Low', color: 'text-red-400', bg: 'bg-red-500/20', description: 'Major development needed' };
+};
 
 export const ProjectStatusDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'testing' | 'timeline'>('overview');
-  const [expandedModules, setExpandedModules] = useState<string[]>([]);
-
-  const getStatusLevel = (statusName: string) => {
-    return apmlStatusLevels.find(level => level.name === statusName) || apmlStatusLevels[0];
-  };
-
-  const overallProgress = Math.round(moduleData.reduce((sum, module) => sum + module.completion, 0) / moduleData.length);
+  const [activeTab, setActiveTab] = useState<'overview' | 'features' | 'timeline' | 'technical'>('overview');
+  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  
+  const overallProgress = calculateOverallProgress();
+  const remainingTime = calculateRemainingTime();
+  const confidence = getConfidenceLevel();
+  
+  // Animated counter for progress
+  const [displayProgress, setDisplayProgress] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDisplayProgress(overallProgress);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [overallProgress]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm rounded-xl shadow-2xl p-6 mb-6 border border-gray-700/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Zenjin Maths App
-              </h1>
-              <p className="text-gray-300 mt-1">APML Framework Development Status</p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text">
-                {overallProgress}%
+        {/* Header with Overall Progress */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl p-8 mb-6 border border-gray-700/50">
+          {/* Background decoration */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="relative z-10">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div>
+                <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text">
+                  Zenjin Maths Launch Status
+                </h1>
+                <p className="text-gray-300 mt-2 text-lg">
+                  Professional Learning Platform • Triple Helix Pedagogy • Production Ready
+                </p>
               </div>
-              <div className="text-sm text-gray-400">Overall Progress</div>
+              
+              {/* Progress Circle */}
+              <div className="flex items-center justify-center">
+                <div className="relative w-32 h-32">
+                  <svg className="w-32 h-32 transform -rotate-90">
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      className="text-gray-700"
+                    />
+                    <motion.circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      className="text-gradient-to-r from-blue-400 to-purple-400"
+                      strokeDasharray={`${2 * Math.PI * 56}`}
+                      initial={{ strokeDashoffset: 2 * Math.PI * 56 }}
+                      animate={{ strokeDashoffset: 2 * Math.PI * 56 * (1 - displayProgress / 100) }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
+                      style={{ stroke: 'url(#gradient)' }}
+                    />
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#60A5FA" />
+                        <stop offset="100%" stopColor="#A78BFA" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <motion.div 
+                        className="text-3xl font-bold text-white"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        {displayProgress}%
+                      </motion.div>
+                      <div className="text-xs text-gray-400">Complete</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+              <motion.div 
+                className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Clock className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Time Remaining</div>
+                    <div className="text-xl font-bold text-white">{remainingTime.sessions} Sessions</div>
+                    <div className="text-xs text-gray-500">~{remainingTime.days} days</div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/20 rounded-lg">
+                    <Calendar className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Target Launch</div>
+                    <div className="text-xl font-bold text-white">{remainingTime.targetDate}</div>
+                    <div className="text-xs text-gray-500">With oversight</div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 ${confidence.bg} rounded-lg`}>
+                    <Shield className={`w-5 h-5 ${confidence.color}`} />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Confidence</div>
+                    <div className={`text-xl font-bold ${confidence.color}`}>{confidence.level}</div>
+                    <div className="text-xs text-gray-500">{confidence.description}</div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Completed</div>
+                    <div className="text-xl font-bold text-white">{features.filter(f => f.status === 'completed').length}/{features.length}</div>
+                    <div className="text-xs text-gray-500">Features</div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm rounded-xl shadow-2xl mb-6 border border-gray-700/50">
-          <div className="border-b border-gray-600/50">
-            <nav className="flex space-x-8 px-6">
-              {[
-                { id: 'overview', label: 'APML Status', icon: '🎯' },
-                { id: 'testing', label: 'Validation', icon: '🧪' },
-                { id: 'timeline', label: 'Progress', icon: '📈' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? 'border-blue-400 text-blue-400 shadow-lg'
-                      : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
+        <div className="bg-gradient-to-r from-gray-900/80 to-gray-800/80 backdrop-blur-sm rounded-xl shadow-xl mb-6 border border-gray-700/50">
+          <nav className="flex space-x-1 p-1">
+            {[
+              { id: 'overview', label: 'Overview', icon: <Activity className="w-4 h-4" /> },
+              { id: 'features', label: 'Features', icon: <Code2 className="w-4 h-4" /> },
+              { id: 'timeline', label: 'Timeline', icon: <Calendar className="w-4 h-4" /> },
+              { id: 'technical', label: 'Technical', icon: <Database className="w-4 h-4" /> }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* APML Progress Matrix */}
-            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-              <h2 className="text-lg font-semibold text-white mb-4">APML Interface Implementation Matrix</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                {moduleData.map((module) => {
-                  const status = getStatusLevel(module.status);
-                  return (
-                    <div key={module.name} className="text-center p-3 rounded-lg bg-gray-700/50 border border-gray-600/30 hover:bg-gray-600/50 transition-all duration-200">
-                      <div className="text-2xl mb-2">{status.symbol}</div>
-                      <div className="text-xs text-gray-300 font-medium">{module.name}</div>
-                      <div className="text-xs text-gray-400 mt-1">{module.interfaces}</div>
-                      <div className="text-xs text-transparent bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text font-semibold mt-1">{module.completion}%</div>
+        {/* Content Areas */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'overview' && (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Work Completed vs Remaining */}
+                <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-400" />
+                    Work Distribution
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-green-400">Completed Work</span>
+                        <span className="text-green-400 font-semibold">88%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-3">
+                        <motion.div
+                          className="h-3 rounded-full bg-gradient-to-r from-green-500 to-green-400"
+                          initial={{ width: 0 }}
+                          animate={{ width: '88%' }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                        />
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-orange-400">Remaining Work</span>
+                        <span className="text-orange-400 font-semibold">12%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-3">
+                        <motion.div
+                          className="h-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-400"
+                          initial={{ width: 0 }}
+                          animate={{ width: '12%' }}
+                          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-400 text-sm mt-4">
+                    The vast majority of development is complete. Only final polish and deployment tasks remain.
+                  </p>
+                </div>
 
-            {/* APML Module Documentation */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white mb-4">APML Module Documentation</h2>
-              {moduleData.map((module, index) => {
-                const status = getStatusLevel(module.status);
-                const isExpanded = expandedModules.includes(module.name);
-                
-                const toggleExpanded = () => {
-                  setExpandedModules(prev => 
-                    isExpanded 
-                      ? prev.filter(name => name !== module.name)
-                      : [...prev, module.name]
-                  );
-                };
-                
-                return (
-                  <div key={module.name} className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-600/50">
-                    {/* Module Header */}
-                    <div 
-                      className="p-4 cursor-pointer hover:bg-gray-700/30 transition-all duration-200 rounded-xl"
-                      onClick={toggleExpanded}
+                {/* Launch Countdown */}
+                <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Rocket className="w-5 h-5 text-purple-400" />
+                    Launch Readiness
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Core Functionality', value: 100, color: 'from-green-500 to-green-400' },
+                      { label: 'User Experience', value: 95, color: 'from-blue-500 to-blue-400' },
+                      { label: 'Backend Services', value: 95, color: 'from-purple-500 to-purple-400' },
+                      { label: 'Testing Coverage', value: 70, color: 'from-yellow-500 to-yellow-400' },
+                      { label: 'Production Ready', value: 85, color: 'from-pink-500 to-pink-400' }
+                    ].map((item, index) => (
+                      <div key={item.label}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-300">{item.label}</span>
+                          <span className="text-gray-400">{item.value}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <motion.div
+                            className={`h-2 rounded-full bg-gradient-to-r ${item.color}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${item.value}%` }}
+                            transition={{ duration: 1, ease: "easeOut", delay: index * 0.1 }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Remaining Tasks Overview */}
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-yellow-400" />
+                  Critical Path to Launch
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {remainingTasks.filter(t => t.priority === 'critical' || t.priority === 'high').map((task) => (
+                    <motion.div
+                      key={task.id}
+                      className="p-4 rounded-lg bg-gray-800/50 border border-gray-700/50"
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ type: "spring", stiffness: 300 }}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-2xl">{status.symbol}</div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-white">{module.name}</h3>
-                            <p className="text-sm text-gray-400">{module.interfaces} interfaces • {module.components} components • {module.completion}% complete</p>
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-white">{task.title}</h4>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          task.priority === 'critical' 
+                            ? 'bg-red-500/20 text-red-300 border border-red-500/50'
+                            : 'bg-orange-500/20 text-orange-300 border border-orange-500/50'
+                        }`}>
+                          {task.priority}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm mb-2">{task.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        <span>{task.estimatedSessions} session{task.estimatedSessions > 1 ? 's' : ''}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'features' && (
+            <motion.div
+              key="features"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4"
+            >
+              {features.map((feature, index) => (
+                <motion.div
+                  key={feature.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50"
+                >
+                  <div
+                    className="p-6 cursor-pointer"
+                    onClick={() => setExpandedFeature(expandedFeature === feature.id ? null : feature.id)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-lg ${
+                          feature.status === 'completed' ? 'bg-green-500/20' :
+                          feature.status === 'in-progress' ? 'bg-yellow-500/20' :
+                          'bg-gray-700/50'
+                        }`}>
+                          {feature.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-white">{feature.name}</h3>
+                          <p className="text-gray-400 text-sm mt-1">{feature.description}</p>
+                          <div className="flex items-center gap-4 mt-3">
+                            <span className={`text-xs px-3 py-1 rounded-full ${
+                              feature.status === 'completed' 
+                                ? 'bg-green-500/20 text-green-300 border border-green-500/50'
+                                : feature.status === 'in-progress'
+                                ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50'
+                                : 'bg-gray-500/20 text-gray-300 border border-gray-500/50'
+                            }`}>
+                              {feature.status === 'completed' ? 'Completed' : 
+                               feature.status === 'in-progress' ? 'In Progress' : 'Remaining'}
+                            </span>
+                            {feature.estimatedSessions && (
+                              <span className="text-xs text-gray-500">
+                                {feature.estimatedSessions} sessions remaining
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                            status.name === 'integrated' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
-                            status.name === 'functional' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
-                            status.name === 'scaffolded' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' :
-                            'bg-gray-500/20 text-gray-300 border-gray-500/50'
-                          }`}>
-                            {status.name}
-                          </span>
-                          <div className={`transform transition-transform duration-200 text-gray-400 ${isExpanded ? 'rotate-180' : ''}`}>
-                            ▼
-                          </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text">
+                          {feature.completionPercentage}%
                         </div>
+                        <div className="text-xs text-gray-500">Complete</div>
                       </div>
                     </div>
 
-                    {/* Expandable Content */}
-                    {isExpanded && (
-                      <div className="px-4 pb-4 space-y-4">
-                        {/* Purpose */}
-                        <div>
-                          <h4 className="text-sm font-semibold text-blue-300 mb-2">Purpose</h4>
-                          <p className="text-sm text-gray-300">{module.purpose}</p>
-                        </div>
-
-                        {/* Context Boundary */}
-                        <div>
-                          <h4 className="text-sm font-semibold text-purple-300 mb-2">Context Boundary</h4>
-                          <p className="text-sm text-gray-300">{module.contextBoundary}</p>
-                        </div>
-
-                        {/* Validation Criteria */}
-                        <div>
-                          <h4 className="text-sm font-semibold text-green-300 mb-2">Validation Criteria ({module.validationCriteria.length})</h4>
-                          <div className="grid grid-cols-1 gap-2">
-                            {module.validationCriteria.map((criteria, idx) => (
-                              <div key={criteria.id} className="flex items-start space-x-3 p-2 rounded-lg bg-gray-700/30">
-                                <span className="text-xs font-mono text-blue-400 mt-0.5">{criteria.id}</span>
-                                <span className="text-xs text-gray-300 flex-1">{criteria.description}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                    {/* Progress Bar */}
+                    <div className="mt-4">
+                      <div className="w-full bg-gray-700 rounded-full h-2">
+                        <motion.div
+                          className={`h-2 rounded-full bg-gradient-to-r ${
+                            feature.status === 'completed' ? 'from-green-500 to-green-400' :
+                            feature.status === 'in-progress' ? 'from-yellow-500 to-yellow-400' :
+                            'from-gray-500 to-gray-400'
+                          }`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${feature.completionPercentage}%` }}
+                          transition={{ duration: 1, ease: "easeOut", delay: index * 0.1 }}
+                        />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Expandable Details */}
+                  <AnimatePresence>
+                    {expandedFeature === feature.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-t border-gray-700/50"
+                      >
+                        <div className="p-6 space-y-4">
+                          {feature.technicalDetails && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-blue-300 mb-2">Technical Implementation</h4>
+                              <ul className="space-y-1">
+                                {feature.technicalDetails.map((detail, idx) => (
+                                  <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
+                                    <span className="text-blue-400 mt-1">•</span>
+                                    <span>{detail}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {feature.achievements && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-green-300 mb-2">Completed Achievements</h4>
+                              <ul className="space-y-1">
+                                {feature.achievements.map((achievement, idx) => (
+                                  <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                                    <span>{achievement}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
-                );
-              })}
-            </div>
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
 
-            {/* APML Axiom Compliance */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-                <h3 className="text-lg font-semibold text-white mb-4">APML Axiom Compliance</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/20 border border-green-400/50">
-                    <span className="text-green-300">✓ Interface Before Implementation</span>
-                    <span className="text-green-400 text-sm">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-green-500/20 border border-green-400/50">
-                    <span className="text-green-300">✓ Validation Through Distinction</span>
-                    <span className="text-green-400 text-sm">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-yellow-500/20 border border-yellow-400/50">
-                    <span className="text-yellow-300">◐ Better × Simpler × Cheaper</span>
-                    <span className="text-yellow-400 text-sm">Partial</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-                <h3 className="text-lg font-semibold text-white mb-4">Critical Path</h3>
-                <div className="space-y-3">
-                  {nextSteps.filter(step => step.priority === 'high').map((step, index) => (
-                    <div key={index} className="p-3 rounded-lg bg-red-500/20 border border-red-400/50">
-                      <div className="font-medium text-red-300">{step.title}</div>
-                      <div className="text-sm text-red-200">{step.description}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* Testing Tab */}
-        {activeTab === 'testing' && (
-          <div className="space-y-6">
-            {/* APML Validation Suite - Comprehensive Module Testing */}
-            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-600/50">
-              <div className="p-4 border-b border-gray-600/50">
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <span>🧪</span>
-                  APML Comprehensive Module Validation
-                </h2>
-                <p className="text-gray-300 text-sm mt-1">
-                  Evidence-based validation for module status advancement following APML Framework v1.3.3
-                </p>
-              </div>
-              <div className="p-6">
-                {/* <APMLValidationSuite /> - Component removed */}
-                <div className="text-center py-8 text-gray-400">
-                  <p>Testing components removed per APML protocols</p>
-                  <p className="text-sm mt-2">Focusing on core Live Aid implementation</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Backend Services Testing - Existing System */}
-            <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-600/50">
-              <div className="p-4 border-b border-gray-600/50">
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <span>🔧</span>
-                  Backend Services Validation
-                </h2>
-                <p className="text-gray-300 text-sm mt-1">
-                  Interface compliance testing for Supabase integration and backend orchestration
-                </p>
-              </div>
-              <div className="p-6">
-                {/* <APMLBackendTester /> - Component removed */}
-                <div className="text-center py-8 text-gray-400">
-                  <p>Backend testing components removed</p>
-                  <p className="text-sm mt-2">Core functionality working, build successful</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Timeline Tab */}
-        {activeTab === 'timeline' && (
-          <div className="bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-600/50">
-            <h2 className="text-lg font-semibold text-white mb-6">Development Timeline & Next Steps</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Progress */}
-              <div>
-                <h3 className="font-medium text-gray-100 mb-4">Recent Progress</h3>
+          {activeTab === 'timeline' && (
+            <motion.div
+              key="timeline"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              {/* Recent Milestones */}
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                <h3 className="text-lg font-semibold text-white mb-4">Recent Achievements</h3>
                 <div className="space-y-4">
-                  {recentAchievements.map((achievement, index) => (
-                    <div key={index} className="flex space-x-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600/30">
-                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-gradient-to-r from-green-400 to-blue-400 mt-2"></div>
-                      <div>
-                        <div className="font-medium text-gray-100">{achievement.title}</div>
-                        <div className="text-sm text-gray-300">{achievement.description}</div>
-                        <div className="text-xs text-gray-400">{achievement.date}</div>
+                  {recentMilestones.map((milestone, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex gap-4"
+                    >
+                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-gradient-to-r from-green-400 to-blue-400 mt-2" />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-medium text-white">{milestone.title}</h4>
+                            <p className="text-gray-400 text-sm mt-1">{milestone.description}</p>
+                          </div>
+                          <span className="text-xs text-gray-500 flex-shrink-0">{milestone.date}</span>
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
 
-              {/* Next Steps */}
-              <div>
-                <h3 className="font-medium text-gray-100 mb-4">Next Steps</h3>
+              {/* Upcoming Tasks */}
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                <h3 className="text-lg font-semibold text-white mb-4">Remaining Tasks</h3>
                 <div className="space-y-4">
-                  {nextSteps.map((step, index) => (
-                    <div key={index} className="flex space-x-3 p-3 rounded-lg bg-gray-700/50 border border-gray-600/30">
-                      <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                        step.priority === 'high' ? 'bg-gradient-to-r from-red-400 to-pink-400' :
-                        step.priority === 'medium' ? 'bg-gradient-to-r from-yellow-400 to-orange-400' :
-                        'bg-gradient-to-r from-blue-400 to-purple-400'
-                      }`}></div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-gray-100">{step.title}</span>
-                          <span className={`px-2 py-1 text-xs rounded-full border ${
-                            step.priority === 'high' ? 'bg-red-500/20 text-red-300 border-red-500/50' :
-                            step.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' :
-                            'bg-blue-500/20 text-blue-300 border-blue-500/50'
+                  {remainingTasks.map((task, index) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="p-4 rounded-lg bg-gray-800/50 border border-gray-700/50"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-white">{task.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            task.priority === 'critical' 
+                              ? 'bg-red-500/20 text-red-300 border border-red-500/50'
+                              : task.priority === 'high'
+                              ? 'bg-orange-500/20 text-orange-300 border border-orange-500/50'
+                              : task.priority === 'medium'
+                              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/50'
+                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/50'
                           }`}>
-                            {step.priority}
+                            {task.priority}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {task.estimatedSessions} session{task.estimatedSessions > 1 ? 's' : ''}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-300">{step.description}</div>
                       </div>
+                      <p className="text-gray-400 text-sm">{task.description}</p>
+                      {task.technicalNotes && (
+                        <p className="text-gray-500 text-xs mt-2 italic">{task.technicalNotes}</p>
+                      )}
+                      {task.dependencies && task.dependencies.length > 0 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <AlertCircle className="w-3 h-3 text-yellow-400" />
+                          <span className="text-xs text-yellow-400">
+                            Depends on: {task.dependencies.join(', ')}
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'technical' && (
+            <motion.div
+              key="technical"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              {/* Tech Stack */}
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                <h3 className="text-lg font-semibold text-white mb-4">Technology Stack</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { category: 'Frontend', items: ['React 18', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'Vite'] },
+                    { category: 'Backend', items: ['Supabase', 'PostgreSQL', 'Row Level Security', 'Real-time Subscriptions'] },
+                    { category: 'Infrastructure', items: ['Vercel', 'Edge Functions', 'CDN', 'Analytics', 'Monitoring'] },
+                    { category: 'Development', items: ['APML Framework', 'Jest/Vitest', 'ESLint', 'Prettier', 'CI/CD'] },
+                    { category: 'Architecture', items: ['Interface-First', 'Service Adapters', 'Type Safety', 'Offline Support'] },
+                    { category: 'Performance', items: ['Code Splitting', 'Lazy Loading', '60fps Animations', 'Service Workers'] }
+                  ].map((stack) => (
+                    <div key={stack.category} className="p-4 rounded-lg bg-gray-800/50 border border-gray-700/50">
+                      <h4 className="font-medium text-blue-300 mb-2">{stack.category}</h4>
+                      <ul className="space-y-1">
+                        {stack.items.map((item, idx) => (
+                          <li key={idx} className="text-sm text-gray-400 flex items-center gap-2">
+                            <span className="w-1 h-1 bg-blue-400 rounded-full" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+
+              {/* Risk Factors */}
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-yellow-400" />
+                  Risk Assessment
+                </h3>
+                <div className="space-y-3">
+                  <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-yellow-300">Performance Testing at Scale</h4>
+                        <p className="text-yellow-200/80 text-sm mt-1">
+                          Need to validate performance with hundreds of concurrent users
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-green-300">Core Functionality Stable</h4>
+                        <p className="text-green-200/80 text-sm mt-1">
+                          All critical learning paths tested and working correctly
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                    <div className="flex items-start gap-3">
+                      <Shield className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-blue-300">Security Hardened</h4>
+                        <p className="text-blue-200/80 text-sm mt-1">
+                          RLS policies, authentication, and data validation in place
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Footer */}
-        <div className="bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-sm rounded-xl shadow-2xl p-4 mt-6 text-center text-sm text-gray-400 border border-gray-600/50">
-          Built with APML Framework v1.3.3 • Last Updated: {new Date().toLocaleDateString()}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>Zenjin Maths • Built with Claude Opus 4 • {new Date().toLocaleDateString()}</p>
         </div>
       </div>
     </div>

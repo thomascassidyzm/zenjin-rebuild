@@ -488,6 +488,14 @@ class AuthToPlayerEventBus implements AuthToPlayerInterface {
   requestSessionExit(reason: 'navigation' | 'end-button' | 'completion', targetPage?: string): void {
     this.emit('session:exit-requested', { reason, targetPage });
   }
+  
+  // Public method to exit to dashboard from PRE_ENGAGEMENT
+  exitToDashboard(): void {
+    if (this.currentState === 'PRE_ENGAGEMENT') {
+      this.setState('IDLE');
+      this.resetForNewSession();
+    }
+  }
 }
 
 // Singleton instance

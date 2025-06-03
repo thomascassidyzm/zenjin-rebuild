@@ -13,13 +13,15 @@ interface PreEngagementCardProps {
   onPlayClicked: () => Promise<void>;
   isLoading: boolean;
   loadingProgress: number;
+  onDashboardClick?: () => void;
 }
 
 const PreEngagementCard: React.FC<PreEngagementCardProps> = ({
   userContext,
   onPlayClicked,
   isLoading,
-  loadingProgress
+  loadingProgress,
+  onDashboardClick
 }) => {
   const getUserWelcomeMessage = () => {
     if (userContext.userType === 'authenticated' && userContext.userName) {
@@ -134,6 +136,19 @@ const PreEngagementCard: React.FC<PreEngagementCardProps> = ({
               }
             </p>
           </div>
+          
+          {/* Dashboard Link */}
+          {onDashboardClick && (
+            <div className="text-center mt-4">
+              <button
+                onClick={onDashboardClick}
+                disabled={isLoading}
+                className="text-gray-400 hover:text-white text-sm underline transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          )}
 
           {/* Loading Progress Bar */}
           {isLoading && (

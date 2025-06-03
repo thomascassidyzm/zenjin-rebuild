@@ -10,10 +10,19 @@ import { ServiceType } from '../interfaces/ServiceContainerInterface';
 // Import service implementations
 import { ContentGatingEngine } from '../engines/ContentGatingEngine';
 import { EngineOrchestrator } from '../engines/EngineOrchestrator';
+import { FactRepository } from '../engines/FactRepository/FactRepository';
+import { ContentManager } from '../engines/ContentManager/ContentManager';
+import { DistinctionManager } from '../engines/DistinctionManager/DistinctionManager';
+import { DistractorGenerator } from '../engines/DistractorGenerator/DistractorGenerator';
+import { TripleHelixManager } from '../engines/TripleHelixManager/TripleHelixManager';
+import { QuestionGenerator } from '../engines/QuestionGenerator/QuestionGenerator';
+import { StitchPopulation } from '../engines/StitchPopulation/StitchPopulation';
+import { StitchPreparation } from '../engines/StitchPreparation/StitchPreparation';
+import { StitchCache } from '../engines/StitchCache/StitchCache';
+import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
 
 // For now, using existing singletons until full migration
 import { userSessionManager } from './UserSessionManager';
-import { learningEngineService } from '../engines/LearningEngineService';
 
 /**
  * Mock Payment Processor for development

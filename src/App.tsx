@@ -1135,6 +1135,11 @@ const AppContent: React.FC = () => {
             onPlayClicked={handlePlayButtonClicked}
             isLoading={false}
             loadingProgress={0}
+            onDashboardClick={() => {
+              // Exit Auth-to-Player flow and go to dashboard
+              authToPlayerEventBus.exitToDashboard();
+              setCurrentPage('dashboard');
+            }}
           />
         );
         break;
@@ -1214,6 +1219,11 @@ const AppContent: React.FC = () => {
             onPlayClicked={handlePlayButtonClicked}
             isLoading={false}
             loadingProgress={0}
+            onDashboardClick={() => {
+              // Exit Auth-to-Player flow and go to dashboard
+              authToPlayerEventBus.exitToDashboard();
+              setCurrentPage('dashboard');
+            }}
           />
         );
     }

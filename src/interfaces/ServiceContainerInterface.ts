@@ -88,7 +88,17 @@ export type ServiceType =
   | 'PaymentProcessor'
   | 'UserSessionManager'
   | 'EngineOrchestrator'
-  | 'LearningEngineService';
+  | 'LearningEngineService'
+  | 'FactRepository'
+  | 'ContentManager'
+  | 'DistinctionManager'
+  | 'DistractorGenerator'
+  | 'TripleHelixManager'
+  | 'QuestionGenerator'
+  | 'StitchPopulation'
+  | 'StitchPreparation'
+  | 'StitchCache'
+  | 'LiveAidManager';
 
 /**
  * Service Configuration Interface

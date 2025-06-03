@@ -29,6 +29,9 @@ import { TripleHelixManager } from '../engines/TripleHelixManager/TripleHelixMan
 import type { ContentGatingResult } from '../engines/ContentGatingEngine';
 import type { OfflineContentManager } from '../engines/OfflineContentManager';
 
+// Import interface for dependency injection
+import { LearningEngineDependencies, LearningEngineServiceInterface } from '../interfaces/LearningEngineServiceInterface';
+
 // Import component types
 import type { 
   MathematicalFact, 
@@ -136,20 +139,23 @@ export class LearningEngineError extends Error {
  * 
  * Coordinates all LearningEngine components to provide unified learning session management.
  * Follows External Service Integration Protocol with proper error handling, logging, and isolation.
+ * 
+ * IMPORTANT: All dependencies are injected, not created internally.
  */
-export class LearningEngineService {
+export class LearningEngineService implements LearningEngineServiceInterface {
+  // Injected dependencies
   private factRepository: FactRepository;
   private contentManager: ContentManager;
   private questionGenerator: QuestionGenerator;
   private distractorGenerator: DistractorGenerator;
   private distinctionManager: DistinctionManager;
-  
-  // Live Aid Architecture components
   private stitchPopulation: StitchPopulation;
   private stitchPreparation: StitchPreparation;
   private stitchCache: StitchCache;
   private liveAidManager: LiveAidManager;
   private tripleHelixManager: TripleHelixManager;
+  private contentGatingEngine: any;
+  private offlineContentManager: any;
   
   // Active learning sessions
   private activeSessions: Map<string, LearningSession> = new Map();
@@ -157,66 +163,52 @@ export class LearningEngineService {
   // Service state
   private isInitialized: boolean = false;
   
-  // Injected dependencies
-  private contentGatingEngine: any;
-  private offlineContentManager: any;
-  
   /**
-   * Initialize LearningEngine service with component dependencies
-   * @param contentGatingEngine Content gating service (optional for backward compatibility)
-   * @param offlineContentManager Offline content service (optional for backward compatibility)
+   * Initialize LearningEngine service with injected dependencies
+   * @param dependencies All required dependencies injected from container
    */
-  constructor(contentGatingEngine?: any, offlineContentManager?: any) {
-    this.contentGatingEngine = contentGatingEngine;
-    this.offlineContentManager = offlineContentManager;
-    this.initializeComponents();
+  constructor(dependencies: LearningEngineDependencies) {
+    // Assign all injected dependencies
+    this.factRepository = dependencies.factRepository;
+    this.contentManager = dependencies.contentManager;
+    this.questionGenerator = dependencies.questionGenerator;
+    this.distractorGenerator = dependencies.distractorGenerator;
+    this.distinctionManager = dependencies.distinctionManager;
+    this.tripleHelixManager = dependencies.tripleHelixManager;
+    this.stitchPopulation = dependencies.stitchPopulation;
+    this.stitchPreparation = dependencies.stitchPreparation;
+    this.stitchCache = dependencies.stitchCache;
+    this.liveAidManager = dependencies.liveAidManager;
+    this.contentGatingEngine = dependencies.contentGatingEngine;
+    this.offlineContentManager = dependencies.offlineContentManager;
+    
+    this.initialize();
   }
   
   /**
    * Initialize all LearningEngine components
    * @private
    */
-  private initializeComponents(): void {
+  private initialize(): void {
     try {
-      // Initialize components in dependency order
-      this.factRepository = new FactRepository();
-      this.contentManager = new ContentManager(this.factRepository);
-      this.distinctionManager = new DistinctionManager(this.factRepository);
-      this.distractorGenerator = new DistractorGenerator(this.factRepository);
-      
-      // Initialize TripleHelixManager first as it's needed by other components
-      this.tripleHelixManager = new TripleHelixManager();
-      
-      this.questionGenerator = new QuestionGenerator(
-        this.factRepository,
-        this.distinctionManager,
-        this.tripleHelixManager as any, // Cast for now due to interface differences
-        this.distractorGenerator
-      );
-      
-      // Initialize Live Aid Architecture components in proper sequence
-      this.stitchPopulation = new StitchPopulation(this.factRepository);
-      this.stitchPreparation = new StitchPreparation(
-        this.factRepository,
-        this.distinctionManager,
-        this.distractorGenerator,
-        this.questionGenerator
-      );
-      this.stitchCache = new StitchCache();
-      
-      this.liveAidManager = new LiveAidManager(
-        this.stitchCache,
-        this.stitchPreparation,
-        this.stitchPopulation,
-        this.tripleHelixManager as any // Cast for now due to interface differences
-      );
+      // Validate all dependencies are present
+      if (!this.factRepository) throw new Error('FactRepository is required');
+      if (!this.contentManager) throw new Error('ContentManager is required');
+      if (!this.distinctionManager) throw new Error('DistinctionManager is required');
+      if (!this.distractorGenerator) throw new Error('DistractorGenerator is required');
+      if (!this.tripleHelixManager) throw new Error('TripleHelixManager is required');
+      if (!this.questionGenerator) throw new Error('QuestionGenerator is required');
+      if (!this.stitchPopulation) throw new Error('StitchPopulation is required');
+      if (!this.stitchPreparation) throw new Error('StitchPreparation is required');
+      if (!this.stitchCache) throw new Error('StitchCache is required');
+      if (!this.liveAidManager) throw new Error('LiveAidManager is required');
       
       this.isInitialized = true;
-      this.log('LearningEngine service initialized successfully with Live Aid Architecture');
+      this.log('LearningEngine service initialized successfully with injected dependencies');
     } catch (error) {
       throw new LearningEngineError(
         'LE-INIT-001',
-        'Failed to initialize LearningEngine service',
+        'Service initialization failed - missing dependencies',
         { error: error instanceof Error ? error.message : String(error) }
       );
     }
@@ -706,7 +698,8 @@ export class LearningEngineService {
       const currentStitchId = await this.getCurrentStitchId(userId, tubeId);
       
       // Check if user can access this content
-      const accessResult = await this.getContentGatingEngine().canAccessStitch(userId, currentStitchId, tubeId);
+      const contentGatingEngine = await this.getContentGatingEngine();
+      const accessResult = await contentGatingEngine.canAccessStitch(userId, currentStitchId, tubeId);
       
       if (!accessResult.hasAccess) {
         // If content is gated, use free alternative or throw gating error
@@ -728,50 +721,66 @@ export class LearningEngineService {
       }
 
       // Check if offline content is available (for premium users)
-      const offlineStitch = await this.getOfflineContentManager().getOfflineStitch(currentStitchId);
+      const offlineContentManager = await this.getOfflineContentManager();
+      const offlineStitch = await offlineContentManager.getOfflineStitch(currentStitchId);
       if (offlineStitch.isAvailable) {
         this.log(`Using offline content for stitch: ${currentStitchId}`);
         return await this.generateQuestionsFromOfflineContent(offlineStitch, config);
       }
       
-      // Generate questions using the EngineOrchestrator with proper user state
-      this.log(`Generating 20-question stitch for learning path: ${learningPathId} using EngineOrchestrator`);
+      // Generate questions using LiveAidManager directly
+      this.log(`Generating 20-question stitch for learning path: ${learningPathId} using LiveAidManager`);
       
-      // Import EngineOrchestrator dynamically to avoid circular dependencies
-      const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
-      const orchestrator = new EngineOrchestrator(true); // Enable Live Aid
-      
-      // Initialize user if needed (will use default tube positions if no state exists)
-      await orchestrator.initializeUser(userId);
-      
-      // Get the next stitch with real questions from the fact repository
-      const stitchData = await orchestrator.getNextStitch(userId);
-      
-      this.log(`Generated stitch ${stitchData.stitchId} with ${stitchData.questions.length} questions from fact repository`);
-      
-      // Convert PlayerCardQuestion[] to LearningEngineService Question[]
-      const questions: Question[] = stitchData.questions.map((q: any, index: number) => ({
-        id: q.id || `${stitchData.stitchId}-q${index + 1}-${Date.now()}`,
-        factId: q.factId,
-        questionText: q.text || q.questionText,
-        correctAnswer: q.correctAnswer,
-        distractors: [q.distractor], // Convert single distractor to array
-        boundaryLevel: q.boundaryLevel || 1,
-        difficulty: q.difficulty || 1,
-        metadata: {
-          learningPathId,
-          stitchId: stitchData.stitchId,
-          tubeId: stitchData.tubeId,
-          tubeName: stitchData.tubeName,
-          ...q.metadata
+      try {
+        // Use injected LiveAidManager to get next stitch
+        const stitchContent = await this.liveAidManager.getNextStitch(userId, currentStitchId);
+        
+        if (!stitchContent || !stitchContent.questions || stitchContent.questions.length === 0) {
+          throw new Error('No questions generated from LiveAidManager');
         }
-      }));
-      
-      return questions;
+        
+        this.log(`Generated stitch with ${stitchContent.questions.length} questions from LiveAidManager`);
+        
+        // Questions from LiveAidManager are already in the correct format
+        return stitchContent.questions;
+      } catch (liveAidError) {
+        this.log(`LiveAidManager failed: ${liveAidError}`);
+        
+        // Fallback: Use QuestionGenerator directly
+        try {
+          const request = {
+            userId,
+            learningPathId,
+            difficultyLevel: 1,
+            questionCount: 20
+          };
+          
+          const questions: Question[] = [];
+          for (let i = 0; i < 20; i++) {
+            const genQuestion = this.questionGenerator.generateQuestion(request);
+            questions.push({
+              id: genQuestion.id,
+              factId: genQuestion.factId,
+              questionText: genQuestion.questionText,
+              correctAnswer: genQuestion.correctAnswer,
+              distractors: genQuestion.distractors || [],
+              boundaryLevel: genQuestion.metadata?.boundaryLevel || 1,
+              difficulty: genQuestion.metadata?.difficulty || 1,
+              metadata: genQuestion.metadata || {}
+            });
+          }
+          
+          return questions;
+        } catch (error) {
+          this.log(`QuestionGenerator also failed: ${error}`);
+          // Last resort fallback
+          return this.generateFirstStitchForNewUser(learningPathId);
+        }
+      }
       
     } catch (error) {
-      this.log(`Failed to generate stitch questions via EngineOrchestrator: ${error}`);
-      // Fallback to hard-coded questions only if orchestrator fails
+      this.log(`Failed to generate stitch questions: ${error}`);
+      // Fallback to hard-coded questions only if all methods fail
       this.log(`Using hard-coded first stitch as emergency fallback`);
       return this.generateFirstStitchForNewUser(learningPathId);
     }
@@ -1046,15 +1055,11 @@ export class LearningEngineService {
   private async getCurrentStitchId(userId: string, tubeId: string): Promise<string> {
     // This would normally check user's progression state
     // For now, simulate getting current position
-    try {
-      const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
-      const orchestrator = new EngineOrchestrator();
-      const currentStitch = await orchestrator.getCurrentStitch(userId, tubeId);
-      return currentStitch?.stitchId || `${tubeId}-0001-0001`;
-    } catch (error) {
-      // Fallback to first stitch
-      return `${tubeId}-0001-0001`;
-    }
+    // Use tube positions to determine stitch ID
+    // This is a simplified version - in production, this would track actual progress
+    const stitchPosition = 1; // Start at first stitch
+    const stitchId = `${tubeId}-${String(stitchPosition).padStart(4, '0')}-0001`;
+    return stitchId;
   }
 
   /**
@@ -1063,32 +1068,16 @@ export class LearningEngineService {
    */
   private async generateQuestionsForStitch(userId: string, stitchId: string, config: SessionConfiguration): Promise<Question[]> {
     try {
-      const { EngineOrchestrator } = await import('../engines/EngineOrchestrator');
-      const orchestrator = new EngineOrchestrator();
+      // Use LiveAidManager to get stitch content
+      const stitchContent = await this.liveAidManager.getStitchContent(stitchId);
       
-      // Get stitch content
-      const stitch = await orchestrator.getStitchContent(userId, stitchId);
-      
-      if (!stitch || !stitch.questions) {
+      if (!stitchContent || !stitchContent.questions) {
         this.log(`No questions found for stitch: ${stitchId}`);
         return [];
       }
       
-      // Convert to LearningEngine format
-      return stitch.questions.map((q: any, index: number) => ({
-        id: q.id || `${stitchId}-q${index + 1}`,
-        factId: q.factId || 'unknown',
-        questionText: q.questionText || q.text,
-        correctAnswer: q.correctAnswer,
-        distractors: q.distractors || [q.distractor].filter(Boolean),
-        boundaryLevel: q.boundaryLevel || 1,
-        difficulty: q.difficulty || 1,
-        metadata: {
-          stitchId,
-          isRepeating: false, // Set by content gating if user is cycling
-          ...q.metadata
-        }
-      }));
+      // Questions from LiveAidManager are already in the correct format
+      return stitchContent.questions;
     } catch (error) {
       this.log(`Failed to generate questions for stitch ${stitchId}: ${error}`);
       return [];
@@ -1183,6 +1172,3 @@ export class LearningEngineService {
     }
   }
 }
-
-// Export singleton instance following APML service pattern
-export const learningEngineService = new LearningEngineService();

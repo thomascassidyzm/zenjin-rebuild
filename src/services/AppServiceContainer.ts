@@ -7,7 +7,7 @@
 
 import { ImmutableServiceContainer, BuildException } from '../interfaces/ServiceResolutionV2Interface';
 import { createServiceContainer } from './ServiceContainerV2';
-import { registerAllServices } from './ServiceFactories';
+import { registerAllServices } from './ServiceFactoriesV2';
 
 let serviceContainer: ImmutableServiceContainer | null = null;
 let initializationPromise: Promise<ImmutableServiceContainer> | null = null;
