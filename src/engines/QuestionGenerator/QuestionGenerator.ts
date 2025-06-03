@@ -110,7 +110,7 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
       
       // Generate distractors using DistractorGenerator (APML-compliant integration)
       const correctAnswer = selectedFact.result.toString();
-      let distractors: string[] = [];
+      let primaryDistractor = "";
       
       try {
         const distractorRequest: DistractorRequest = {
@@ -120,24 +120,32 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
         };
         
         const multipleDistractors = this.distractorGenerator.generateMultipleDistractors(distractorRequest);
-        distractors = multipleDistractors.map(d => d.value || d.toString());
+        if (multipleDistractors.length > 0) {
+          primaryDistractor = multipleDistractors[0].value || multipleDistractors[0].toString();
+        }
       } catch (error) {
         this.logger.error(`Failed to generate distractors: ${error.message}`);
-        // Continue without distractors rather than failing
+        // Generate a simple fallback distractor
+        primaryDistractor = this.generateFallbackDistractor(correctAnswer);
       }
       
-      // Create and return the question
+      // Ensure we have a valid question text
+      const finalQuestionText = questionText || this.generateFallbackQuestionText(selectedFact);
+      
+      // Create and return the question (matching QuestionGeneratorInterface)
       const question: Question = {
         id: `q-${uuidv4()}`,
         factId: selectedFact.id,
-        text: questionText,
+        text: finalQuestionText,
         correctAnswer: correctAnswer,
-        distractors: distractors,
+        distractor: primaryDistractor,
         boundaryLevel,
-        learningPathId: request.learningPathId,
-        operation: selectedFact.operation,
-        difficulty: selectedFact.difficulty,
-        tags: [...selectedFact.tags]
+        difficulty: selectedFact.difficulty || 0.5,
+        metadata: {
+          learningPathId: request.learningPathId,
+          operation: selectedFact.operation,
+          tags: selectedFact.tags || []
+        }
       };
       
       // Add to recent questions cache
@@ -579,6 +587,47 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     
     // Final fallback: use default values
     return { operand1: 1, operand2: 1 };
+  }
+
+  /**
+   * Generates a fallback distractor when primary distractor generation fails
+   * @param correctAnswer The correct answer
+   * @returns Fallback distractor
+   */
+  private generateFallbackDistractor(correctAnswer: string): string {
+    const answer = parseInt(correctAnswer, 10);
+    if (!isNaN(answer)) {
+      // Generate a simple numeric distractor
+      const offset = Math.floor(Math.random() * 3) + 1;
+      const distractor = Math.random() > 0.5 ? answer + offset : Math.max(0, answer - offset);
+      return distractor.toString();
+    }
+    
+    // Non-numeric fallback
+    return "?";
+  }
+
+  /**
+   * Generates a fallback question text when template formatting fails
+   * @param fact Mathematical fact
+   * @returns Fallback question text
+   */
+  private generateFallbackQuestionText(fact: any): string {
+    const operands = this.extractOperands(fact);
+    const operation = fact.operation || 'calculate';
+    
+    switch (operation) {
+      case 'addition':
+        return `What is ${operands.operand1} + ${operands.operand2}?`;
+      case 'subtraction':
+        return `What is ${operands.operand1} - ${operands.operand2}?`;
+      case 'multiplication':
+        return `What is ${operands.operand1} × ${operands.operand2}?`;
+      case 'division':
+        return `What is ${operands.operand1} ÷ ${operands.operand2}?`;
+      default:
+        return `Calculate ${operands.operand1} ${operation} ${operands.operand2}`;
+    }
   }
   
   /**

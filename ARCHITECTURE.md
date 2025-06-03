@@ -396,6 +396,216 @@ sequenceDiagram
     end
 ```
 
+### Admin Interface Integration Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant AuthCheck
+    participant AdminRouter
+    participant AdminAPI
+    participant AuditLog
+    participant Database
+    
+    User->>App: Login/Authentication
+    App->>AuthCheck: checkAdminStatus(userId)
+    AuthCheck->>Database: SELECT admin_users WHERE user_id = ?
+    
+    alt User is Admin
+        Database-->>AuthCheck: admin_record_found
+        AuthCheck-->>App: { isAdmin: true, role: "super_admin", permissions: [...] }
+        App->>App: showAdminEntryPoint()
+        
+        User->>App: clickAdminAccess()
+        App->>AdminRouter: initializeAdminSession(adminUser)
+        AdminRouter->>AuditLog: logAdminAction("admin_access", userId)
+        
+        loop Admin Operations
+            User->>AdminRouter: performAdminAction(action, data)
+            AdminRouter->>AuthCheck: verifyPermission(userId, action)
+            
+            alt Permission Granted
+                AuthCheck-->>AdminRouter: permission_granted
+                AdminRouter->>AdminAPI: executeAction(action, data)
+                AdminAPI->>Database: performDatabaseOperation()
+                Database-->>AdminAPI: operation_result
+                AdminAPI-->>AdminRouter: success_response
+                AdminRouter->>AuditLog: logAdminAction(action, userId, data, result)
+                AdminRouter-->>User: action_completed
+                
+            else Permission Denied
+                AuthCheck-->>AdminRouter: permission_denied
+                AdminRouter->>AuditLog: logAdminAction("permission_denied", userId, action)
+                AdminRouter-->>User: access_denied_error
+            end
+        end
+        
+        User->>AdminRouter: returnToMainApp()
+        AdminRouter->>AuditLog: logAdminAction("admin_session_end", userId)
+        AdminRouter-->>App: clearAdminSession()
+        
+    else User is Regular
+        Database-->>AuthCheck: no_admin_record
+        AuthCheck-->>App: { isAdmin: false }
+        App->>App: hideAdminFeatures()
+    end
+```
+
+### Complete System Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        UI[User Interface Components]
+        Auth[Auth-to-Player State Machine]
+        Nav[Navigation System]
+    end
+    
+    subgraph "Service Layer"
+        SC[Service Container]
+        LES[LearningEngineService]
+        USM[UserSessionManager]
+        CGE[ContentGatingEngine]
+        SM[SubscriptionManager]
+    end
+    
+    subgraph "Learning Engine Layer"
+        THM[TripleHelixManager]
+        StM[StitchManager]
+        QG[QuestionGenerator]
+        DG[DistractorGenerator]
+        FR[FactRepository x3]
+    end
+    
+    subgraph "Admin Layer"
+        AdminUI[Admin Interface]
+        AdminAPI[Admin API]
+        RoleCheck[Role-Based Access]
+        AuditLog[Audit Logging]
+    end
+    
+    subgraph "External Services"
+        Stripe[Stripe API]
+        Supabase[(Supabase Database)]
+        Vercel[Vercel Edge Functions]
+    end
+    
+    %% User Interface Connections
+    UI --> Auth
+    Auth --> Nav
+    UI --> SC
+    
+    %% Service Layer Connections
+    SC --> LES
+    SC --> USM
+    SC --> CGE
+    SC --> SM
+    
+    %% Learning Engine Connections
+    LES --> THM
+    LES --> StM
+    LES --> QG
+    LES --> DG
+    THM --> FR
+    StM --> FR
+    QG --> FR
+    DG --> FR
+    
+    %% Admin Layer Connections
+    UI -.-> AdminUI
+    AdminUI --> RoleCheck
+    RoleCheck --> AdminAPI
+    AdminAPI --> AuditLog
+    AdminAPI --> Supabase
+    
+    %% External Service Connections
+    SM --> Stripe
+    USM --> Supabase
+    CGE --> Supabase
+    AdminAPI --> Vercel
+    
+    %% Data Flow Connections
+    LES --> USM
+    CGE --> SM
+    USM --> Supabase
+    
+    classDef frontend fill:#e3f2fd
+    classDef service fill:#e8f5e8
+    classDef engine fill:#fff3e0
+    classDef admin fill:#fce4ec
+    classDef external fill:#f3e5f5
+    
+    class UI,Auth,Nav frontend
+    class SC,LES,USM,CGE,SM service
+    class THM,StM,QG,DG,FR engine
+    class AdminUI,AdminAPI,RoleCheck,AuditLog admin
+    class Stripe,Supabase,Vercel external
+```
+
+### Event Bus Communication Architecture
+
+```mermaid
+graph LR
+    subgraph "Event Sources"
+        PlayerCard[PlayerCard]
+        Navigation[Navigation]
+        UserActions[User Actions]
+        SessionComplete[Session Complete]
+    end
+    
+    subgraph "Auth-to-Player Event Bus"
+        EventBus[AuthToPlayerEventBus]
+        StateManager[State Manager]
+        EventQueue[Event Queue]
+    end
+    
+    subgraph "Event Handlers"
+        StateHandler[State Change Handler]
+        PlayerReady[Player Ready Handler]
+        SessionExit[Session Exit Handler]
+        SummaryShown[Summary Shown Handler]
+    end
+    
+    subgraph "State Transitions"
+        AuthSuccess[AUTH_SUCCESS]
+        PreEngagement[PRE_ENGAGEMENT]
+        Loading[LOADING_WITH_ANIMATION]
+        ActiveLearning[ACTIVE_LEARNING]
+        SessionEnding[SESSION_ENDING]
+        Idle[IDLE]
+    end
+    
+    %% Event Flow
+    PlayerCard --> EventBus
+    Navigation --> EventBus
+    UserActions --> EventBus
+    SessionComplete --> EventBus
+    
+    EventBus --> StateManager
+    EventBus --> EventQueue
+    
+    StateManager --> StateHandler
+    StateManager --> PlayerReady
+    StateManager --> SessionExit
+    StateManager --> SummaryShown
+    
+    %% State Transitions
+    StateHandler --> AuthSuccess
+    StateHandler --> PreEngagement
+    StateHandler --> Loading
+    StateHandler --> ActiveLearning
+    StateHandler --> SessionEnding
+    StateHandler --> Idle
+    
+    %% Event Types
+    EventBus -.->|"play:button-clicked"| Loading
+    EventBus -.->|"animation:completed"| ActiveLearning
+    EventBus -.->|"session:exit-requested"| SessionEnding
+    EventBus -.->|"session:summary-shown"| Idle
+    EventBus -.->|"dashboard:navigation"| PreEngagement
+```
+
 ### Key Design Patterns
 
 #### 1. Sparse Position Storage
