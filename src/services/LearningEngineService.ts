@@ -237,6 +237,15 @@ export class LearningEngineService implements LearningEngineServiceInterface {
         );
       }
       
+      // Initialize Live-Aid system for user (sets up 3-tube rotating system)
+      try {
+        await this.liveAidManager.initializeLiveAidSystem(userId);
+        this.log(`Live-Aid system initialized for user: ${userId}`);
+      } catch (error) {
+        // If already initialized, that's fine - LiveAidManager handles this
+        this.log(`Live-Aid system state checked for user: ${userId}`);
+      }
+      
       // APML Protocol: Create session ID and store EMPTY session FIRST
       const sessionId = uuidv4();
       const startTime = new Date().toISOString();
@@ -430,6 +439,19 @@ export class LearningEngineService implements LearningEngineServiceInterface {
       if (sessionComplete || !nextQuestion) {
         session.isActive = false;
         this.log(`Learning session completed: ${sessionId}`);
+        
+        // CRITICAL: Trigger tube rotation when session completes (Live-Aid system)
+        try {
+          const rotationResult = await this.liveAidManager.rotateTubes(
+            session.userId, 
+            'session_completion'
+          );
+          this.log(`Tubes rotated for user ${session.userId}: ${rotationResult.rotationId}`);
+          this.log(`New active tube: ${rotationResult.newActiveTube}, rotation count: ${rotationResult.rotationCount}`);
+        } catch (rotationError) {
+          this.log(`Warning: Tube rotation failed for user ${session.userId}: ${rotationError}`);
+          // Don't fail the session completion if rotation fails
+        }
       }
       
       this.log(`Response processed: ${questionId} - ${isCorrect ? 'correct' : 'incorrect'}`);
@@ -732,17 +754,33 @@ export class LearningEngineService implements LearningEngineServiceInterface {
       this.log(`Generating 20-question stitch for learning path: ${learningPathId} using LiveAidManager`);
       
       try {
-        // Use injected LiveAidManager to get next stitch
-        const stitchContent = await this.liveAidManager.getNextStitch(userId, currentStitchId);
+        // Use injected LiveAidManager to get ready stitch content
+        const readyStitch = await this.liveAidManager.getReadyStitch(userId, tubeId);
         
-        if (!stitchContent || !stitchContent.questions || stitchContent.questions.length === 0) {
+        if (!readyStitch || !readyStitch.questions || readyStitch.questions.length === 0) {
           throw new Error('No questions generated from LiveAidManager');
         }
         
-        this.log(`Generated stitch with ${stitchContent.questions.length} questions from LiveAidManager`);
+        this.log(`Generated stitch with ${readyStitch.questions.length} questions from LiveAidManager`);
         
-        // Questions from LiveAidManager are already in the correct format
-        return stitchContent.questions;
+        // Convert ReadyQuestion format to Question format
+        const questions: Question[] = readyStitch.questions.map(rq => ({
+          id: rq.id,
+          questionText: rq.text,
+          correctAnswer: rq.correctAnswer,
+          distractors: [rq.distractor],
+          boundaryLevel: rq.boundaryLevel,
+          difficulty: 1,
+          factId: rq.factId,
+          metadata: {
+            ...rq.metadata,
+            learningPathId: learningPathId,
+            stitchId: readyStitch.stitchId,
+            tubeId: readyStitch.tubeId
+          }
+        }));
+        
+        return questions;
       } catch (liveAidError) {
         this.log(`LiveAidManager failed: ${liveAidError}`);
         
@@ -1068,16 +1106,34 @@ export class LearningEngineService implements LearningEngineServiceInterface {
    */
   private async generateQuestionsForStitch(userId: string, stitchId: string, config: SessionConfiguration): Promise<Question[]> {
     try {
-      // Use LiveAidManager to get stitch content
-      const stitchContent = await this.liveAidManager.getStitchContent(stitchId);
+      // Extract tube ID from stitch ID (format: t1-0001-0001)
+      const tubeId = stitchId.split('-')[0] as 'tube1' | 'tube2' | 'tube3';
       
-      if (!stitchContent || !stitchContent.questions) {
+      // Use LiveAidManager to get ready stitch content
+      const readyStitch = await this.liveAidManager.getReadyStitch(userId, tubeId);
+      
+      if (!readyStitch || !readyStitch.questions) {
         this.log(`No questions found for stitch: ${stitchId}`);
         return [];
       }
       
-      // Questions from LiveAidManager are already in the correct format
-      return stitchContent.questions;
+      // Convert ReadyQuestion format to Question format
+      const questions: Question[] = readyStitch.questions.map(rq => ({
+        id: rq.id,
+        questionText: rq.text,
+        correctAnswer: rq.correctAnswer,
+        distractors: [rq.distractor],
+        boundaryLevel: rq.boundaryLevel,
+        difficulty: 1,
+        factId: rq.factId,
+        metadata: {
+          ...rq.metadata,
+          stitchId: readyStitch.stitchId,
+          tubeId: readyStitch.tubeId
+        }
+      }));
+      
+      return questions;
     } catch (error) {
       this.log(`Failed to generate questions for stitch ${stitchId}: ${error}`);
       return [];
