@@ -49,6 +49,8 @@ interface RemainingTask {
   priority: 'critical' | 'high' | 'medium' | 'low';
   dependencies?: string[];
   technicalNotes?: string;
+  parallelizable?: boolean;
+  claudeInstance?: number;
 }
 
 // Data
@@ -281,7 +283,9 @@ const remainingTasks: RemainingTask[] = [
     description: 'Finish IndexedDB integration and sync queue processing',
     estimatedSessions: 1,
     priority: 'high',
-    technicalNotes: 'Focus on conflict resolution and data integrity'
+    technicalNotes: 'Focus on conflict resolution and data integrity',
+    parallelizable: true,
+    claudeInstance: 1
   },
   {
     id: 'content-preload',
@@ -289,7 +293,9 @@ const remainingTasks: RemainingTask[] = [
     description: 'Service Worker setup for offline content availability',
     estimatedSessions: 1,
     priority: 'medium',
-    dependencies: ['offline-sync']
+    dependencies: ['offline-sync'],
+    parallelizable: false,
+    claudeInstance: 1
   },
   {
     id: 'performance-audit',
@@ -297,7 +303,9 @@ const remainingTasks: RemainingTask[] = [
     description: 'Profile and optimize bundle size, lazy loading, and render performance',
     estimatedSessions: 1,
     priority: 'high',
-    technicalNotes: 'Target < 3s initial load, maintain 60fps animations'
+    technicalNotes: 'Target < 3s initial load, maintain 60fps animations',
+    parallelizable: true,
+    claudeInstance: 2
   },
   {
     id: 'e2e-testing',
@@ -305,7 +313,9 @@ const remainingTasks: RemainingTask[] = [
     description: 'Comprehensive testing of all user flows and edge cases',
     estimatedSessions: 1,
     priority: 'critical',
-    technicalNotes: 'Cypress or Playwright for test automation'
+    technicalNotes: 'Cypress or Playwright for test automation',
+    parallelizable: true,
+    claudeInstance: 3
   },
   {
     id: 'deployment-prep',
@@ -313,7 +323,9 @@ const remainingTasks: RemainingTask[] = [
     description: 'Configure CI/CD, monitoring, and launch procedures',
     estimatedSessions: 1,
     priority: 'critical',
-    dependencies: ['e2e-testing', 'performance-audit']
+    dependencies: ['e2e-testing', 'performance-audit'],
+    parallelizable: false,
+    claudeInstance: 4
   }
 ];
 
@@ -324,17 +336,30 @@ const calculateOverallProgress = () => {
 };
 
 const calculateRemainingTime = () => {
-  const remainingSessions = remainingTasks.reduce((sum, task) => sum + task.estimatedSessions, 0);
-  const sessionsPerDay = 0.5; // Assuming 1 session every 2 days with human oversight
-  const daysRemaining = Math.ceil(remainingSessions / sessionsPerDay);
+  // Group tasks by their execution timeline
+  const parallelGroups = {
+    day1: remainingTasks.filter(t => t.parallelizable && !t.dependencies?.length), // Can start immediately
+    day2: remainingTasks.filter(t => t.dependencies?.length === 1), // Depends on day 1
+    day3: remainingTasks.filter(t => t.dependencies?.length && t.dependencies.length > 1) // Final tasks
+  };
+  
+  // With 4 Claude instances working in parallel
+  const totalSessions = remainingTasks.reduce((sum, task) => sum + task.estimatedSessions, 0);
+  const daysRemaining = 5; // Target: 5 days with parallel execution
   
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() + daysRemaining);
   
   return {
-    sessions: remainingSessions,
+    sessions: totalSessions,
     days: daysRemaining,
-    targetDate: targetDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    targetDate: targetDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    parallelInstances: 4,
+    timeline: {
+      day1: 3, // 3 tasks in parallel (offline-sync, performance-audit, e2e-testing)
+      day2: 1, // content-preload (depends on offline-sync)
+      day3: 1  // deployment-prep (depends on testing & performance)
+    }
   };
 };
 
@@ -452,8 +477,8 @@ export const ProjectStatusDashboard: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-sm text-gray-400">Time Remaining</div>
-                    <div className="text-xl font-bold text-white">{remainingTime.sessions} Sessions</div>
-                    <div className="text-xs text-gray-500">~{remainingTime.days} days</div>
+                    <div className="text-xl font-bold text-white">{remainingTime.days} Days</div>
+                    <div className="text-xs text-gray-500">{remainingTime.parallelInstances} parallel Claudes</div>
                   </div>
                 </div>
               </motion.div>
@@ -819,9 +844,62 @@ export const ProjectStatusDashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Parallel Execution Plan */}
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50 mb-6">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-yellow-400" />
+                  Parallel Execution Plan
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-blue-300">Day 1-2: Parallel Start</h4>
+                      <span className="text-xs text-blue-400">3 Claude instances</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span className="text-gray-300">Claude 1: Offline Sync</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                        <span className="text-gray-300">Claude 2: Performance</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                        <span className="text-gray-300">Claude 3: E2E Testing</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-orange-300">Day 3: Sequential Tasks</h4>
+                      <span className="text-xs text-orange-400">1 Claude instance</span>
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      Claude 1 continues with Content Pre-caching (depends on Offline Sync)
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-green-300">Day 4-5: Final Integration</h4>
+                      <span className="text-xs text-green-400">1 Claude instance</span>
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      Claude 4: Deployment prep (integrating all completed work)
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-4">
+                  * With human oversight coordinating between instances to prevent conflicts
+                </p>
+              </div>
+
               {/* Upcoming Tasks */}
               <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-gray-700/50">
-                <h3 className="text-lg font-semibold text-white mb-4">Remaining Tasks</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Task Details</h3>
                 <div className="space-y-4">
                   {remainingTasks.map((task, index) => (
                     <motion.div
@@ -832,7 +910,14 @@ export const ProjectStatusDashboard: React.FC = () => {
                       className="p-4 rounded-lg bg-gray-800/50 border border-gray-700/50"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-white">{task.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-white">{task.title}</h4>
+                          {task.claudeInstance && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/50">
+                              Claude {task.claudeInstance}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             task.priority === 'critical' 
