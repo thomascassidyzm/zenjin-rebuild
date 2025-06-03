@@ -82,7 +82,7 @@ export const serviceFactories: Record<ServiceType, ServiceFactory> = {
   // Core Engine Components (no dependencies)
   FactRepository: {
     createInstance: async (resolver: ServiceResolver) => {
-      return new FactRepository();
+      return FactRepository.getInstance();
     },
     dependencies: [],
     lifetime: 'singleton'

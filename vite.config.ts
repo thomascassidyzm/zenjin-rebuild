@@ -96,21 +96,10 @@ export default defineConfig({
       }
     },
     
-    // Terser options for production optimization
-    terserOptions: {
-      compress: {
-        // Remove console statements in production
-        drop_console: process.env.NODE_ENV === 'production',
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.debug', 'console.trace'],
-        passes: 2
-      },
-      mangle: {
-        safari10: true
-      },
-      format: {
-        comments: false
-      }
+    // Use esbuild for minification (Vite default)
+    // Drop console statements in production
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     }
   },
   

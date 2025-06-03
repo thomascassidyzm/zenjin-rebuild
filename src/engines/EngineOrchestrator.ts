@@ -275,7 +275,7 @@ export class EngineOrchestrator {
         const { DistractorGenerator } = await import('./DistractorGenerator/DistractorGenerator');
         const { DistinctionManager } = await import('./DistinctionManager/DistinctionManager');
         
-        const factRepository = new FactRepository();
+        const factRepository = FactRepository.getInstance();
         const contentManager = new ContentManager(factRepository);
         const questionGenerator = new QuestionGenerator();
         const distractorGenerator = new DistractorGenerator();
@@ -869,7 +869,7 @@ export class EngineOrchestrator {
       this.stitchPopulation = new StitchPopulation();
       
       // Phase 2: StitchPreparation (background assembly)
-      const factRepository = new FactRepository();
+      const factRepository = FactRepository.getInstance();
       const distinctionManager = new DistinctionManager();
       const distractorGenerator = new DistractorGenerator();
       const questionGenerator = new QuestionGenerator();

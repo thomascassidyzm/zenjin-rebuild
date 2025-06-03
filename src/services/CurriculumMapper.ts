@@ -43,7 +43,7 @@ export class CurriculumMapper {
   constructor(factRepository?: FactRepository) {
     if (!factRepository) {
       console.warn('⚠️ CurriculumMapper: No FactRepository injected, creating fallback instance');
-      factRepository = new FactRepository();
+      factRepository = FactRepository.getInstance();
     }
     this.factRepository = factRepository;
     this.stitchLibrary = new StitchLibrary(this.factRepository);

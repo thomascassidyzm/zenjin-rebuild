@@ -762,6 +762,12 @@ export class LearningEngineService implements LearningEngineServiceInterface {
         // Use injected LiveAidManager to get ready stitch content
         const readyStitch = await this.liveAidManager.getReadyStitch(userId, tubeId);
         
+        console.log('🔍 DEBUG: readyStitch from LiveAidManager:', {
+          hasStitch: !!readyStitch,
+          questionsLength: readyStitch?.questions?.length,
+          firstQuestion: readyStitch?.questions?.[0]
+        });
+        
         if (!readyStitch || !readyStitch.questions || readyStitch.questions.length === 0) {
           throw new Error('No questions generated from LiveAidManager');
         }
@@ -788,8 +794,10 @@ export class LearningEngineService implements LearningEngineServiceInterface {
         return questions;
       } catch (liveAidError) {
         this.log(`LiveAidManager failed: ${liveAidError}`);
+        console.error('🔴 LiveAidManager error details:', liveAidError);
         
-        // Fallback: Use QuestionGenerator directly
+        // Fallback: Generate simple questions directly
+        this.log('Using emergency fallback question generation');
         try {
           const request = {
             userId,

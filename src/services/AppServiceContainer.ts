@@ -39,7 +39,7 @@ export async function initializeServiceContainer(): Promise<void> {
     console.log('🏗️ Initializing APML-compliant service architecture...');
     
     // Content Generation Context - can have its own FactRepository
-    const contentFactRepo = new FactRepository();
+    const contentFactRepo = FactRepository.getInstance();
     console.log('📦 FactRepository created for content generation context');
     
     const contentManager = new ContentManager(contentFactRepo);
@@ -47,7 +47,7 @@ export async function initializeServiceContainer(): Promise<void> {
     const distractorGenerator = new DistractorGenerator(contentFactRepo);
     
     // Engine Context - can have its own FactRepository  
-    const engineFactRepo = new FactRepository();
+    const engineFactRepo = FactRepository.getInstance();
     console.log('📦 FactRepository created for engine context');
     
     const tripleHelixManager = new TripleHelixManager();

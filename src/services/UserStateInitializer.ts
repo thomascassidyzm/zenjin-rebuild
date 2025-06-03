@@ -50,7 +50,7 @@ export class UserStateInitializer {
     // Initialize dependencies - use injected FactRepository or create fallback
     if (!factRepository) {
       console.warn('⚠️ UserStateInitializer: No FactRepository injected, creating fallback instance');
-      factRepository = new FactRepository();
+      factRepository = FactRepository.getInstance();
     }
     this.stitchLibrary = new StitchLibrary(factRepository);
     this.tripleHelixManager = new TripleHelixManager();

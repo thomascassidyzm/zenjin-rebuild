@@ -254,6 +254,12 @@ const LearningSession: React.FC<LearningSessionProps> = ({
     if (hasInitialized) return;
     
     const initializeSession = async () => {
+      console.log('🔍 DEBUG: initializeSession called with:', {
+        hasSessionData: !!sessionDataFromBus,
+        initialQuestionsLength: sessionDataFromBus?.initialQuestions?.length,
+        firstQuestion: sessionDataFromBus?.initialQuestions?.[0]
+      });
+      
       if (sessionDataFromBus && sessionDataFromBus.initialQuestions && sessionDataFromBus.initialQuestions.length > 0) {
         // Initialize from full session data with all questions
         const allQuestions = sessionDataFromBus.initialQuestions.map((q: any) => ({

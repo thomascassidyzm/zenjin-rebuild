@@ -7,8 +7,10 @@ import { FactRepositoryInterface, MathematicalFact, FactQuery } from './FactRepo
 
 /**
  * Implementation of the FactRepository that stores and retrieves mathematical facts
+ * Implements singleton pattern to ensure only one instance exists
  */
 export class FactRepository implements FactRepositoryInterface {
+  private static instance: FactRepository | null = null;
   private facts: Map<string, MathematicalFact> = new Map();
   private operationIndex: Map<string, Set<string>> = new Map();
   private difficultyIndex: Map<string, number> = new Map();
@@ -16,8 +18,9 @@ export class FactRepository implements FactRepositoryInterface {
   
   /**
    * Creates a new instance of FactRepository with initial facts
+   * Private constructor to enforce singleton pattern
    */
-  constructor() {
+  private constructor() {
     console.log('🔄 FactRepository constructor: Starting initialization...');
     try {
       this.initializeRepository();
@@ -26,6 +29,17 @@ export class FactRepository implements FactRepositoryInterface {
       console.error('❌ FactRepository constructor: Initialization failed:', error);
       throw error;
     }
+  }
+  
+  /**
+   * Gets the singleton instance of FactRepository
+   * @returns The single instance of FactRepository
+   */
+  public static getInstance(): FactRepository {
+    if (!FactRepository.instance) {
+      FactRepository.instance = new FactRepository();
+    }
+    return FactRepository.instance;
   }
   
   /**
