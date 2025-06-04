@@ -12,8 +12,11 @@ import {
   ArrowLeft,
   GripVertical,
   Check,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
+import { ClaudeGenerationModal } from './ClaudeGenerationModal';
+import type { GeneratedContent, Fact } from './ClaudeGenerationModal';
 
 interface StitchEssence {
   id: string;
@@ -40,6 +43,8 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
   const [draggedStitch, setDraggedStitch] = useState<StitchEssence | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<{ tubeId: string; index: number } | null>(null);
   const dragCounter = useRef(0);
+  const [showClaudeModal, setShowClaudeModal] = useState(false);
+  const [existingFacts, setExistingFacts] = useState<Fact[]>([]);
 
   useEffect(() => {
     loadCurriculum();
@@ -48,6 +53,13 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
   const loadCurriculum = async () => {
     setLoading(true);
     try {
+      // Load facts from API
+      const factsResponse = await fetch('/api/admin/facts');
+      if (factsResponse.ok) {
+        const factsData = await factsResponse.json();
+        setExistingFacts(factsData);
+      }
+
       // Mock curriculum data - would come from API
       setStitches([
         {
@@ -248,6 +260,34 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
     dragCounter.current--;
     if (dragCounter.current === 0) {
       setDragOverIndex(null);
+    }
+  };
+
+  const handleImportFromClaude = async (content: GeneratedContent) => {
+    try {
+      // Import stitches
+      if (content.stitches.length > 0) {
+        // Generate new IDs for imported stitches
+        const newStitches = content.stitches.map((stitch, index) => ({
+          ...stitch,
+          id: `imported_${Date.now()}_${index}`,
+          position: stitches.filter(s => s.tubeId === stitch.tubeId).length + index
+        }));
+        
+        setStitches([...stitches, ...newStitches]);
+      }
+
+      // Import facts (would normally send to API)
+      if (content.facts.length > 0) {
+        console.log('Would import facts:', content.facts);
+        // TODO: Implement API call to save facts
+      }
+
+      // Show success message
+      alert(`Successfully imported ${content.stitches.length} stitches and ${content.facts.length} facts!`);
+    } catch (error) {
+      console.error('Failed to import content:', error);
+      alert('Failed to import content. Please try again.');
     }
   };
 
@@ -458,9 +498,12 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
               </div>
             </div>
             <div className="flex space-x-3">
-              <button className="inline-flex items-center px-4 py-2 border border-gray-700 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-white transition-all">
-                <Upload className="w-4 h-4 mr-2" />
-                Bulk Import
+              <button 
+                onClick={() => setShowClaudeModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-purple-600 rounded-lg shadow-sm text-sm font-medium text-purple-300 bg-purple-900/30 hover:bg-purple-800/50 hover:text-white transition-all"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate with Claude
               </button>
             </div>
           </div>
@@ -486,6 +529,15 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
           </div>
         </div>
       </main>
+
+      {/* Claude Generation Modal */}
+      <ClaudeGenerationModal
+        isOpen={showClaudeModal}
+        onClose={() => setShowClaudeModal(false)}
+        onImport={handleImportFromClaude}
+        existingStitches={stitches}
+        existingFacts={existingFacts}
+      />
     </div>
   );
 };
