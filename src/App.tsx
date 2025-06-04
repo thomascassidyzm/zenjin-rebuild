@@ -167,25 +167,33 @@ const NavigationHeader: React.FC<{
             
             <nav className="flex space-x-2 sm:space-x-3">
             {[
-              { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: 'Dashboard' },
-              { id: 'session', icon: '▶', label: 'Play', title: 'Play Session' },
-              { id: 'project-status', icon: '📊', label: 'Status', title: 'Project Status' },
-              { id: 'settings', icon: '⚙', label: 'Settings', title: 'User Settings' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                title={item.title}
-                className={`px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 ${
-                  currentPage === item.id
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                <span className="text-lg">{item.icon}</span>
-                <span className="hidden sm:inline text-sm">{item.label}</span>
-              </button>
-            ))}
+              { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: inActiveSession ? 'Exit to Dashboard' : 'Dashboard' },
+              { id: 'session', icon: '▶', label: 'Play', title: inActiveSession ? 'Playing Session' : 'Play Session' },
+              { id: 'project-status', icon: '📊', label: 'Status', title: inActiveSession ? 'Exit to Project Status' : 'Project Status' },
+              { id: 'settings', icon: '⚙', label: 'Settings', title: inActiveSession ? 'Exit to Settings' : 'User Settings' }
+            ].map((item) => {
+              const isDisabled = inActiveSession && item.id === 'session';
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  title={item.title}
+                  disabled={isDisabled}
+                  className={`px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 ${
+                    currentPage === item.id
+                      ? 'bg-indigo-600 text-white'
+                      : isDisabled
+                      ? 'text-gray-500 cursor-not-allowed'
+                      : inActiveSession
+                      ? 'text-orange-300 hover:text-orange-200 hover:bg-orange-900/30'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="hidden sm:inline text-sm">{item.label}</span>
+                </button>
+              );
+            })}
             
             {/* Admin Entry Point - conditionally rendered based on admin status */}
             {userSession && onAdminClick && (
@@ -1224,6 +1232,7 @@ const AppContent: React.FC = () => {
         backendConnected={hasBackendConnection}
         userSession={sessionState}
         onAdminClick={handleAdminClick}
+        inActiveSession={authToPlayerState === 'ACTIVE_LEARNING'}
       />
       {contentToRender}
       
