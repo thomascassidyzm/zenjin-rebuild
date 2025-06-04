@@ -298,22 +298,27 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
         throw new Error('INVALID_TEMPLATE');
       }
       
-      // Replace template placeholders with values from the fact
-      let formattedText = template;
+      // Replace template placeholders with actual values
+      let questionText = template;
       
-      // Replace common placeholders
-      formattedText = formattedText.replace(/{{operand1}}/g, fact.operands[0]?.toString() || '');
-      formattedText = formattedText.replace(/{{operand2}}/g, fact.operands[1]?.toString() || '');
-      formattedText = formattedText.replace(/{{result}}/g, fact.result.toString());
-      formattedText = formattedText.replace(/{{operation}}/g, fact.operation);
+      // Extract operands from the fact
+      let operands = this.extractOperands(fact);
       
-      // Replace any additional custom placeholders
-      Object.entries(fact).forEach(([key, value]) => {
-        const placeholder = new RegExp(`{{${key}}}`, 'g');
-        formattedText = formattedText.replace(placeholder, value.toString());
-      });
+      // Special handling for doubling templates
+      // If this is a doubling question (template contains "double" or "Double") and operand1 is 2,
+      // we need to ensure the number being doubled is in operand1 position
+      if ((template.toLowerCase().includes('double') || template.toLowerCase().includes('twice')) && 
+          operands.operand1 === 2 && operands.operand2 !== 2) {
+        // Swap operands so the number being doubled is operand1
+        operands = { operand1: operands.operand2, operand2: operands.operand1 };
+      }
       
-      return formattedText;
+      questionText = questionText.replace(/\{\{operand1\}\}/g, operands.operand1.toString());
+      questionText = questionText.replace(/\{\{operand2\}\}/g, operands.operand2.toString());
+      questionText = questionText.replace(/\{\{result\}\}/g, fact.result.toString());
+      questionText = questionText.replace(/\{\{operation\}\}/g, fact.operation);
+      
+      return questionText;
     } catch (error) {
       this.logger.error(`Failed to format question text: ${error.message}`);
       throw error;
@@ -548,41 +553,6 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     return templates[randomIndex];
   }
 
-  /**
-   * Formats a question template with actual values from a fact
-   * @param factId Fact identifier
-   * @param template Question template
-   * @returns Formatted question text
-   */
-  private formatQuestionText(factId: string, template: string): string {
-    const fact = this.factRepository.getFactById(factId);
-    
-    if (!fact) {
-      throw new Error('INVALID_FACT');
-    }
-    
-    // Replace template placeholders with actual values
-    let questionText = template;
-    
-    // Extract operands from the fact
-    let operands = this.extractOperands(fact);
-    
-    // Special handling for doubling templates
-    // If this is a doubling question (template contains "double" or "Double") and operand1 is 2,
-    // we need to ensure the number being doubled is in operand1 position
-    if ((template.toLowerCase().includes('double') || template.toLowerCase().includes('twice')) && 
-        operands.operand1 === 2 && operands.operand2 !== 2) {
-      // Swap operands so the number being doubled is operand1
-      operands = { operand1: operands.operand2, operand2: operands.operand1 };
-    }
-    
-    questionText = questionText.replace(/\{\{operand1\}\}/g, operands.operand1.toString());
-    questionText = questionText.replace(/\{\{operand2\}\}/g, operands.operand2.toString());
-    questionText = questionText.replace(/\{\{result\}\}/g, fact.result.toString());
-    questionText = questionText.replace(/\{\{operation\}\}/g, fact.operation);
-    
-    return questionText;
-  }
 
   /**
    * Extracts operands from a mathematical fact
