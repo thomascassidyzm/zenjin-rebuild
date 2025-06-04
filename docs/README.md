@@ -11,7 +11,10 @@ The most important documents for understanding the system architecture and desig
 - **[DATA_FLOWS.md](./critical/DATA_FLOWS.md)** - Complete data flow documentation through all system layers
 - **[SERVICE_ARCHITECTURE.md](./critical/SERVICE_ARCHITECTURE.md)** - Microservice design and service boundaries
 - **[USER_JOURNEYS.md](./critical/USER_JOURNEYS.md)** - Core user paths and experience flows
+- **[USER_JOURNEYS_COMPLETE_ANALYSIS.md](./critical/USER_JOURNEYS_COMPLETE_ANALYSIS.md)** - Comprehensive user journey analysis
 - **[APML_FRAMEWORK.md](./critical/APML_FRAMEWORK.md)** - APML framework principles guiding the rebuild
+- **[AUTH_TO_PLAYER_STATE_ANALYSIS.md](./critical/AUTH_TO_PLAYER_STATE_ANALYSIS.md)** - Authentication to player state flow analysis
+- **[PERFORMANCE_UX_ANALYSIS.md](./critical/PERFORMANCE_UX_ANALYSIS.md)** - Performance and UX optimization analysis
 
 ### 🚀 /features/ - Feature Documentation
 Detailed documentation for each major feature area.
@@ -59,9 +62,31 @@ Core business logic engines:
 - **[SubscriptionManager.md](./engines/SubscriptionManager.md)** - Subscription management
 - [And many more...](./engines/)
 
-### 🤝 /handoffs/ - Integration Handoffs
-Documentation for system integrations and handoffs:
-- **[HANDOFF_PREMIUM_TIER_2025-06-02.md](./handoffs/HANDOFF_PREMIUM_TIER_2025-06-02.md)** - Premium tier integration handoff
+### 🎨 /design/ - Design Documentation
+User interface and interaction design documentation:
+- **[CURRICULUM_MANAGEMENT_DESIGN.md](./design/CURRICULUM_MANAGEMENT_DESIGN.md)** - Curriculum management interface design
+- **[IMPLEMENTATION_RECOMMENDATIONS.md](./design/IMPLEMENTATION_RECOMMENDATIONS.md)** - UI/UX implementation recommendations
+- **[USER_FLOWS.md](./design/USER_FLOWS.md)** - User interface flow documentation
+
+### 🧪 /test-plans/ - Testing Documentation
+Test plans and testing strategies:
+- **[tube-configuration-fix-test-plan.md](./test-plans/tube-configuration-fix-test-plan.md)** - Test plan for tube configuration fixes
+
+### 🏗️ Root Level Documentation
+Key documentation files in the project root:
+- **[../ADMIN_CURRICULUM_MANAGEMENT_RESEARCH.md](../ADMIN_CURRICULUM_MANAGEMENT_RESEARCH.md)** - Admin curriculum management research
+- **[../APML_EXPLAINER.md](../APML_EXPLAINER.md)** - APML framework explanation
+- **[../METRICS_AND_POINTS_FLOW.md](../METRICS_AND_POINTS_FLOW.md)** - Metrics and scoring system flow
+- **[../METRICS_IMPLEMENTATION_GUIDE.md](../METRICS_IMPLEMENTATION_GUIDE.md)** - Metrics implementation guide
+- **[../STRIPE_INTEGRATION_GUIDE.md](../STRIPE_INTEGRATION_GUIDE.md)** - Stripe payment integration guide
+- **[../SYSTEM_INTERFACE_DIAGRAM.md](../SYSTEM_INTERFACE_DIAGRAM.md)** - System interface diagrams
+- **[../TUBE_CONFIGURATION_FIX_SUMMARY.md](../TUBE_CONFIGURATION_FIX_SUMMARY.md)** - Tube configuration fix summary
+- **[../test-scenarios.md](../test-scenarios.md)** - Test scenarios documentation
+
+### 🗄️ Database Documentation
+Database setup and management:
+- **[../database/CURRICULUM_DEPLOYMENT_GUIDE.md](../database/CURRICULUM_DEPLOYMENT_GUIDE.md)** - Curriculum deployment guide
+- **[../database/DEPLOYMENT_INSTRUCTIONS.md](../database/DEPLOYMENT_INSTRUCTIONS.md)** - Database deployment instructions
 
 ## 🔍 How to Use This Documentation
 
@@ -102,5 +127,5 @@ When adding new documentation:
 
 ---
 
-*Last updated: June 3, 2025*
+*Last updated: June 4, 2025*
 *For questions about documentation, contact the development team*

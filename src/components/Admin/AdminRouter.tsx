@@ -5,11 +5,12 @@
 
 import React, { useState } from 'react';
 import AdminDashboard from './AdminDashboard';
-import ContentManagement from './ContentManagement';
+import ContentManagementEnhanced from './ContentManagementEnhanced';
+import SimpleCurriculumPlanner from './SimpleCurriculumPlanner';
 import UserManagement from './UserManagement';
 import Analytics from './Analytics';
 
-type AdminSection = 'dashboard' | 'content' | 'users' | 'analytics' | 'deployment' | 'database' | 'settings';
+type AdminSection = 'dashboard' | 'content' | 'curriculum' | 'users' | 'analytics' | 'deployment' | 'database' | 'settings';
 
 export const AdminRouter: React.FC = () => {
   const [currentSection, setCurrentSection] = useState<AdminSection>('dashboard');
@@ -28,7 +29,10 @@ export const AdminRouter: React.FC = () => {
         return <AdminDashboard onNavigate={handleNavigate} />;
       
       case 'content':
-        return <ContentManagement onBack={handleBack} />;
+        return <ContentManagementEnhanced onBack={handleBack} />;
+      
+      case 'curriculum':
+        return <SimpleCurriculumPlanner onBack={handleBack} />;
       
       case 'users':
         return <UserManagement onBack={handleBack} />;

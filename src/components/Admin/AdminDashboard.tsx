@@ -79,6 +79,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   const adminSections = [
     {
+      id: 'curriculum',
+      title: 'Curriculum Planner',
+      description: 'Design learning sequences for the triple helix',
+      icon: BookOpen,
+      color: 'bg-emerald-500',
+      stats: 'Simplified stitch sequencing'
+    },
+    {
       id: 'content',
       title: 'Content Management',
       description: 'Manage facts, stitches, and learning progressions',

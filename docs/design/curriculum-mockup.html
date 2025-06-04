@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curriculum Management Interface Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tube {
+            min-height: 400px;
+            transition: all 0.3s ease;
+        }
+        .tube.drag-over {
+            background-color: rgba(99, 102, 241, 0.1);
+            border-color: rgb(99, 102, 241);
+        }
+        .concept-card {
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+        .concept-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+        .priority-bar {
+            height: 4px;
+            transition: width 0.3s ease;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .rotating {
+            animation: rotate 2s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <button class="mr-4 p-2 text-gray-600 hover:text-gray-900">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Curriculum Management</h1>
+                        <p class="text-gray-600 text-sm">Design flexible learning paths with the Triple Helix system</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Import/Export
+                    </button>
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Preview Mode
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex space-x-6">
+            <!-- Left Panel: Concept Library -->
+            <div class="w-1/4 bg-white rounded-lg shadow p-4">
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold mb-2">Concept Library</h2>
+                    <input type="text" placeholder="Search concepts..." 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                </div>
+                
+                <div class="mb-4">
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                        <option>All Types</option>
+                        <option>Doubling</option>
+                        <option>Multiplication</option>
+                        <option>Division</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    <!-- Concept Cards -->
+                    <div class="concept-card bg-blue-50 border border-blue-200 rounded-lg p-3" draggable="true">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-semibold text-sm">0001</div>
+                                <div class="text-xs text-gray-600">Doubling 0-5 (ending in 1)</div>
+                            </div>
+                            <div class="flex space-x-1">
+                                <span class="bg-green-100 text-green-800 text-xs px-1 rounded">T1</span>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-1 rounded">T2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="concept-card bg-purple-50 border border-purple-200 rounded-lg p-3" draggable="true">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-semibold text-sm">0003</div>
+                                <div class="text-xs text-gray-600">3x Multiplication Table</div>
+                            </div>
+                            <div class="flex space-x-1">
+                                <span class="bg-blue-100 text-blue-800 text-xs px-1 rounded">T2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="concept-card bg-green-50 border border-green-200 rounded-lg p-3" draggable="true">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-semibold text-sm">1001</div>
+                                <div class="text-xs text-gray-600">Division by 2</div>
+                            </div>
+                            <div class="flex space-x-1">
+                                <span class="bg-gray-100 text-gray-800 text-xs px-1 rounded">T3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- More concepts... -->
+                    <div class="concept-card bg-gray-50 border border-gray-200 rounded-lg p-3" draggable="true">
+                        <div>
+                            <div class="font-semibold text-sm">0002</div>
+                            <div class="text-xs text-gray-600">Doubling 0-5 (ending in 2)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Triple Helix Visualization -->
+            <div class="flex-1">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Triple Helix Configuration</h2>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                                <span class="rotating inline-block mr-1">⟲</span> Preview Rotation
+                            </button>
+                            <button class="px-3 py-1 text-sm border border-orange-300 text-orange-600 rounded-md hover:bg-orange-50">
+                                ⚠️ Check Balance
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Tube 1 -->
+                        <div class="tube border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">Tube 1</h3>
+                                    <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">LIVE</span>
+                                </div>
+                                <div class="text-xs text-gray-600">5 concepts • Avg priority: 92</div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="bg-white border border-gray-200 rounded p-3 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="font-semibold text-sm">0001</div>
+                                        <button class="text-gray-400 hover:text-gray-600">×</button>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mb-2">Doubling 0-5 (ending in 1)</div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">Priority:</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="priority-bar bg-blue-500 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold">100</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded p-3 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="font-semibold text-sm">0002</div>
+                                        <button class="text-gray-400 hover:text-gray-600">×</button>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mb-2">Doubling 0-5 (ending in 2)</div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">Priority:</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="priority-bar bg-blue-500 rounded-full" style="width: 95%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold">95</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tube 2 -->
+                        <div class="tube border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">Tube 2</h3>
+                                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">READY</span>
+                                </div>
+                                <div class="text-xs text-gray-600">3 concepts • Avg priority: 83</div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="bg-white border border-gray-200 rounded p-3 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="font-semibold text-sm">0003</div>
+                                        <button class="text-gray-400 hover:text-gray-600">×</button>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mb-2">3x Multiplication Table</div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">Priority:</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="priority-bar bg-blue-500 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold">100</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-gray-200 rounded p-3 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="font-semibold text-sm">0001</div>
+                                        <button class="text-gray-400 hover:text-gray-600">×</button>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mb-2">Doubling 0-5 (ending in 1)</div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">Priority:</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="priority-bar bg-blue-500 rounded-full" style="width: 50%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold">50</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tube 3 -->
+                        <div class="tube border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold">Tube 3</h3>
+                                    <span class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">PREPARING</span>
+                                </div>
+                                <div class="text-xs text-red-600">⚠️ Only 1 concept</div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="bg-white border border-gray-200 rounded p-3 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="font-semibold text-sm">1001</div>
+                                        <button class="text-gray-400 hover:text-gray-600">×</button>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mb-2">Division by 2</div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">Priority:</span>
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="priority-bar bg-blue-500 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                        <span class="text-xs font-semibold">100</span>
+                                    </div>
+                                </div>
+
+                                <!-- Empty state hint -->
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                                    <p class="text-gray-400 text-sm">Drop more concepts here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rotation Flow Indicator -->
+                    <div class="mt-6 bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                                    <span class="text-2xl">1</span>
+                                </div>
+                                <span class="text-xs text-gray-600">LIVE</span>
+                            </div>
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                    <span class="text-2xl">2</span>
+                                </div>
+                                <span class="text-xs text-gray-600">READY</span>
+                            </div>
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                                    <span class="text-2xl">3</span>
+                                </div>
+                                <span class="text-xs text-gray-600">PREPARING</span>
+                            </div>
+                            <svg class="w-8 h-8 text-gray-400 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                        </div>
+                        <p class="text-center text-sm text-gray-600 mt-4">
+                            After 20 questions, tubes rotate: READY → LIVE, PREPARING → READY, LIVE → PREPARING
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Details & Actions -->
+            <div class="w-1/4">
+                <!-- Selected Concept Details -->
+                <div class="bg-white rounded-lg shadow p-4 mb-4">
+                    <h3 class="font-semibold mb-3">Selected: Concept 0001</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-600">Name</label>
+                            <p class="text-sm font-medium">Doubling 0-5 (ending in 1)</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600">Type</label>
+                            <p class="text-sm">Doubling</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-600">Current Assignments</label>
+                            <div class="flex space-x-2 mt-1">
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Tube 1 (P:100)</span>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Tube 2 (P:50)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Distribution -->
+                <div class="bg-white rounded-lg shadow p-4 mb-4">
+                    <h3 class="font-semibold mb-3">Priority Distribution</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <span class="text-xs text-gray-600 w-20">High (80+)</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-4 mr-2">
+                                <div class="bg-green-500 rounded-full h-4" style="width: 60%"></div>
+                            </div>
+                            <span class="text-xs font-semibold">12</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs text-gray-600 w-20">Med (40-79)</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-4 mr-2">
+                                <div class="bg-yellow-500 rounded-full h-4" style="width: 30%"></div>
+                            </div>
+                            <span class="text-xs font-semibold">6</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs text-gray-600 w-20">Low (0-39)</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-4 mr-2">
+                                <div class="bg-red-500 rounded-full h-4" style="width: 10%"></div>
+                            </div>
+                            <span class="text-xs font-semibold">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow p-4">
+                    <h3 class="font-semibold mb-3">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            🔄 Auto-balance priorities
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            📋 Copy tube config
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            🎯 Fill empty tubes
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm border border-red-300 text-red-600 rounded-md hover:bg-red-50">
+                            🗑️ Clear all mappings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple drag and drop simulation
+        let draggedElement = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make concept cards draggable
+            const conceptCards = document.querySelectorAll('.concept-card');
+            conceptCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+
+            // Make tubes droppable
+            const tubes = document.querySelectorAll('.tube');
+            tubes.forEach(tube => {
+                tube.addEventListener('dragover', handleDragOver);
+                tube.addEventListener('drop', handleDrop);
+                tube.addEventListener('dragleave', handleDragLeave);
+            });
+        });
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            // In a real implementation, this would update the state
+            alert('Concept dropped! In production, this would open a priority assignment dialog.');
+        }
+
+        // Priority slider interaction
+        document.querySelectorAll('.priority-bar').forEach(bar => {
+            bar.parentElement.addEventListener('click', function() {
+                const currentWidth = parseInt(bar.style.width);
+                const newWidth = prompt('Enter new priority (0-100):', currentWidth);
+                if (newWidth && !isNaN(newWidth) && newWidth >= 0 && newWidth <= 100) {
+                    bar.style.width = newWidth + '%';
+                    bar.parentElement.nextElementSibling.textContent = newWidth;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

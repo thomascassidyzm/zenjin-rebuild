@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { tube_id, concept_type, is_active, limit = 100, offset = 0 } = req.query;
         
         let query = supabase
-          .from('stitches')
+          .from('app_stitches')
           .select('*')
           .order('id');
 
@@ -74,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const { data: newStitch, error: createError } = await supabase
-          .from('stitches')
+          .from('app_stitches')
           .insert([{
             id,
             name,
@@ -103,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const updates = req.body;
         const { data: updatedStitch, error: updateError } = await supabase
-          .from('stitches')
+          .from('app_stitches')
           .update(updates)
           .eq('id', updateId)
           .select()
@@ -124,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const { error: deleteError } = await supabase
-          .from('stitches')
+          .from('app_stitches')
           .delete()
           .eq('id', deleteId);
 

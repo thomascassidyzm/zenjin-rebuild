@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { operation_type, search, limit = 100, offset = 0 } = req.query;
         
         let query = supabase
-          .from('facts')
+          .from('app_facts')
           .select('*')
           .order('id');
 
@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const factId = `${opType}-${operand1 || 'x'}-${operand2 || 'y'}`;
 
         const { data: newFact, error: createError } = await supabase
-          .from('facts')
+          .from('app_facts')
           .insert([{
             id: factId,
             statement,
@@ -93,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const updates = req.body;
         const { data: updatedFact, error: updateError } = await supabase
-          .from('facts')
+          .from('app_facts')
           .update(updates)
           .eq('id', id)
           .select()
@@ -114,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const { error: deleteError } = await supabase
-          .from('facts')
+          .from('app_facts')
           .delete()
           .eq('id', deleteId);
 
