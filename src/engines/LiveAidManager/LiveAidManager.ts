@@ -80,10 +80,19 @@ export class LiveAidManager implements LiveAidManagerInterface {
       const currentLive = systemState.tubeStates[systemState.tubeStates.tube1.status === 'live' ? 'tube1' : 
                           systemState.tubeStates.tube2.status === 'live' ? 'tube2' : 'tube3'];
       
+      // Check if we've already rotated through all tubes (max 3 rotations)
+      if (systemState.currentRotation >= 3) {
+        const errorMsg = `All tubes have been rotated (rotation count: ${systemState.currentRotation}). No more content available.`;
+        console.error(errorMsg);
+        throw new Error(`${LiveAidManagerErrorCode.NO_READY_CONTENT}: ${errorMsg}`);
+      }
+      
       // Step 2: Validate READY tube availability
       const readyTube = this.findReadyTube(systemState);
       if (!readyTube) {
-        throw new Error(LiveAidManagerErrorCode.NO_READY_CONTENT);
+        const errorMsg = `No READY tube found for rotation. Current state - tube1: ${systemState.tubeStates.tube1.status}, tube2: ${systemState.tubeStates.tube2.status}, tube3: ${systemState.tubeStates.tube3.status}`;
+        console.error(errorMsg);
+        throw new Error(`${LiveAidManagerErrorCode.NO_READY_CONTENT}: ${errorMsg}`);
       }
 
       // Step 3: Execute atomic rotation

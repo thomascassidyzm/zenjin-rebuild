@@ -454,7 +454,7 @@ export class LearningEngineService implements LearningEngineServiceInterface {
             'session_completion'
           );
           this.log(`Tubes rotated for user ${session.userId}: ${rotationResult.rotationId}`);
-          this.log(`New active tube: ${rotationResult.newActiveTube}, rotation count: ${rotationResult.rotationCount}`);
+          this.log(`New active tube: ${rotationResult.newLive}, transitions: ${rotationResult.transitions.length}`);
         } catch (rotationError) {
           this.log(`Warning: Tube rotation failed for user ${session.userId}: ${rotationError}`);
           // Don't fail the session completion if rotation fails

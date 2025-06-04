@@ -432,7 +432,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({
       await recordSessionMetrics(sessionMetrics);
       console.log('✅ Session metrics recorded to backend');
       
-      // APML: Automatically complete stitch and rotate tubes
+      // APML: Complete stitch (rotation is handled by LearningEngineService)
       const { EngineOrchestrator } = await import('./engines/EngineOrchestrator');
       const orchestrator = new EngineOrchestrator();
       
@@ -443,9 +443,8 @@ const LearningSession: React.FC<LearningSessionProps> = ({
         completionTime
       });
       
-      // Rotate tubes automatically
-      await orchestrator.rotateTubes(userId);
-      console.log('🔄 Tubes rotated automatically after stitch completion');
+      // Note: Tube rotation is handled automatically by LearningEngineService
+      // when processLearningResponse detects session completion
       
     } catch (error) {
       console.error('Failed to handle session completion:', error);
