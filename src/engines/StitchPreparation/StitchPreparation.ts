@@ -129,7 +129,7 @@ export class StitchPreparation implements StitchPreparationInterface {
     // STEP 3: QUESTION FORMATTING PHASE
     const formattedQuestions = await this.executeStage(process, 'question_formatting', async () => {
       const facts = process.stages[0].result;
-      return facts.map((fact: any, index: number) => this.formatQuestion(fact, conceptMapping, index));
+      return facts.map((fact: any, index: number) => this.formatQuestion(fact, conceptMapping, index, stitchId));
     });
 
     // STEP 4: DISTRACTOR GENERATION PHASE
@@ -206,7 +206,7 @@ export class StitchPreparation implements StitchPreparationInterface {
   /**
    * Format question using minimal reading paradigms
    */
-  private formatQuestion(fact: any, conceptMapping: ConceptMapping, index: number): any {
+  private formatQuestion(fact: any, conceptMapping: ConceptMapping, index: number, stitchId: string): any {
     const { template, answerType, variableNotation } = conceptMapping.questionFormat;
     
     let questionText = template;
@@ -224,7 +224,7 @@ export class StitchPreparation implements StitchPreparationInterface {
     }
 
     return {
-      id: `q_${index + 1}_${Date.now()}`,
+      id: `${stitchId}_q${index + 1}_${fact.id}`,
       text: questionText,
       correctAnswer: fact.result?.toString() || fact.answer?.toString(),
       factId: fact.id,
