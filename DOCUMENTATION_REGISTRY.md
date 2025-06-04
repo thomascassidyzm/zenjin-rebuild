@@ -57,6 +57,12 @@
 - **[SYSTEM_INTERFACE_DIAGRAM.md](./SYSTEM_INTERFACE_DIAGRAM.md)** - System diagrams
 - **[TUBE_CONFIGURATION_FIX_SUMMARY.md](./TUBE_CONFIGURATION_FIX_SUMMARY.md)** - Configuration fixes
 - **[test-scenarios.md](./test-scenarios.md)** - Test scenarios
+- **[index.md](./index.md)** - Alternative documentation entry point with HTML references
+
+### APML Implementation Files
+- **[LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml](./LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml)** - Live Aid algorithmic implementation
+- **[naming.apml](./naming.apml)** - Project naming conventions and standards
+- **[registry.apml](./registry.apml)** - APML project registry and metadata
 
 ### Database Documentation
 - **[database/CURRICULUM_DEPLOYMENT_GUIDE.md](./database/CURRICULUM_DEPLOYMENT_GUIDE.md)** - Deployment guide
@@ -88,13 +94,14 @@
 
 ## 📊 Documentation Statistics
 
-- **Total Markdown Files**: 130+
+- **Total Markdown Files**: 129
+- **Total APML Files**: 3
 - **Critical Architecture Docs**: 8
 - **Feature Documentation**: 4
 - **Component Documentation**: 5 (+ 5 source files)
 - **Engine Documentation**: 25+ (+ 25+ source files)
 - **Implementation Guides**: 7
-- **Root Level Docs**: 8
+- **Root Level Docs**: 9 (+ 3 APML files)
 - **Database Docs**: 2
 - **Archived Files**: 6
 

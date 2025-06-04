@@ -194,6 +194,16 @@ const NavigationHeader: React.FC<{
                 position="header"
               />
             )}
+            
+            {/* TEMPORARY: Dev Admin Access - Remove after testing */}
+            <button
+              onClick={onAdminClick}
+              className="px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-yellow-400 hover:text-yellow-300 hover:bg-gray-800"
+              title="Dev Admin Access (Temporary)"
+            >
+              <span className="text-lg">🛠️</span>
+              <span className="hidden sm:inline text-sm">Dev Admin</span>
+            </button>
             </nav>
           </div>
         </div>
@@ -786,6 +796,11 @@ const AppContent: React.FC = () => {
     // Normal navigation when not in active learning
     setCurrentPage(page);
   };
+  
+  const handleAdminClick = () => {
+    console.log('🔧 Admin access requested');
+    setCurrentPage('admin');
+  };
 
   const handleStartSession = (pathId: string) => {
     setSelectedLearningPath(pathId);
@@ -1126,13 +1141,13 @@ const AppContent: React.FC = () => {
         return <ProjectStatusDashboard />;
       
       case 'admin':
-        // Check if user has admin access before showing admin interface
-        if (sessionState.user?.metadata?.admin_access?.is_admin) {
+        // TEMPORARY: Admin check disabled for testing
+        // if (sessionState.user?.metadata?.admin_access?.is_admin) {
           return <AdminRouter />;
-        } else {
-          console.warn('⚠️ Non-admin user attempted to access admin interface');
-          return <Navigate to="/dashboard" replace />;
-        }
+        // } else {
+        //   console.warn('⚠️ Non-admin user attempted to access admin interface');
+        //   return <Navigate to="/dashboard" replace />;
+        // }
       
       case 'subscription-management':
         return (

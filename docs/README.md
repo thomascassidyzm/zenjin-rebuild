@@ -82,6 +82,13 @@ Key documentation files in the project root:
 - **[../SYSTEM_INTERFACE_DIAGRAM.md](../SYSTEM_INTERFACE_DIAGRAM.md)** - System interface diagrams
 - **[../TUBE_CONFIGURATION_FIX_SUMMARY.md](../TUBE_CONFIGURATION_FIX_SUMMARY.md)** - Tube configuration fix summary
 - **[../test-scenarios.md](../test-scenarios.md)** - Test scenarios documentation
+- **[../index.md](../index.md)** - Alternative documentation entry point with HTML references
+
+### 🔧 APML Implementation Files
+APML framework files containing algorithmic specifications and project metadata:
+- **[../LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml](../LIVE_AID_IMPLEMENTATION_ALGORITHMS.apml)** - Live Aid algorithmic implementation
+- **[../naming.apml](../naming.apml)** - Project naming conventions and standards
+- **[../registry.apml](../registry.apml)** - APML project registry and metadata
 
 ### 🗄️ Database Documentation
 Database setup and management:
