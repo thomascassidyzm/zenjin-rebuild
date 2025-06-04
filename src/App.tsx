@@ -9,7 +9,6 @@ import LoadingInterface from './components/LoadingInterface';
 import UnifiedAuthForm, { AuthMode } from './components/UnifiedAuthForm';
 import { AuthenticatedUserContext, AnonymousUserContext } from './interfaces/AuthToPlayerInterface';
 import { authenticationFlowService } from './services/AuthenticationFlowService';
-import PreEngagementCard from './components/PreEngagementCard';
 import MathLoadingAnimation from './components/MathLoadingAnimation';
 import { UserAuthChoice } from './interfaces/LaunchInterfaceInterface';
 import { LoadingContext } from './interfaces/LoadingInterfaceInterface';
@@ -18,7 +17,6 @@ import { DashboardData } from './components/Dashboard/DashboardTypes';
 import { Question } from './interfaces/PlayerCardInterface';
 import { ConnectivityManager } from './engines/ConnectivityManager';
 import { UserSessionProvider, useUserSession } from './contexts/UserSessionContext';
-import { authToPlayerEventBus, AuthToPlayerState } from './services/AuthToPlayerEventBus';
 import AdminEntryPoint from './components/AdminEntryPoint';
 import AdminRouter from './components/Admin/AdminRouter';
 import BuildBadge from './components/BuildBadge';
@@ -167,10 +165,10 @@ const NavigationHeader: React.FC<{
             
             <nav className="flex space-x-2 sm:space-x-3">
             {[
-              { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: inActiveSession ? 'Exit to Dashboard' : 'Dashboard' },
-              { id: 'session', icon: '▶', label: 'Play', title: inActiveSession ? 'Playing Session' : 'Play Session' },
-              { id: 'project-status', icon: '📊', label: 'Status', title: inActiveSession ? 'Exit to Project Status' : 'Project Status' },
-              { id: 'settings', icon: '⚙', label: 'Settings', title: inActiveSession ? 'Exit to Settings' : 'User Settings' }
+              { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: 'Dashboard' },
+              { id: 'session', icon: '▶', label: 'Play', title: inActiveSession ? 'Playing Session' : 'Start Learning' },
+              { id: 'project-status', icon: '📊', label: 'Status', title: 'Project Status' },
+              { id: 'settings', icon: '⚙', label: 'Settings', title: 'User Settings' }
             ].map((item) => {
               const isDisabled = inActiveSession && item.id === 'session';
               return (
@@ -184,8 +182,6 @@ const NavigationHeader: React.FC<{
                       ? 'bg-indigo-600 text-white'
                       : isDisabled
                       ? 'text-gray-500 cursor-not-allowed'
-                      : inActiveSession
-                      ? 'text-orange-300 hover:text-orange-200 hover:bg-orange-900/30'
                       : 'text-gray-300 hover:text-white hover:bg-gray-800'
                   }`}
                 >
@@ -692,9 +688,8 @@ const AppContent: React.FC = () => {
     verifyEmailOTP
   } = useUserSession();
 
-  // Auth-to-Player Flow Event Bus
-  const [authToPlayerState, setAuthToPlayerState] = useState<AuthToPlayerState>('AUTH_SUCCESS');
-  const [playerContent, setPlayerContent] = useState<any>(null);
+  // Simplified session state
+  const [sessionActive, setSessionActive] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
 
   // Initialize service container on app start
@@ -719,37 +714,26 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
-  // Stable callbacks to prevent unnecessary re-renders
-  const handleAnimationComplete = useCallback(async () => {
-    authToPlayerEventBus.instance.animationCompleted();
-  }, []);
+  // Start learning session directly
+  const handleStartLearning = useCallback(async (learningPathId: string = 'addition') => {
+    try {
+      const userId = sessionState.user?.id || sessionState.user?.anonymousId || 'anon_' + Date.now();
+      const questions = await generateQuestionsForStitch(learningPathId, userId);
+      
+      if (questions.length > 0) {
+        setSessionData({
+          sessionId: `session_${Date.now()}`,
+          initialQuestions: questions,
+          learningPathId
+        });
+        setSessionActive(true);
+        setCurrentPage('session');
+      }
+    } catch (error) {
+      console.error('Failed to start learning session:', error);
+    }
+  }, [sessionState.user]);
 
-  const handlePlayButtonClicked = useCallback(async () => {
-    authToPlayerEventBus.instance.playButtonClicked();
-  }, []);
-
-  // Handle Auth-to-Player flow events
-  useEffect(() => {
-    // Listen for state changes
-    const unsubscribeState = authToPlayerEventBus.instance.on('state:changed', ({ to }) => {
-      setAuthToPlayerState(to);
-    });
-
-    // Listen for player ready event - use Auth-to-Player flow
-    const unsubscribePlayer = authToPlayerEventBus.instance.on('player:ready', (data) => {
-      console.log('🎮 Auth-to-Player flow complete, transitioning to ACTIVE_LEARNING');
-      console.log('🎮 Player content received:', data.content);
-      console.log('🎮 Session data received:', data.sessionData);
-      setPlayerContent(data.content);
-      setSessionData(data.sessionData); // Store session data if needed
-      setLaunchComplete(true);
-    });
-
-    return () => {
-      unsubscribeState();
-      unsubscribePlayer();
-    };
-  }, []);
 
   // Initialize connectivity monitoring
   useEffect(() => {
@@ -789,23 +773,21 @@ const AppContent: React.FC = () => {
   }, []);
 
   const handleNavigate = (page: string) => {
-    // If we're in ACTIVE_LEARNING state, request session exit
-    if (authToPlayerState === 'ACTIVE_LEARNING') {
-      console.log('🚪 Requesting session exit to navigate to:', page);
-      // Request session exit through event bus
-      authToPlayerEventBus.instance.requestSessionExit('navigation', page);
-      // Don't navigate yet - wait for session summary to complete
-      return;
+    // If we're in an active session, end it and navigate
+    if (sessionActive && page !== 'session') {
+      console.log('🚪 Ending session to navigate to:', page);
+      setSessionActive(false);
+      setSessionData(null);
     }
     
-    // Handle Play button - trigger Auth-to-Player flow
+    // Handle Play button - start learning directly
     if (page === 'session') {
-      console.log('🎮 Play button clicked - starting Auth-to-Player flow');
-      handlePlayButtonClicked();
+      console.log('🎮 Play button clicked - starting learning session');
+      handleStartLearning();
       return;
     }
     
-    // Normal navigation when not in active learning
+    // Normal navigation
     setCurrentPage(page);
   };
   
@@ -816,41 +798,30 @@ const AppContent: React.FC = () => {
 
   const handleStartSession = (pathId: string) => {
     setSelectedLearningPath(pathId);
-    // This should only be called from dashboard for authenticated users who want to start a new session
-    // Anonymous users go directly to PreEngagement, authenticated users would already be past this
-    handlePlayButtonClicked();
+    handleStartLearning(pathId);
   };
 
 
-  // Handle user authentication choice
+  // Handle user authentication choice - simplified
   const handleAuthChoice = async (choice: UserAuthChoice): Promise<void> => {
     setUserAuthChoice(choice);
     
     try {
       switch (choice) {
         case UserAuthChoice.ANONYMOUS:
-          // Go directly to PreEngagement (big play button) as designed
-          const anonymousUserContext: AnonymousUserContext = {
-            userType: 'anonymous',
-            userId: 'pending-creation', // Will be created when play button clicked
-            userName: 'Guest'
-          };
-          
-          console.log('✅ Starting Auth-to-Player flow for anonymous user to PreEngagement');
-          authToPlayerEventBus.instance.startFlow(anonymousUserContext);
+          // Create anonymous user and go directly to dashboard
+          await createAnonymousUser();
+          console.log('✅ Anonymous user created, going to dashboard');
           break;
         case UserAuthChoice.SIGN_IN:
-          // Sign in flow will be handled by dedicated form component
-          console.log('Sign in flow initiated');
-          break;
         case UserAuthChoice.SIGN_UP:
-          // Sign up flow will be handled by dedicated form component
-          console.log('Sign up flow initiated');
+          // Sign in/up flow will be handled by UnifiedAuthForm
+          console.log(`${choice} flow initiated`);
           break;
       }
     } catch (error) {
       console.error('Auth choice failed:', error);
-      throw error; // Let LaunchInterface handle the error
+      throw error;
     }
   };
 
@@ -980,132 +951,8 @@ const AppContent: React.FC = () => {
   const backendIsWorking = sessionState.isAuthenticated || hasBackendConnection;
   const effectiveOnlineStatus = isOnline || backendIsWorking;
 
-  // Phase 4: Auth-to-Player Flow (after authentication success OR anonymous pending)
-  const shouldShowAuthToPlayerFlow = sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS;
-  
-  // Store Auth-to-Player content for integration into main app
-  let authToPlayerContent = null;
-  
-  if (shouldShowAuthToPlayerFlow) {
-    // Determine user context type based on user data or auth choice
-    const userContext = (sessionState.user?.userType === 'anonymous' || userAuthChoice === UserAuthChoice.ANONYMOUS) ? {
-      userType: 'anonymous' as const,
-      userId: sessionState.user?.anonymousId || 'pending-creation',
-      userName: sessionState.user?.displayName || 'Guest'
-    } as AnonymousUserContext : {
-      userType: 'authenticated' as const,
-      userId: sessionState.user?.id || '',
-      userName: sessionState.user?.displayName,
-      email: sessionState.user?.id || '' // Using id as email fallback since User interface doesn't have email
-    } as AuthenticatedUserContext;
-
-    switch (authToPlayerState) {
-      case 'PRE_ENGAGEMENT':
-        authToPlayerContent = (
-          <PreEngagementCard
-            userContext={userContext}
-            onPlayClicked={handlePlayButtonClicked}
-            isLoading={false}
-            loadingProgress={0}
-            onDashboardClick={() => {
-              // Exit Auth-to-Player flow and go to dashboard
-              console.log('🏠 Exiting to dashboard from PreEngagement');
-              authToPlayerEventBus.instance.exitToDashboard();
-              setCurrentPage('dashboard');
-            }}
-          />
-        );
-        break;
-      
-      case 'LOADING_WITH_ANIMATION':
-        authToPlayerContent = (
-          <MathLoadingAnimation
-            onAnimationComplete={handleAnimationComplete}
-            loadingProgress={0}
-            duration={3000}
-          />
-        );
-        break;
-      
-      case 'ACTIVE_LEARNING':
-      case 'SESSION_ENDING':  // Still show learning session during exit
-        if (!playerContent) {
-          authToPlayerContent = (
-            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-              <div className="text-white text-center">
-                <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p>Loading content...</p>
-              </div>
-            </div>
-          );
-        } else {
-          // Convert AuthToPlayerEventBus content to PlayerCard Question format
-          const playerQuestion: Question = {
-            id: playerContent.id,
-            text: playerContent.text,
-            correctAnswer: playerContent.correctAnswer,
-            distractor: playerContent.distractor, // This should be a string array
-            boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Keep top-level for PlayerCard
-            factId: playerContent.metadata?.factId || 'unknown',     // Keep top-level for PlayerCard
-            metadata: { // Ensure this metadata object exists for LearningSession's sessionIdFromBus prop
-              sessionId: playerContent.metadata?.sessionId,
-              factId: playerContent.metadata?.factId || 'unknown', // Can also be here
-              boundaryLevel: playerContent.metadata?.boundaryLevel || 1, // Can also be here
-              // Spread other potential custom metadata from playerContent
-              ...(playerContent.metadata || {})
-            }
-          };
-
-          authToPlayerContent = (
-            <LearningSession 
-              initialQuestionFromBus={playerQuestion} 
-              sessionIdFromBus={playerQuestion.metadata?.sessionId}
-              sessionDataFromBus={sessionData}
-              isExiting={authToPlayerState === 'SESSION_ENDING'}
-              onSessionSummaryShown={() => {
-                // Emit event to complete the exit flow
-                authToPlayerEventBus.instance.emit('session:summary-shown', {
-                  sessionMetrics: {} // LearningSession will provide actual metrics
-                });
-                // Navigate to requested page after a short delay
-                // The target page was stored when navigation was clicked
-                setTimeout(() => {
-                  // Get current page from state or default to dashboard
-                  setCurrentPage(prevPage => prevPage || 'dashboard');
-                }, 100);
-              }}
-            />
-          );
-        }
-        break;
-      
-      case 'IDLE':
-        // Don't show auth-to-player content, let normal app render
-        authToPlayerContent = null;
-        // Ensure we're back to a valid page
-        if (currentPage !== 'dashboard' && currentPage !== 'settings' && currentPage !== 'project-status' && currentPage !== 'admin') {
-          setCurrentPage('dashboard');
-        }
-        break;
-      
-      default:
-        // AUTH_SUCCESS state - immediately show PRE_ENGAGEMENT (no loading screen)
-        authToPlayerContent = (
-          <PreEngagementCard
-            userContext={userContext}
-            onPlayClicked={handlePlayButtonClicked}
-            isLoading={false}
-            loadingProgress={0}
-            onDashboardClick={() => {
-              // Exit Auth-to-Player flow and go to dashboard
-              console.log('🏠 Exiting to dashboard from PreEngagement');
-              authToPlayerEventBus.instance.exitToDashboard();
-              setCurrentPage('dashboard');
-            }}
-          />
-        );
-    }
-  }
+  // Phase 4: Simplified flow - authenticated users go directly to dashboard
+  const shouldShowMainApp = sessionState.isAuthenticated || userAuthChoice === UserAuthChoice.ANONYMOUS;
 
   const handleUpgradeClick = () => {
     setShowUpgradeModal(true);
@@ -1144,17 +991,30 @@ const AppContent: React.FC = () => {
           />
         );
       
+      case 'session':
+        // Render learning session if we have session data
+        if (sessionActive && sessionData) {
+          return (
+            <LearningSession 
+              sessionDataFromBus={sessionData}
+              onSessionSummaryShown={() => {
+                setSessionActive(false);
+                setSessionData(null);
+                setCurrentPage('dashboard');
+              }}
+            />
+          );
+        } else {
+          // No session data, redirect to dashboard
+          setCurrentPage('dashboard');
+          return null;
+        }
+      
       case 'project-status':
         return <ProjectStatusDashboard />;
       
       case 'admin':
-        // TEMPORARY: Admin check disabled for testing
-        // if (sessionState.user?.metadata?.admin_access?.is_admin) {
-          return <AdminRouter />;
-        // } else {
-        //   console.warn('⚠️ Non-admin user attempted to access admin interface');
-        //   return <Navigate to="/dashboard" replace />;
-        // }
+        return <AdminRouter />;
       
       case 'subscription-management':
         return (
@@ -1169,7 +1029,6 @@ const AppContent: React.FC = () => {
           <SubscriptionSuccess
             onContinue={() => {
               setCurrentPage('dashboard');
-              // Refresh user state to get updated subscription
               initializeSession();
             }}
           />
@@ -1213,29 +1072,24 @@ const AppContent: React.FC = () => {
   };
 
 
-  // Main app content with smooth launch transition
-  // Determine what content to show
-  const contentToRender = authToPlayerContent || renderCurrentPage();
-  
-  // For full-screen states (LOADING_WITH_ANIMATION), return content directly
-  if (authToPlayerContent && authToPlayerState === 'LOADING_WITH_ANIMATION') {
-    return authToPlayerContent;
+  // Phase 5: Main Application - simplified
+  if (!shouldShowMainApp) {
+    return null; // Still in authentication phase
   }
   
-  // For other states, wrap in main app layout with navigation
-  const mainAppContent = (
+  return (
     <div className="min-h-screen bg-gray-950">
       <NavigationHeader 
-        currentPage={authToPlayerState === 'ACTIVE_LEARNING' || authToPlayerState === 'SESSION_ENDING' ? 'session' : currentPage} 
+        currentPage={currentPage} 
         onNavigate={handleNavigate}
         isOnline={effectiveOnlineStatus}
         connectionType={connectionType}
         backendConnected={hasBackendConnection}
         userSession={sessionState}
         onAdminClick={handleAdminClick}
-        inActiveSession={authToPlayerState === 'ACTIVE_LEARNING' || authToPlayerState === 'PRE_ENGAGEMENT'}
+        inActiveSession={sessionActive}
       />
-      {contentToRender}
+      {renderCurrentPage()}
       
       {/* Subscription Upgrade Modal */}
       {showUpgradeModal && (
@@ -1260,9 +1114,6 @@ const AppContent: React.FC = () => {
       )}
     </div>
   );
-
-  // Phase 5: Main Application
-  return mainAppContent;
 };
 
 // Main App Component with UserSession Provider

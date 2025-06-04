@@ -1,0 +1,129 @@
+# L3 Compliance Brief: Educational App Legal & Privacy Framework
+
+**Session ID**: L1_Strategic_Compliance_Setup_20250604  
+**Date**: June 4, 2025  
+**Assigned To**: Compliance Research Agent  
+**Priority**: Medium  
+**Time Limit**: 3 minutes maximum (90 minutes human time)
+**Estimated Complexity**: Medium (Research + Copy/Adapt)
+
+## Context & Strategic Goal
+
+Get Zenjin Maths legally compliant with minimal effort by copying industry-standard policies and adapting them to our educational context. Focus on "good enough to launch" rather than perfect - we can iterate later.
+
+## Educational Context
+
+- **Primary Users**: Children (K-12 mathematics learning)
+- **Account Creation**: Parents create accounts for children
+- **Data**: Learning progress, math performance, usage patterns
+- **Business Model**: Freemium SaaS (subscription tiers)
+- **Geography**: Starting UK/US, expanding globally
+
+## Time-Boxed Research (1 minute max)
+
+### Key Questions to Answer Quickly:
+1. **Age Verification**: Do we need age gates if parents create accounts?
+2. **GDPR Minimum**: What's the simplest viable GDPR implementation?
+3. **Educational Exemptions**: Any special rules for EdTech apps?
+4. **Benchmark Competitors**: How do Khan Academy, Duolingo, Prodigy handle this?
+
+### Industry Standards to Research:
+- **EdTech Leaders**: Khan Academy, Duolingo, Prodigy Math, IXL Learning
+- **SaaS Platforms**: Stripe, Supabase (our backend), Vercel (our hosting)
+- **Privacy Frameworks**: Standard GDPR, COPPA, FERPA templates
+
+## Documentation Deliverables (2 minutes max)
+
+### 1. Privacy Policy (Copy & Adapt)
+- **Source**: Find best EdTech privacy policy as template
+- **Adapt For**: 
+  - Learning analytics data collection
+  - Parental account creation model
+  - Supabase data storage
+  - Anonymous user sessions
+  - Progress tracking
+
+### 2. Terms of Service (Copy & Adapt)
+- **Source**: Standard SaaS ToS template
+- **Adapt For**:
+  - Educational use case
+  - Parent-child account relationship
+  - Subscription billing
+  - User-generated content (minimal)
+
+### 3. Cookie Policy (Quick Template)
+- **Essential Cookies**: Authentication, preferences
+- **Analytics**: Basic usage tracking
+- **Marketing**: Newsletter signup only
+
+### 4. GDPR Implementation Checklist
+- **Data Subject Rights**: Access, rectification, erasure, portability
+- **Consent Management**: Cookie banners, marketing opt-ins
+- **Data Retention**: Learning data lifecycle
+- **Breach Procedures**: Notification timelines
+
+## Quick Implementation Strategy
+
+### Phase 1: Copy Industry Standards (This Brief)
+- Find 2-3 best-in-class policies from EdTech companies
+- Copy structure and language that applies to us
+- Adapt specific sections for our data practices
+- Create basic cookie consent system
+
+### Phase 2: Legal Review (Future)
+- Get policies reviewed by education lawyer
+- Implement proper GDPR consent flows
+- Add international compliance (Canada, Australia, etc.)
+
+### Phase 3: Advanced Compliance (Future)
+- COPPA compliance certification
+- SOC 2 Type II certification
+- Accessibility audit (WCAG 2.1 AA)
+
+## Specific Deliverables
+
+1. **privacy-policy.md**: Ready-to-publish privacy policy
+2. **terms-of-service.md**: Ready-to-publish terms
+3. **cookie-policy.md**: Basic cookie policy
+4. **gdpr-checklist.md**: Implementation action items
+5. **compliance-summary.md**: What we have vs. what we need
+
+## Technical Integration Notes
+
+- **Current Stack**: React, Supabase, Vercel, Stripe (planned)
+- **Data Storage**: EU region (Supabase), GDPR-compliant by default
+- **Analytics**: Basic usage only (no personal data)
+- **Authentication**: Email-based, anonymous sessions supported
+
+## Success Criteria
+
+- **Legal Protection**: Baseline privacy policy that protects us from obvious violations
+- **User Trust**: Clear, readable policies that parents can understand
+- **Implementation Roadmap**: Clear next steps for proper compliance
+- **Quick Launch**: Don't block product development with legal perfectionism
+
+## Copy Sources to Consider
+
+- **Khan Academy**: Excellent educational privacy policy
+- **Duolingo**: Great balance of comprehensive vs. readable
+- **Prodigy Math**: Direct competitor with similar model
+- **Supabase**: Data processing clauses we can reference
+- **Generic Templates**: Termly, PrivacyPolicies.com for structure
+
+## Out of Scope (Don't Spend Time On)
+
+- ❌ Perfect legal compliance (we'll get lawyer review later)
+- ❌ International regulations beyond GDPR/COPPA
+- ❌ Complex data processing agreements
+- ❌ SOC 2 or other certifications
+- ❌ Accessibility compliance (separate project)
+
+## Context for Agent
+
+This is about getting "good enough to launch" compliance documentation by copying what works in the industry. Speed over perfection. We want to protect users and our business without getting bogged down in legal complexity.
+
+**Key Philosophy**: Copy the best, adapt for our context, iterate based on real usage.
+
+---
+
+*Brief spawned by L1 Strategic during navigation simplification session. Focus on practical compliance, not legal perfectionism.*

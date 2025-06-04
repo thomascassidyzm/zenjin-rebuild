@@ -68,6 +68,10 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
   // State for tracking timeout timer
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // State for countdown timer (10 seconds)
+  const [timeRemaining, setTimeRemaining] = useState<number>(10);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  
   // State for interaction tracking
   const [isInteractable, setIsInteractable] = useState<boolean>(true);
   
@@ -134,6 +138,25 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       
       // Set a timeout - default to 10 seconds if not provided
       const timeoutDuration = options.timeout || 10000;
+      
+      // Start countdown timer
+      setTimeRemaining(timeoutDuration / 1000);
+      
+      // Update countdown every 100ms for smooth animation
+      countdownRef.current = setInterval(() => {
+        setTimeRemaining(prev => {
+          const newTime = prev - 0.1;
+          if (newTime <= 0) {
+            if (countdownRef.current) {
+              clearInterval(countdownRef.current);
+              countdownRef.current = null;
+            }
+            return 0;
+          }
+          return newTime;
+        });
+      }, 100);
+      
       timeoutRef.current = setTimeout(() => {
         handleTimeout(question.id);
       }, timeoutDuration);
@@ -168,10 +191,14 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       // Make card non-interactable during feedback
       setIsInteractable(false);
       
-      // Clear any timeout
+      // Clear any timeout and countdown
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
       
       // Calculate duration for feedback display
@@ -244,10 +271,14 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
    */
   const reset = useCallback((): boolean => {
     try {
-      // Clear any existing timeout
+      // Clear any existing timeout and countdown
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
       
       // Reset all states
@@ -255,6 +286,7 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       setAnswerOptions([]);
       setFeedbackState('idle');
       setIsInteractable(true);
+      setTimeRemaining(10);
       
       return true;
     } catch (error) {
@@ -321,6 +353,10 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
     };
   }, []);
@@ -420,7 +456,7 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
         flexShrink: 0 
       }}
     >
-      {/* Points Display */}
+      {/* Points and Timer Display */}
       <div 
         className="w-full max-w-md min-w-[370px] mb-2" 
         style={{ 
@@ -430,10 +466,36 @@ const PlayerCard = forwardRef<PlayerCardHandle, PlayerCardProps>(({
         }}
       >
         <div className="bg-gray-800/80 rounded-lg p-3 shadow-md">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-2">
             <span className="text-gray-400 font-medium">POINTS</span>
             <span className="text-3xl font-bold text-white">{points}</span>
           </div>
+          
+          {/* Countdown Timer Bar */}
+          {currentQuestion && (
+            <div className="relative">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-gray-500">TIME</span>
+                <span className="text-sm font-bold text-white">{Math.ceil(timeRemaining)}s</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <motion.div
+                  className={`h-2 rounded-full transition-all duration-100 ${
+                    timeRemaining > 5 
+                      ? 'bg-gradient-to-r from-green-500 to-green-400'
+                      : timeRemaining > 2
+                      ? 'bg-gradient-to-r from-yellow-500 to-yellow-400'
+                      : 'bg-gradient-to-r from-red-500 to-red-400'
+                  }`}
+                  style={{ width: `${(timeRemaining / 10) * 100}%` }}
+                  animate={{ 
+                    width: `${(timeRemaining / 10) * 100}%`,
+                    boxShadow: timeRemaining <= 2 ? '0 0 10px rgba(239, 68, 68, 0.5)' : '0 0 0px transparent'
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

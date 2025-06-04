@@ -380,7 +380,7 @@ const UserProfileHeader: React.FC<{
 };
 
 /**
- * Main Dashboard component implementing the DashboardInterface
+ * Main Dashboard component - Mobile-first design with hero 'Start Learning' button
  */
 const Dashboard: React.FC<DashboardProps> = ({
   initialData,
@@ -394,12 +394,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   
   // State for highlighted metric
   const [highlightedMetric, setHighlightedMetric] = useState<string | null>(null);
-  
-  // State for achievement notification
-  const [notification, setNotification] = useState<{
-    achievement: Achievement;
-    options: NotificationOptions;
-  } | null>(null);
 
   // Method to update a specific metric
   const updateMetric = useCallback((metricName: string, metricValue: any, options: UpdateMetricOptions = {}) => {
@@ -484,51 +478,69 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* User Profile Header */}
-        <UserProfileHeader 
-          username={dashboardData.username}
-          avatarUrl={dashboardData.avatarUrl}
-          subscriptionType={dashboardData.subscriptionType}
-          streakDays={dashboardData.streakDays}
-          lastSessionDate={dashboardData.lastSessionDate}
-        />
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="max-w-md mx-auto px-4 py-6">
+        {/* User Profile Header - Simplified */}
+        <div className="text-center mb-8">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center mx-auto mb-4">
+            <span className="text-white text-xl font-bold">{dashboardData.username.charAt(0).toUpperCase()}</span>
+          </div>
+          <h1 className="text-white text-xl font-bold mb-1">{dashboardData.username}</h1>
+          <span className={`text-xs px-3 py-1 rounded-full ${
+            dashboardData.subscriptionType === 'Premium' 
+              ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-gray-900' 
+              : 'bg-gray-700 text-gray-300'
+          }`}>
+            {dashboardData.subscriptionType}
+          </span>
+        </div>
 
-        {/* Premium Upgrade Banner for Free Users */}
-        {dashboardData.subscriptionType === 'Free' && (
-          <motion.div
-            className="mb-6 p-4 bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-600/30 rounded-lg"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <Crown className="w-8 h-8 text-yellow-500" />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Unlock Your Full Potential</h3>
-                  <p className="text-gray-300 text-sm mt-1">
-                    Upgrade to Premium for unlimited sessions, advanced analytics, and exclusive challenges!
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={onUpgradeClicked}
-                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-gray-900 font-semibold rounded-md hover:from-yellow-600 hover:to-yellow-700 transition-all"
-              >
-                Upgrade Now
-              </button>
+        {/* HERO: Start Learning Button - Mobile-first, fills screen */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 shadow-2xl">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Ready to Learn?</h2>
+              <p className="text-gray-400">Continue your mathematical journey</p>
             </div>
-          </motion.div>
-        )}
+            
+            {/* Big Hero Play Button */}
+            <div className="flex justify-center mb-6">
+              <motion.button
+                onClick={() => onStartSessionClicked && onStartSessionClicked('addition')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative w-32 h-32 bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-full shadow-2xl transition-all duration-300"
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg 
+                    className="w-12 h-12 text-white ml-1 group-hover:scale-110 transition-transform duration-200" 
+                    fill="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+                <div className="absolute inset-0 rounded-full border-4 border-white opacity-20 animate-pulse"></div>
+              </motion.button>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-xl font-semibold text-white mb-2">Start Learning</p>
+              <p className="text-gray-400 text-sm">Tap the play button when you're ready</p>
+            </div>
+          </div>
+        </motion.div>
 
-        {/* Primary Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Priority Metrics - Lifetime Points, Blink Speed, Evolution */}
+        <div className="space-y-4 mb-6">
+          {/* Lifetime Points - Most Important */}
           <MetricCard
-            title="Total Points"
+            title="Lifetime Points"
             value={formatNumber(dashboardData.lifetimeMetrics.totalPoints)}
             isHighlighted={highlightedMetric === 'totalPoints'}
             icon={
@@ -537,102 +549,85 @@ const Dashboard: React.FC<DashboardProps> = ({
               </svg>
             }
           />
-          <MetricCard
-            title="Evolution"
-            value={dashboardData.lifetimeMetrics.evolution.toFixed(2)}
-            description="Points / Blink Speed"
-            isHighlighted={highlightedMetric === 'evolution'}
-            icon={
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            }
-          />
-          <MetricCard
-            title="Global Ranking"
-            value={`#${formatNumber(dashboardData.lifetimeMetrics.globalRanking)}`}
-            isHighlighted={highlightedMetric === 'globalRanking'}
-            icon={
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-              </svg>
-            }
-          />
-          <MetricCard
-            title="Overall Progress"
-            value={`${dashboardData.lifetimeMetrics.progressPercentage}%`}
-            isHighlighted={highlightedMetric === 'progressPercentage'}
-            icon={
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            }
-          />
-        </div>
-
-        {/* Secondary Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-          <MetricCard
-            title="Blink Speed"
-            value={`${dashboardData.lifetimeMetrics.averageBlinkSpeed}ms`}
-            description="Average response time"
-            isHighlighted={highlightedMetric === 'averageBlinkSpeed'}
-          />
-          <MetricCard
-            title="First Time Correct"
-            value={formatNumber(dashboardData.lifetimeMetrics.ftcPoints)}
-            description="Points from correct first attempts"
-            isHighlighted={highlightedMetric === 'ftcPoints'}
-          />
-          <MetricCard
-            title="Eventually Correct"
-            value={formatNumber(dashboardData.lifetimeMetrics.ecPoints)}
-            description="Points after initial mistakes"
-            isHighlighted={highlightedMetric === 'ecPoints'}
-          />
-        </div>
-
-        {/* Third row of metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-          <MetricCard
-            title="Base Points"
-            value={formatNumber(dashboardData.lifetimeMetrics.basePoints)}
-            isHighlighted={highlightedMetric === 'basePoints'}
-          />
-          <MetricCard
-            title="Bonus Multiplier"
-            value={`${dashboardData.lifetimeMetrics.averageBonusMultiplier.toFixed(2)}x`}
-            isHighlighted={highlightedMetric === 'averageBonusMultiplier'}
-          />
-          <MetricCard
-            title="Total Sessions"
-            value={formatNumber(dashboardData.lifetimeMetrics.totalSessions)}
-            isHighlighted={highlightedMetric === 'totalSessions'}
-          />
-        </div>
-
-        {/* Learning Path Progress (Triple Helix model) */}
-        <LearningPathProgress 
-          paths={dashboardData.learningPaths}
-          onPathSelected={onPathSelected}
-          onStartSessionClicked={onStartSessionClicked}
-        />
-        
-        {/* Recent Achievements */}
-        <RecentAchievements 
-          achievements={dashboardData.recentAchievements}
-          onAchievementSelected={onAchievementSelected}
-        />
-
-        {/* Achievement Notification */}
-        <AnimatePresence>
-          {notification && (
-            <AchievementNotification
-              achievement={notification.achievement}
-              onClose={() => setNotification(null)}
+          
+          {/* Blink Speed and Evolution in a row */}
+          <div className="grid grid-cols-2 gap-4">
+            <MetricCard
+              title="Blink Speed"
+              value={`${dashboardData.lifetimeMetrics.averageBlinkSpeed}ms`}
+              description="Response time"
+              isHighlighted={highlightedMetric === 'averageBlinkSpeed'}
+              icon={
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              }
             />
-          )}
-        </AnimatePresence>
+            <MetricCard
+              title="Evolution"
+              value={dashboardData.lifetimeMetrics.evolution.toFixed(2)}
+              description="Points ÷ Speed"
+              isHighlighted={highlightedMetric === 'evolution'}
+              icon={
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              }
+            />
+          </div>
+        </div>
+
+        {/* Streak and Session Info */}
+        {dashboardData.streakDays && dashboardData.streakDays > 0 && (
+          <motion.div
+            className="bg-gray-800 rounded-xl p-4 mb-6 border border-gray-700"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <svg className="h-5 w-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+              </svg>
+              <span className="text-white font-bold">{dashboardData.streakDays} day streak!</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Active Learning Path - Simplified */}
+        {dashboardData.learningPaths.find(p => p.active) && (
+          <motion.div
+            className="bg-gradient-to-r from-indigo-900 to-purple-900 rounded-xl p-4 border border-indigo-400/30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            {(() => {
+              const activePath = dashboardData.learningPaths.find(p => p.active)!;
+              return (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-white font-bold">{activePath.pathName}</h3>
+                    <span className="bg-green-500 text-xs text-white px-2 py-1 rounded-full">Active</span>
+                  </div>
+                  <p className="text-gray-300 text-sm mb-3">Level {activePath.currentLevel} of {activePath.maxLevel}</p>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <motion.div
+                      className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${activePath.progressPercentage}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    ></motion.div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>{activePath.completedStitches} stitches completed</span>
+                    <span>{activePath.progressPercentage}%</span>
+                  </div>
+                </div>
+              );
+            })()} 
+          </motion.div>
+        )}
       </div>
     </div>
   );
