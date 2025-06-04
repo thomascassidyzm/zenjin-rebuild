@@ -23,18 +23,23 @@ import {
 import { StitchId, TubeId } from '../../interfaces/StitchManagerInterface';
 import { FactRepository } from '../FactRepository/FactRepository';
 import { MathematicalFact } from '../FactRepository/FactRepositoryTypes';
+import { conceptMappingService } from '../../services/ConceptMappingService';
 
 export class StitchPopulation implements StitchPopulationInterface {
   private factRepository: FactRepository;
   private conceptMappings: Map<string, ConceptMapping>;
   private tubeStrategies: Map<TubeId, TubePopulationStrategy>;
+  // New: Flexible concept-to-tube mappings
+  private conceptTubeMappings: Map<string, Set<TubeId>>;
 
   constructor(factRepository: FactRepository) {
     this.factRepository = factRepository;
     this.conceptMappings = new Map();
     this.tubeStrategies = new Map();
+    this.conceptTubeMappings = new Map();
     this.initializeCurriculumMappings();
     this.initializeTubeStrategies();
+    this.initializeConceptTubeMappings();
   }
 
   /**
@@ -188,6 +193,34 @@ export class StitchPopulation implements StitchPopulationInterface {
       surpriseRate: 0.1,
       surpriseConcepts: ['halving_related_to_division', 'multiplication_inverse']
     });
+  }
+
+  /**
+   * Initialize flexible concept-to-tube mappings
+   * This allows any concept to be assigned to any tube per L1 vision
+   */
+  private initializeConceptTubeMappings(): void {
+    // Initially populate from the hardcoded mappings
+    // In production, this would be loaded from the database
+    this.conceptMappings.forEach((mapping, conceptCode) => {
+      if (!this.conceptTubeMappings.has(conceptCode)) {
+        this.conceptTubeMappings.set(conceptCode, new Set());
+      }
+      this.conceptTubeMappings.get(conceptCode)!.add(mapping.tubeId);
+    });
+
+    // Add flexible mappings to demonstrate L1 vision
+    // Concept 0001 can be in both tube1 AND tube2
+    this.conceptTubeMappings.get('0001')?.add('tube2' as TubeId);
+    
+    // Any doubling concept can also appear in tube2 or tube3
+    for (let i = 1; i <= 20; i++) {
+      const conceptCode = i.toString().padStart(4, '0');
+      if (this.conceptTubeMappings.has(conceptCode)) {
+        this.conceptTubeMappings.get(conceptCode)!.add('tube2' as TubeId);
+        this.conceptTubeMappings.get(conceptCode)!.add('tube3' as TubeId);
+      }
+    }
   }
 
   /**
@@ -376,19 +409,29 @@ export class StitchPopulation implements StitchPopulationInterface {
 
   /**
    * Gets the concept mapping for a specific concept code
+   * Now supports flexible tube assignments - any concept can be in any tube
    */
-  getConceptMapping(conceptCode: string, tubeId: TubeId): ConceptMapping {
+  async getConceptMapping(conceptCode: string, tubeId: TubeId): Promise<ConceptMapping> {
     const mapping = this.conceptMappings.get(conceptCode);
     
     if (!mapping) {
       throw new Error(StitchPopulationErrorCode.CONCEPT_NOT_FOUND);
     }
 
-    if (mapping.tubeId !== tubeId) {
-      throw new Error(`${StitchPopulationErrorCode.INVALID_CONCEPT_CODE}: Concept ${conceptCode} not in ${tubeId}`);
+    // Check database for flexible mappings
+    const isAllowed = await conceptMappingService.isConceptAllowedInTube(conceptCode, tubeId);
+    
+    // Per L1 vision: ANY concept can be in ANY tube
+    // If not explicitly mapped, we allow it dynamically
+    if (!isAllowed) {
+      console.log(`Dynamically allowing concept ${conceptCode} in ${tubeId} per L1 vision`);
     }
 
-    return mapping;
+    // Always return the mapping with the requested tube
+    return {
+      ...mapping,
+      tubeId: tubeId  // Use the requested tube
+    };
   }
 
   /**

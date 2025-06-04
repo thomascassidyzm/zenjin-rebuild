@@ -505,12 +505,27 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
       throw new Error('INVALID_FACT');
     }
     
-    // Get templates for this operation and boundary level
-    const templates = this.factRepository.getQuestionTemplates(fact.operation, boundaryLevel);
+    // Extract operands to check for doubling/halving context
+    const operands = this.extractOperands(fact);
+    
+    // Determine the actual operation context
+    let effectiveOperation = fact.operation;
+    
+    // Check for doubling context: multiplication where one operand is 2
+    if (fact.operation === 'multiplication' && (operands.operand1 === 2 || operands.operand2 === 2)) {
+      effectiveOperation = 'doubling';
+    }
+    // Check for halving context: division where operand2 = 2
+    else if (fact.operation === 'division' && operands.operand2 === 2) {
+      effectiveOperation = 'halving';
+    }
+    
+    // Get templates for the effective operation and boundary level
+    const templates = this.factRepository.getQuestionTemplates(effectiveOperation, boundaryLevel);
     
     if (!templates || templates.length === 0) {
       // Fall back to a default template if none found
-      switch (fact.operation) {
+      switch (effectiveOperation) {
         case 'addition':
           return 'What is {{operand1}} + {{operand2}}?';
         case 'subtraction':
@@ -519,6 +534,10 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
           return 'What is {{operand1}} × {{operand2}}?';
         case 'division':
           return 'What is {{operand1}} ÷ {{operand2}}?';
+        case 'doubling':
+          return 'Double {{operand1}}';
+        case 'halving':
+          return 'Half of {{operand1}}';
         default:
           return `Calculate {{operand1}} ${fact.operation} {{operand2}}.`;
       }
@@ -546,7 +565,16 @@ export class QuestionGenerator implements QuestionGeneratorInterface {
     let questionText = template;
     
     // Extract operands from the fact
-    const operands = this.extractOperands(fact);
+    let operands = this.extractOperands(fact);
+    
+    // Special handling for doubling templates
+    // If this is a doubling question (template contains "double" or "Double") and operand1 is 2,
+    // we need to ensure the number being doubled is in operand1 position
+    if ((template.toLowerCase().includes('double') || template.toLowerCase().includes('twice')) && 
+        operands.operand1 === 2 && operands.operand2 !== 2) {
+      // Swap operands so the number being doubled is operand1
+      operands = { operand1: operands.operand2, operand2: operands.operand1 };
+    }
     
     questionText = questionText.replace(/\{\{operand1\}\}/g, operands.operand1.toString());
     questionText = questionText.replace(/\{\{operand2\}\}/g, operands.operand2.toString());

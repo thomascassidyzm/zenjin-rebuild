@@ -144,7 +144,7 @@ export interface StitchPopulationInterface {
    * @throws CONCEPT_NOT_FOUND if The concept code is not found
    * @throws INVALID_CONCEPT_CODE if The concept code format is invalid
    */
-  getConceptMapping(conceptCode: string, tubeId: TubeId): ConceptMapping;
+  getConceptMapping(conceptCode: string, tubeId: TubeId): Promise<ConceptMapping>;
 
   /**
    * Validates that sufficient facts exist for a concept mapping
