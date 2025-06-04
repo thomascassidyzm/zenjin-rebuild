@@ -516,4 +516,89 @@ describe('DistinctionManager', () => {
       expect(result.masteryScore).toBeGreaterThan(0.5);
     });
   });
+
+  describe('StitchPreparation Integration Methods', () => {
+    describe('initializeUser', () => {
+      it('should successfully initialize a valid user', async () => {
+        const result = await distinctionManager.initializeUser('test-user-123');
+        expect(result).toBe(true);
+      });
+
+      it('should throw error for empty user ID', async () => {
+        await expect(distinctionManager.initializeUser('')).rejects.toThrow(DistinctionManagerError);
+        await expect(distinctionManager.initializeUser('')).rejects.toThrow(DistinctionManagerErrorCode.USER_NOT_FOUND);
+      });
+
+      it('should throw error for invalid user ID', async () => {
+        await expect(distinctionManager.initializeUser('   ')).rejects.toThrow(DistinctionManagerError);
+      });
+    });
+
+    describe('getUserBoundaryLevel', () => {
+      it('should return level 1 for new user with no mastery data', () => {
+        const level = distinctionManager.getUserBoundaryLevel('new-user', '0001');
+        expect(level).toBe(1);
+      });
+
+      it('should return median level for user with mastery data', () => {
+        // Initialize user with multiple facts at different levels
+        distinctionManager.initializeUserFactMastery('experienced-user', 'mult-7-8', 2);
+        distinctionManager.initializeUserFactMastery('experienced-user', 'mult-6-6', 3);
+        distinctionManager.initializeUserFactMastery('experienced-user', 'mult-9-9', 3);
+        distinctionManager.initializeUserFactMastery('experienced-user', 'add-1-1', 4);
+
+        const level = distinctionManager.getUserBoundaryLevel('experienced-user', '0001');
+        expect(level).toBe(3); // Median of [2, 3, 3, 4] = 3
+      });
+
+      it('should return correct level for single fact', () => {
+        distinctionManager.initializeUserFactMastery('single-fact-user', 'add-2-2', 5);
+        
+        const level = distinctionManager.getUserBoundaryLevel('single-fact-user', '0002');
+        expect(level).toBe(5);
+      });
+
+      it('should handle odd number of mastery levels correctly', () => {
+        // Initialize user with odd number of facts
+        distinctionManager.initializeUserFactMastery('odd-user', 'add-1-1', 1);
+        distinctionManager.initializeUserFactMastery('odd-user', 'add-2-2', 3);
+        distinctionManager.initializeUserFactMastery('odd-user', 'add-3-3', 5);
+
+        const level = distinctionManager.getUserBoundaryLevel('odd-user', '0003');
+        expect(level).toBe(3); // Median of [1, 3, 5] = 3
+      });
+
+      it('should handle even number of mastery levels correctly', () => {
+        // Initialize user with even number of facts
+        distinctionManager.initializeUserFactMastery('even-user', 'sub-5-2', 2);
+        distinctionManager.initializeUserFactMastery('even-user', 'sub-8-3', 4);
+
+        const level = distinctionManager.getUserBoundaryLevel('even-user', '0004');
+        expect(level).toBe(3); // Rounded average of [2, 4] = 3
+      });
+
+      it('should enforce level bounds (1-5)', () => {
+        // This test ensures levels are always between 1-5
+        distinctionManager.initializeUserFactMastery('bounds-user', 'div-10-2', 1);
+        
+        const level = distinctionManager.getUserBoundaryLevel('bounds-user', '0005');
+        expect(level).toBeGreaterThanOrEqual(1);
+        expect(level).toBeLessThanOrEqual(5);
+      });
+
+      it('should default to level 1 for invalid concept code', () => {
+        const level = distinctionManager.getUserBoundaryLevel('test-user', '');
+        expect(level).toBe(1);
+      });
+
+      it('should throw error for empty user ID', () => {
+        expect(() => distinctionManager.getUserBoundaryLevel('', '0001')).toThrow(DistinctionManagerError);
+        expect(() => distinctionManager.getUserBoundaryLevel('', '0001')).toThrow(DistinctionManagerErrorCode.USER_NOT_FOUND);
+      });
+
+      it('should throw error for whitespace-only user ID', () => {
+        expect(() => distinctionManager.getUserBoundaryLevel('   ', '0001')).toThrow(DistinctionManagerError);
+      });
+    });
+  });
 });

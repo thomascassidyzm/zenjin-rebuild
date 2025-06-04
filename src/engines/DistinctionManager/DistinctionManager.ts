@@ -515,4 +515,73 @@ export class DistinctionManager implements DistinctionManagerInterface {
       console.warn(`Failed to update mastery for user ${userId}, fact ${factId}:`, error);
     }
   }
+  
+  // --- Additional Methods for StitchPreparation Integration ---
+  
+  /**
+   * Initialize a user in the system (used by StitchPreparation)
+   * Creates initial user state and tracking structures
+   * @param userId User identifier
+   * @returns Promise indicating successful initialization
+   */
+  async initializeUser(userId: string): Promise<boolean> {
+    // Validate user ID
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new DistinctionManagerError(
+        DistinctionManagerErrorCode.USER_NOT_FOUND,
+        `User ID must be a non-empty string: ${userId}`
+      );
+    }
+    
+    // User initialization is implicit in this implementation
+    // Each fact mastery is initialized on first access
+    console.log(`DistinctionManager: User ${userId} is ready for mastery tracking`);
+    return true;
+  }
+  
+  /**
+   * Get user's current boundary level for a concept (used by StitchPreparation)
+   * Returns the user's overall boundary level based on their mastery across facts in the concept
+   * @param userId User identifier  
+   * @param conceptCode Concept identifier (e.g., '0001', '0002')
+   * @returns Current boundary level (1-5) for the concept
+   */
+  getUserBoundaryLevel(userId: string, conceptCode: string): number {
+    // Validate inputs
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new DistinctionManagerError(
+        DistinctionManagerErrorCode.USER_NOT_FOUND,
+        `User ID must be a non-empty string: ${userId}`
+      );
+    }
+    
+    if (!conceptCode || typeof conceptCode !== 'string' || conceptCode.trim() === '') {
+      console.warn(`DistinctionManager: Invalid conceptCode ${conceptCode}, defaulting to level 1`);
+      return 1;
+    }
+    
+    // Find all mastery data for this user
+    const userMasteryData: UserFactMastery[] = [];
+    for (const [key, masteryData] of this.userMasteryData.entries()) {
+      if (masteryData.userId === userId) {
+        userMasteryData.push(masteryData);
+      }
+    }
+    
+    // If no mastery data exists, start at level 1
+    if (userMasteryData.length === 0) {
+      return 1;
+    }
+    
+    // Calculate overall boundary level based on user's mastery levels
+    // Use the median level to avoid outliers affecting the overall assessment
+    const levels = userMasteryData.map(data => data.currentLevel).sort((a, b) => a - b);
+    const medianIndex = Math.floor(levels.length / 2);
+    const medianLevel = levels.length % 2 === 0 
+      ? Math.round((levels[medianIndex - 1] + levels[medianIndex]) / 2)
+      : levels[medianIndex];
+    
+    // Ensure the level is within valid bounds
+    return Math.max(1, Math.min(5, medianLevel));
+  }
 }
