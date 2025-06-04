@@ -809,11 +809,6 @@ const AppContent: React.FC = () => {
     handlePlayButtonClicked();
   };
 
-  // Handle admin interface access
-  const handleAdminClick = useCallback(() => {
-    console.log('🔧 Admin interface access requested');
-    setCurrentPage('admin');
-  }, []);
 
   // Handle user authentication choice
   const handleAuthChoice = async (choice: UserAuthChoice): Promise<void> => {
