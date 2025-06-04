@@ -138,25 +138,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-950">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-gray-900 shadow-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Zenjin Maths Admin</h1>
-              <p className="text-gray-600 mt-1">System administration and content management</p>
+              <h1 className="text-3xl font-bold text-white">Zenjin Maths Admin</h1>
+              <p className="text-gray-400 mt-1">System administration and content management</p>
             </div>
             <div className="flex items-center space-x-4">
               {getHealthIcon(stats.systemHealth)}
-              <span className="text-sm font-medium capitalize">{stats.systemHealth}</span>
+              <span className="text-sm font-medium capitalize text-gray-300">{stats.systemHealth}</span>
             </div>
           </div>
         </div>
@@ -166,42 +166,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
             <div className="flex items-center">
-              <Users className="w-8 h-8 text-blue-500" />
+              <Users className="w-8 h-8 text-blue-400" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                <p className="text-sm font-medium text-gray-400">Total Users</p>
+                <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
             <div className="flex items-center">
-              <BookOpen className="w-8 h-8 text-green-500" />
+              <BookOpen className="w-8 h-8 text-green-400" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Facts</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalFacts}</p>
+                <p className="text-sm font-medium text-gray-400">Facts</p>
+                <p className="text-2xl font-bold text-white">{stats.totalFacts}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
             <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-purple-500" />
+              <TrendingUp className="w-8 h-8 text-purple-400" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Stitches</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalSitches}</p>
+                <p className="text-sm font-medium text-gray-400">Stitches</p>
+                <p className="text-2xl font-bold text-white">{stats.totalSitches}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
             <div className="flex items-center">
-              <Activity className="w-8 h-8 text-orange-500" />
+              <Activity className="w-8 h-8 text-orange-400" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Sessions</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeSessions}</p>
+                <p className="text-sm font-medium text-gray-400">Active Sessions</p>
+                <p className="text-2xl font-bold text-white">{stats.activeSessions}</p>
               </div>
             </div>
           </div>
@@ -215,18 +215,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               <div
                 key={section.id}
                 onClick={() => onNavigate(section.id)}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-gray-300"
+                className="bg-gray-900 rounded-xl border border-gray-800 hover:border-gray-700 transition-all cursor-pointer group"
               >
                 <div className="p-6">
                   <div className="flex items-center mb-4">
-                    <div className={`w-12 h-12 ${section.color} rounded-lg flex items-center justify-center`}>
+                    <div className={`w-12 h-12 ${section.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
                       <IconComponent className="w-6 h-6 text-white" />
                     </div>
                     <div className="ml-4">
-                      <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
+                      <h3 className="text-lg font-semibold text-white">{section.title}</h3>
                     </div>
                   </div>
-                  <p className="text-gray-600 mb-4">{section.description}</p>
+                  <p className="text-gray-400 mb-4">{section.description}</p>
                   <p className="text-sm text-gray-500">{section.stats}</p>
                 </div>
               </div>
@@ -235,30 +235,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         </div>
 
         {/* Recent Activity */}
-        <div className="mt-8 bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+        <div className="mt-8 bg-gray-900 rounded-xl border border-gray-800">
+          <div className="px-6 py-4 border-b border-gray-800">
+            <h3 className="text-lg font-semibold text-white">Recent Activity</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+              <div className="flex items-center justify-between py-3 border-b border-gray-800 last:border-b-0">
                 <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-900">New user registration: user_123</span>
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                  <span className="text-sm text-gray-300">New user registration: user_123</span>
                 </div>
                 <span className="text-xs text-gray-500">2 minutes ago</span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+              <div className="flex items-center justify-between py-3 border-b border-gray-800 last:border-b-0">
                 <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-900">Content deployed: 5 new stitches</span>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                  <span className="text-sm text-gray-300">Content deployed: 5 new stitches</span>
                 </div>
                 <span className="text-xs text-gray-500">1 hour ago</span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+              <div className="flex items-center justify-between py-3 border-b border-gray-800 last:border-b-0">
                 <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-900">System backup completed</span>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                  <span className="text-sm text-gray-300">System backup completed</span>
                 </div>
                 <span className="text-xs text-gray-500">3 hours ago</span>
               </div>

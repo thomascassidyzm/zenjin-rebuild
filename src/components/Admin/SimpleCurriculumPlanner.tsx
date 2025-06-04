@@ -222,10 +222,10 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
 
   const getTubeColor = (tubeId: string) => {
     switch (tubeId) {
-      case 'tube1': return 'border-emerald-200 bg-emerald-50';
-      case 'tube2': return 'border-blue-200 bg-blue-50';
-      case 'tube3': return 'border-purple-200 bg-purple-50';
-      default: return 'border-gray-200 bg-gray-50';
+      case 'tube1': return 'border-emerald-500/20 bg-gradient-to-br from-emerald-900/20 to-emerald-800/10';
+      case 'tube2': return 'border-blue-500/20 bg-gradient-to-br from-blue-900/20 to-blue-800/10';
+      case 'tube3': return 'border-purple-500/20 bg-gradient-to-br from-purple-900/20 to-purple-800/10';
+      default: return 'border-gray-600 bg-gray-800/50';
     }
   };
 
@@ -235,22 +235,22 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
       .sort((a, b) => a.position - b.position);
 
     return (
-      <div key={tubeId} className={`flex-1 border-2 rounded-lg p-4 ${getTubeColor(tubeId)}`}>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div key={tubeId} className={`flex-1 border rounded-xl p-6 backdrop-blur-sm ${getTubeColor(tubeId)}`}>
+        <h3 className="text-lg font-semibold text-white mb-4">
           {getTubeTitle(tubeId)}
-          <span className="text-sm text-gray-500 ml-2">({tubeStitches.length} stitches)</span>
+          <span className="text-sm text-gray-400 ml-2">({tubeStitches.length} stitches)</span>
         </h3>
         
         <div className="space-y-2">
           {tubeStitches.map((stitch, index) => (
             <div key={stitch.id} className="group">
               {editingStitch === stitch.id ? (
-                <div className="flex items-center space-x-2 bg-white p-2 rounded border">
+                <div className="flex items-center space-x-2 bg-gray-800 p-3 rounded-lg border border-gray-700">
                   <input
                     type="text"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="flex-1 text-sm border-none outline-none"
+                    className="flex-1 text-sm bg-transparent text-white border-none outline-none placeholder-gray-500"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveEdit(stitch.id);
@@ -259,37 +259,37 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
                   />
                   <button
                     onClick={() => handleSaveEdit(stitch.id)}
-                    className="text-green-600 hover:text-green-800"
+                    className="text-green-400 hover:text-green-300"
                   >
                     <Check className="w-4 h-4" />
                   </button>
                   <button
                     onClick={handleCancelEdit}
-                    className="text-red-600 hover:text-red-800"
+                    className="text-red-400 hover:text-red-300"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2 bg-white p-3 rounded border hover:shadow-sm transition-shadow">
-                  <GripVertical className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600 w-6">{index + 1}.</span>
+                <div className="flex items-center space-x-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 hover:bg-gray-800/70 hover:border-gray-600 transition-all">
+                  <GripVertical className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-400 w-6">{index + 1}.</span>
                   <span 
-                    className="flex-1 text-sm cursor-pointer hover:text-blue-600"
+                    className="flex-1 text-sm text-gray-200 cursor-pointer hover:text-white"
                     onClick={() => handleEditStitch(stitch.id)}
                   >
                     {getStitchTitle(stitch)}
                   </span>
-                  <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
+                  <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
                     <button
                       onClick={() => handleEditStitch(stitch.id)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-blue-400 hover:text-blue-300"
                     >
                       <Edit3 className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => handleDeleteStitch(stitch.id)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-400 hover:text-red-300"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -301,7 +301,7 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
           
           <button
             onClick={() => handleAddStitch(tubeId)}
-            className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
+            className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-gray-600 rounded-lg text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span className="text-sm">Add stitch</span>
@@ -313,32 +313,32 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-950">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-gray-900 shadow-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <button
                 onClick={onBack}
-                className="mr-4 p-2 text-gray-600 hover:text-gray-900"
+                className="mr-4 p-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Curriculum Planner</h1>
-                <p className="text-gray-600 mt-1">Design learning sequences for the triple helix</p>
+                <h1 className="text-2xl font-bold text-white">Curriculum Planner</h1>
+                <p className="text-gray-400 mt-1">Design learning sequences for the triple helix</p>
               </div>
             </div>
             <div className="flex space-x-3">
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+              <button className="inline-flex items-center px-4 py-2 border border-gray-700 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-white transition-all">
                 <Upload className="w-4 h-4 mr-2" />
                 Bulk Import
               </button>
@@ -356,9 +356,9 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
         </div>
         
         {/* Helper Text */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Quick Reference</h4>
-          <div className="text-xs text-blue-800 space-y-1">
+        <div className="mt-8 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-xl p-4 backdrop-blur-sm">
+          <h4 className="text-sm font-medium text-blue-300 mb-2">Quick Reference</h4>
+          <div className="text-xs text-blue-200/80 space-y-1">
             <div>• Click any stitch title to edit in-place</div>
             <div>• Use format: "Double [1-10]", "2x table [1-12]", "Half [2-20]"</div>
             <div>• Drag to reorder stitches within tubes</div>
