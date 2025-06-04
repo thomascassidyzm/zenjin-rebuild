@@ -411,6 +411,55 @@ INSERT INTO learning_paths (path_id, path_name, description, difficulty_level, r
   ('division', 'Division', 'Division facts and operations', 4, 'Premium', '{"facts": ["4÷2", "6÷2", "6÷3", "8÷2"], "maxDividend": 100}', 4)
 ON CONFLICT (path_id) DO NOTHING;
 
+-- Insert initial concept to tube mappings
+-- Supporting L1 vision: flexible concept assignment
+INSERT INTO concept_tube_mappings (concept_code, tube_id, priority, is_active) VALUES
+  -- Example mappings for concept "0001" - can be in multiple tubes
+  ('0001', 'tube1', 100, true),  -- Primary assignment to tube1
+  ('0001', 'tube2', 50, true),   -- Also available in tube2
+  -- More concept mappings can be added by curriculum designers
+  ('0002', 'tube1', 100, true),
+  ('0003', 'tube1', 100, true),
+  ('0004', 'tube1', 100, true),
+  ('0005', 'tube1', 100, true)
+ON CONFLICT (concept_code, tube_id) DO NOTHING;
+
+-- ========================================
+-- CONCEPT TO TUBE MAPPINGS TABLE
+-- ========================================
+-- Flexible mapping of concepts to tubes (many-to-many)
+-- Supports L1 vision: any concept can be assigned to any tube
+CREATE TABLE IF NOT EXISTS concept_tube_mappings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  concept_code varchar(50) NOT NULL,
+  tube_id varchar(50) NOT NULL,
+  priority integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  
+  -- Allow same concept in multiple tubes, but unique combination
+  UNIQUE(concept_code, tube_id)
+);
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_concept_tube_mappings_concept ON concept_tube_mappings(concept_code);
+CREATE INDEX IF NOT EXISTS idx_concept_tube_mappings_tube ON concept_tube_mappings(tube_id);
+CREATE INDEX IF NOT EXISTS idx_concept_tube_mappings_active ON concept_tube_mappings(is_active);
+CREATE INDEX IF NOT EXISTS idx_concept_tube_mappings_priority ON concept_tube_mappings(priority DESC);
+
+-- Enable RLS on concept_tube_mappings
+ALTER TABLE concept_tube_mappings ENABLE ROW LEVEL SECURITY;
+
+-- Concept tube mappings are readable by all authenticated users
+CREATE POLICY "Concept tube mappings are readable" ON concept_tube_mappings
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Apply updated_at trigger to concept_tube_mappings
+CREATE TRIGGER update_concept_tube_mappings_updated_at 
+  BEFORE UPDATE ON concept_tube_mappings 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ========================================
 -- COMMENTS
 -- ========================================
@@ -422,6 +471,12 @@ COMMENT ON TABLE learning_paths IS 'Available learning content and curriculum pa
 COMMENT ON TABLE stitch_positions IS 'Individual stitch tracking with spaced repetition data';
 COMMENT ON TABLE user_state_history IS 'Historical state changes for audit and debugging';
 COMMENT ON TABLE achievements IS 'User achievements and milestone tracking';
+COMMENT ON TABLE concept_tube_mappings IS 'Flexible mapping allowing concepts to appear in multiple tubes';
+
+COMMENT ON COLUMN concept_tube_mappings.concept_code IS 'Unique identifier for the concept (e.g., "0001" for doubling_0_5_endings_1)';
+COMMENT ON COLUMN concept_tube_mappings.tube_id IS 'Identifier for the tube (e.g., "tube1", "tube2", "tube3")';
+COMMENT ON COLUMN concept_tube_mappings.priority IS 'Priority when concept appears in multiple tubes (higher = more important)';
+COMMENT ON COLUMN concept_tube_mappings.is_active IS 'Whether this mapping is currently active';
 
 COMMENT ON FUNCTION update_user_state_with_version IS 'Updates user state with optimistic locking via version checking';
 COMMENT ON FUNCTION migrate_anonymous_user IS 'Migrates all data from anonymous user to registered user account';

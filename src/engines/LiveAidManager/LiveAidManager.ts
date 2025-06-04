@@ -286,7 +286,7 @@ export class LiveAidManager implements LiveAidManagerInterface {
       const progressId = `prep_${Date.now()}_${request.tubeId}`;
       
       // Get concept mapping for the stitch
-      const conceptMapping = this.stitchPopulation.getConceptMapping('0001', request.tubeId);
+      const conceptMapping = await this.stitchPopulation.getConceptMapping('0001', request.tubeId);
       
       // Start background preparation
       const preparationProcess = await this.stitchPreparation.prepareStitch(
@@ -431,7 +431,7 @@ export class LiveAidManager implements LiveAidManagerInterface {
   private async createBasicReadyStitch(userId: string, tubeId: TubeId, stitchId: StitchId): Promise<ReadyStitch | null> {
     try {
       // Get concept mapping for basic stitch creation
-      const conceptMapping = this.stitchPopulation.getConceptMapping('0001', tubeId);
+      const conceptMapping = await this.stitchPopulation.getConceptMapping('0001', tubeId);
       
       // Use emergency preparation to create the stitch
       const result = await this.emergencyPreparation(userId, tubeId, stitchId);
@@ -466,7 +466,7 @@ export class LiveAidManager implements LiveAidManagerInterface {
     const startTime = Date.now();
 
     try {
-      const conceptMapping = this.stitchPopulation.getConceptMapping('0001', tubeId);
+      const conceptMapping = await this.stitchPopulation.getConceptMapping('0001', tubeId);
       const readyStitch = await this.stitchPreparation.emergencyPreparation(
         userId,
         stitchId,

@@ -420,7 +420,7 @@ export class StitchPopulation implements StitchPopulationInterface {
     };
   }
 
-  getConceptMapping(conceptCode: string, tubeId: TubeId): ConceptMapping {
+  async getConceptMapping(conceptCode: string, tubeId: TubeId): Promise<ConceptMapping> {
     const strategy = this.tubeStrategies.get(tubeId);
     if (!strategy) {
       throw new Error(`${StitchPopulationErrorCode.INVALID_TUBE_STRATEGY}: No strategy for ${tubeId}`);

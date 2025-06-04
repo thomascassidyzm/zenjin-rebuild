@@ -271,7 +271,7 @@ export class LiveAidManager implements LiveAidManagerInterface {
       const requestId = this.generatePreparationRequestId(request);
       
       // Get concept mapping for the stitch
-      const conceptMapping = this.stitchPopulation.getConceptMapping(
+      const conceptMapping = await this.stitchPopulation.getConceptMapping(
         request.nextStitchId.split('-')[1] || '0001', // Extract concept code from stitch ID
         request.tubeId
       );
@@ -378,7 +378,7 @@ export class LiveAidManager implements LiveAidManagerInterface {
     
     try {
       // Get concept mapping for emergency preparation
-      const conceptMapping = this.stitchPopulation.getConceptMapping(
+      const conceptMapping = await this.stitchPopulation.getConceptMapping(
         stitchId.split('-')[1] || '0001',
         tubeId
       );
