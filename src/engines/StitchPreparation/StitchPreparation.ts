@@ -211,11 +211,21 @@ export class StitchPreparation implements StitchPreparationInterface {
     
     let questionText = template;
     
+    // Extract operands from fact structure
+    let operand1 = fact.operands?.[0] || fact.operand1;
+    let operand2 = fact.operands?.[1] || fact.operand2;
+    
+    // For doubling operations, ensure the number to be doubled is in operand1
+    if (conceptMapping.factQuery.operation === 'doubling' && operand1 === 2 && operand2 !== 2) {
+      // Swap operands so "Double X" shows the correct number
+      [operand1, operand2] = [operand2, operand1];
+    }
+    
     // Apply minimal reading format substitutions
-    questionText = questionText.replace('{operand1}', fact.operand1?.toString() || '');
-    questionText = questionText.replace('{operand2}', fact.operand2?.toString() || '');
-    questionText = questionText.replace('{tableNumber}', fact.operand1?.toString() || '');
-    questionText = questionText.replace('{divisor}', fact.operand2?.toString() || '');
+    questionText = questionText.replace('{operand1}', operand1?.toString() || '');
+    questionText = questionText.replace('{operand2}', operand2?.toString() || '');
+    questionText = questionText.replace('{tableNumber}', operand1?.toString() || '');
+    questionText = questionText.replace('{divisor}', operand2?.toString() || '');
     questionText = questionText.replace('{dividend}', fact.result?.toString() || '');
 
     // Handle algebraic notation
@@ -228,8 +238,8 @@ export class StitchPreparation implements StitchPreparationInterface {
       text: questionText,
       correctAnswer: fact.result?.toString() || fact.answer?.toString(),
       factId: fact.id,
-      operand1: fact.operand1,
-      operand2: fact.operand2,
+      operand1: operand1,
+      operand2: operand2,
       operation: conceptMapping.factQuery.operation
     };
   }
