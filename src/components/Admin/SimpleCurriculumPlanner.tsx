@@ -3,7 +3,7 @@
  * Focus on essential workflow: sequences of stitches within concepts in each tube
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Edit3, 
@@ -37,6 +37,9 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
   const [editingStitch, setEditingStitch] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [draggedStitch, setDraggedStitch] = useState<StitchEssence | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<{ tubeId: string; index: number } | null>(null);
+  const dragCounter = useRef(0);
 
   useEffect(() => {
     loadCurriculum();
@@ -211,6 +214,92 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
     console.log('✅ Stitch deleted:', stitchId);
   };
 
+  // Drag and Drop handlers
+  const handleDragStart = (e: React.DragEvent, stitch: StitchEssence) => {
+    setDraggedStitch(stitch);
+    e.dataTransfer.effectAllowed = 'move';
+    // Add a slight opacity to the dragged element
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5';
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
+    setDraggedStitch(null);
+    setDragOverIndex(null);
+    dragCounter.current = 0;
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e: React.DragEvent, tubeId: string, index: number) => {
+    e.preventDefault();
+    dragCounter.current++;
+    setDragOverIndex({ tubeId, index });
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetTubeId: string, targetIndex: number) => {
+    e.preventDefault();
+    dragCounter.current = 0;
+    
+    if (!draggedStitch) return;
+
+    const updatedStitches = [...stitches];
+    
+    // Remove the dragged stitch from its original position
+    const draggedIndex = updatedStitches.findIndex(s => s.id === draggedStitch.id);
+    if (draggedIndex === -1) return;
+    
+    updatedStitches.splice(draggedIndex, 1);
+    
+    // Get stitches in the target tube
+    const targetTubeStitches = updatedStitches
+      .filter(s => s.tubeId === targetTubeId)
+      .sort((a, b) => a.position - b.position);
+    
+    // Insert the dragged stitch at the new position
+    const newStitch = { ...draggedStitch, tubeId: targetTubeId };
+    
+    // Recalculate positions
+    const finalStitches = updatedStitches.filter(s => s.tubeId !== targetTubeId);
+    targetTubeStitches.splice(targetIndex, 0, newStitch);
+    
+    targetTubeStitches.forEach((stitch, idx) => {
+      stitch.position = idx;
+    });
+    
+    finalStitches.push(...targetTubeStitches);
+    
+    // Update positions for all tubes
+    ['tube1', 'tube2', 'tube3'].forEach(tubeId => {
+      const tubeStitches = finalStitches
+        .filter(s => s.tubeId === tubeId)
+        .sort((a, b) => a.position - b.position);
+      
+      tubeStitches.forEach((stitch, idx) => {
+        stitch.position = idx;
+      });
+    });
+    
+    setStitches(finalStitches);
+    setDragOverIndex(null);
+    
+    console.log('✅ Stitch moved:', draggedStitch.id, 'to', targetTubeId, 'position', targetIndex);
+  };
+
   const getTubeTitle = (tubeId: string) => {
     switch (tubeId) {
       case 'tube1': return 'Number Sense';
@@ -241,9 +330,30 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
           <span className="text-sm text-gray-400 ml-2">({tubeStitches.length} stitches)</span>
         </h3>
         
-        <div className="space-y-2">
+        <div 
+          className="space-y-2 min-h-[100px]"
+          onDragOver={handleDragOver}
+          onDrop={(e) => {
+            e.preventDefault();
+            // Handle drop on empty space at the end
+            if (draggedStitch) {
+              handleDrop(e, tubeId, tubeStitches.length);
+            }
+          }}
+        >
           {tubeStitches.map((stitch, index) => (
-            <div key={stitch.id} className="group">
+            <div 
+              key={stitch.id} 
+              className="group relative"
+              onDragEnter={(e) => handleDragEnter(e, tubeId, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, tubeId, index)}
+            >
+              {/* Drop indicator */}
+              {dragOverIndex?.tubeId === tubeId && dragOverIndex?.index === index && (
+                <div className="absolute -top-1 left-0 right-0 h-1 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50" />
+              )}
+              
               {editingStitch === stitch.id ? (
                 <div className="flex items-center space-x-2 bg-gray-800 p-3 rounded-lg border border-gray-700">
                   <input
@@ -271,8 +381,13 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 hover:bg-gray-800/70 hover:border-gray-600 transition-all">
-                  <GripVertical className="w-4 h-4 text-gray-500" />
+                <div 
+                  className="flex items-center space-x-2 bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 hover:bg-gray-800/70 hover:border-gray-600 transition-all cursor-move"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, stitch)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <GripVertical className="w-4 h-4 text-gray-500 cursor-grab active:cursor-grabbing" />
                   <span className="text-sm text-gray-400 w-6">{index + 1}.</span>
                   <span 
                     className="flex-1 text-sm text-gray-200 cursor-pointer hover:text-white"
@@ -298,6 +413,11 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
               )}
             </div>
           ))}
+          
+          {/* Drop indicator for end of list */}
+          {dragOverIndex?.tubeId === tubeId && dragOverIndex?.index === tubeStitches.length && (
+            <div className="h-1 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50 mx-3" />
+          )}
           
           <button
             onClick={() => handleAddStitch(tubeId)}
