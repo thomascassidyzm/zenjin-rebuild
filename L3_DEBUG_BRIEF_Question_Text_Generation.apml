@@ -1,0 +1,117 @@
+# L3 Debug Brief: Question Text Generation Pipeline
+
+**Session ID**: L1_Strategic_Debug_QuestionText_20250604  
+**Date**: June 4, 2025  
+**Assigned To**: Debug Agent  
+**Priority**: High  
+**Time Limit**: 15 minutes maximum
+**Issue Type**: Regression - Previously Fixed
+
+## Current Problem
+
+Questions are generating with `text: undefined`, causing PlayerCard to reject them with "INVALID_QUESTION". The simplified auth-to-player flow has broken the question text formatting pipeline.
+
+**Console Evidence:**
+```
+First question: Object { 
+  id: "tube1-stitch-1749079541246_q1_mult-0-2", 
+  text: undefined,  // ❌ THIS IS THE PROBLEM
+  correctAnswer: "0", 
+  distractor: "1", 
+  factId: "mult-0-2"  // Should format as "Double 0" or "0 × 2"
+}
+INVALID_QUESTION: The question object is invalid or incomplete
+```
+
+## Previous Fixes Context
+
+**We've fixed this exact issue before!** Here's what we learned:
+
+### Common Root Causes (From Previous Sessions):
+1. **Template Interpolation**: Question templates like `"Double {{operand1}}"` not getting operands substituted
+2. **Fact Processing**: FactRepository returning facts without proper text formatting
+3. **Pipeline Order**: Text generation happening before fact enrichment
+4. **Context Boundary Issues**: APML context boundaries breaking the formatting chain
+
+### Key Files That Were Fixed Before:
+- `QuestionGenerator.ts` - Contains text template logic (`"Double {{operand1}}"`)
+- `FactRepository.ts` - Fact-to-question conversion
+- `StitchPreparation.ts` - Question pipeline orchestration
+- `LearningEngineService.ts` - Session initialization flow
+
+### Previous Solution Pattern:
+The fix was usually in the question generation pipeline where:
+1. Fact has `factId: "mult-0-2"` 
+2. Should extract operands: `operand1: 0, operand2: 2`
+3. Should select template: `"Double {{operand1}}"` (for doubling) or `"{{operand1}} × {{operand2}}"` 
+4. Should interpolate: `"Double 0"` or `"0 × 2"`
+
+## Debug Strategy
+
+### Phase 1: Trace Question Generation (5 mins)
+Use APML-compliant logging to trace from `generateQuestionsForStitch()` through to final question object:
+
+1. **Entry Point**: `App.tsx:89` - `generateQuestionsForStitch()` call
+2. **Service Layer**: `LearningEngineService.initializeLearningSession()`
+3. **Question Creation**: Where facts become questions with text
+4. **Text Formatting**: Template interpolation step
+
+### Phase 2: Identify Break Point (5 mins)
+Find exactly where `text` becomes `undefined`:
+- Is the template being selected?
+- Are operands being extracted from `factId`?
+- Is interpolation happening?
+- Is the result being overwritten somewhere?
+
+### Phase 3: Apply Fix (5 mins)
+Based on previous patterns, likely need to:
+- Fix template interpolation logic
+- Ensure fact enrichment happens before text generation
+- Check APML context boundary compliance
+
+## Debugging Tools
+
+### APML-Compliant Logging Pattern:
+```typescript
+console.log('🔍 DEBUG: [ComponentName] Step description:', data);
+console.log('✅ SUCCESS: [ComponentName] Expected result achieved');
+console.log('❌ FAILURE: [ComponentName] Problem identified:', error);
+```
+
+### Key Log Points to Add:
+1. Question generation entry with factId
+2. Template selection result  
+3. Operand extraction from factId
+4. Template interpolation input/output
+5. Final question object before return
+
+## Expected Outcome
+
+Questions should generate with proper text:
+```typescript
+{
+  id: "tube1-stitch-1749079541246_q1_mult-0-2",
+  text: "Double 0",  // ✅ FIXED
+  correctAnswer: "0",
+  distractor: "1", 
+  factId: "mult-0-2"
+}
+```
+
+## Context Notes
+
+- This is a **regression** - the pipeline worked before the auth flow simplification
+- The factId format is correct, so fact generation is working
+- The issue is specifically in text formatting/interpolation
+- Previous fixes were usually simple once we found the break point
+- Use the same APML logging approach that worked before
+
+## Out of Scope
+
+- Don't fix UI issues (massive points bar, etc.) - focus only on question text
+- Don't optimize the pipeline - just get it working again
+- Don't refactor - minimal fix to restore functionality
+
+---
+
+*Debug brief spawned during simplified auth-to-player flow cleanup. Focus on restoring working question text generation using proven APML debugging approach.*

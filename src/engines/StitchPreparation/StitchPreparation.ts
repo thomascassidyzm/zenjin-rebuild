@@ -215,18 +215,23 @@ export class StitchPreparation implements StitchPreparationInterface {
     let operand1 = fact.operands?.[0] || fact.operand1;
     let operand2 = fact.operands?.[1] || fact.operand2;
     
+    // APML Protocol: Fail fast if operands are missing - no silent fallbacks
+    if (operand1 === undefined || operand2 === undefined) {
+      throw new Error(`❌ APML PROTOCOL VIOLATION: Missing operands in fact ${fact.id}. operand1=${operand1}, operand2=${operand2}. Check FactRepository data structure.`);
+    }
+    
     // For doubling operations, ensure the number to be doubled is in operand1
     if (conceptMapping.factQuery.operation === 'doubling' && operand1 === 2 && operand2 !== 2) {
       // Swap operands so "Double X" shows the correct number
       [operand1, operand2] = [operand2, operand1];
     }
     
-    // Apply minimal reading format substitutions
-    questionText = questionText.replace('{operand1}', operand1?.toString() || '');
-    questionText = questionText.replace('{operand2}', operand2?.toString() || '');
-    questionText = questionText.replace('{tableNumber}', operand1?.toString() || '');
-    questionText = questionText.replace('{divisor}', operand2?.toString() || '');
-    questionText = questionText.replace('{dividend}', fact.result?.toString() || '');
+    // Apply minimal reading format substitutions using global regex replacement
+    questionText = questionText.replace(/{operand1}/g, operand1?.toString() || '');
+    questionText = questionText.replace(/{operand2}/g, operand2?.toString() || '');
+    questionText = questionText.replace(/{tableNumber}/g, operand1?.toString() || '');
+    questionText = questionText.replace(/{divisor}/g, operand2?.toString() || '');
+    questionText = questionText.replace(/{dividend}/g, fact.result?.toString() || '');
 
     // Handle algebraic notation
     if (variableNotation) {
