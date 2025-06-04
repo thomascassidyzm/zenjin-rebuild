@@ -244,6 +244,17 @@ const LearningSession: React.FC<LearningSessionProps> = ({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number>(Date.now());
   const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Handle session summary notification for exit flow (must be at top level)
+  useEffect(() => {
+    if (sessionComplete && isExiting && onSessionSummaryShown) {
+      // Call the callback after a brief delay to ensure UI is rendered
+      const timer = setTimeout(() => {
+        onSessionSummaryShown();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionComplete, isExiting, onSessionSummaryShown]);
   
   // Ref to PlayerCard for imperative control
   const playerCardRef = useRef<PlayerCardHandle>(null);
@@ -525,16 +536,6 @@ const LearningSession: React.FC<LearningSessionProps> = ({
       totalPoints,
     });
     
-    // Notify that session summary is shown (for exit flow)
-    useEffect(() => {
-      if (sessionComplete && isExiting && onSessionSummaryShown) {
-        // Call the callback after a brief delay to ensure UI is rendered
-        const timer = setTimeout(() => {
-          onSessionSummaryShown();
-        }, 100);
-        return () => clearTimeout(timer);
-      }
-    }, [sessionComplete, isExiting, onSessionSummaryShown]);
     
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
@@ -1216,8 +1217,8 @@ const AppContent: React.FC = () => {
   // Determine what content to show
   const contentToRender = authToPlayerContent || renderCurrentPage();
   
-  // For full-screen states (PRE_ENGAGEMENT, LOADING_WITH_ANIMATION), return content directly
-  if (authToPlayerContent && (authToPlayerState === 'PRE_ENGAGEMENT' || authToPlayerState === 'LOADING_WITH_ANIMATION')) {
+  // For full-screen states (LOADING_WITH_ANIMATION), return content directly
+  if (authToPlayerContent && authToPlayerState === 'LOADING_WITH_ANIMATION') {
     return authToPlayerContent;
   }
   
@@ -1232,7 +1233,7 @@ const AppContent: React.FC = () => {
         backendConnected={hasBackendConnection}
         userSession={sessionState}
         onAdminClick={handleAdminClick}
-        inActiveSession={authToPlayerState === 'ACTIVE_LEARNING'}
+        inActiveSession={authToPlayerState === 'ACTIVE_LEARNING' || authToPlayerState === 'PRE_ENGAGEMENT'}
       />
       {contentToRender}
       

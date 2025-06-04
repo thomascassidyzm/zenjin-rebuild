@@ -61,9 +61,9 @@ export function prepareClaudeContext(
       structure: "{ statement: string, answer: string, operation_type: string, operand1: number, operand2: number, difficulty_level: 1-5 }"
     },
     tripleHelixModel: {
-      tube1: "Number Sense (doubles, halves, basic operations)",
-      tube2: "Times Tables (systematic multiplication practice)",
-      tube3: "Mixed Practice (combination of concepts)"
+      tube1: "Tube 1 (various mathematical concepts)",
+      tube2: "Tube 2 (various mathematical concepts)", 
+      tube3: "Tube 3 (various mathematical concepts)"
     },
     gaps
   };
@@ -85,9 +85,9 @@ function formatStitchForContext(stitch: StitchEssence): string {
     display = conceptType;
   }
   
-  const tubeName = tubeId === 'tube1' ? 'Number Sense' :
-                   tubeId === 'tube2' ? 'Times Tables' :
-                   tubeId === 'tube3' ? 'Mixed Practice' : tubeId;
+  const tubeName = tubeId === 'tube1' ? 'Tube 1' :
+                   tubeId === 'tube2' ? 'Tube 2' :
+                   tubeId === 'tube3' ? 'Tube 3' : tubeId;
   
   return `${display} (${tubeName})`;
 }

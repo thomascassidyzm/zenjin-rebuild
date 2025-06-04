@@ -326,9 +326,9 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
 
   const getTubeTitle = (tubeId: string) => {
     switch (tubeId) {
-      case 'tube1': return 'Number Sense';
-      case 'tube2': return 'Times Tables';
-      case 'tube3': return 'Mixed Practice';
+      case 'tube1': return 'Tube 1';
+      case 'tube2': return 'Tube 2';
+      case 'tube3': return 'Tube 3';
       default: return tubeId;
     }
   };

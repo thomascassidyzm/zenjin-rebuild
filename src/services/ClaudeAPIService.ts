@@ -92,6 +92,9 @@ IMPORTANT GUIDELINES:
 2. FACT FORMAT:
    - Structure: ${context.factFormat.structure}
    - Available operations: ${context.factFormat.operations.join(', ')}
+   - CRITICAL: Use clean mathematical expressions only
+   - Examples: "7 × 4" NOT "7 × 4 = ?" or "What is 7 × 4?"
+   - Use proper multiplication symbol (×) not asterisk (*)
    - Include all required fields (statement, answer, operation_type, operands, difficulty_level)
 
 3. TRIPLE HELIX MODEL:
@@ -103,20 +106,32 @@ IMPORTANT GUIDELINES:
    - Avoid duplicating existing content
    - Follow established progressions (easy → medium → hard)
    - Create pedagogically sound sequences
-   - Generate supporting facts for each stitch
+   - CRITICAL: Each stitch needs 20 questions, so generate AT LEAST 20 facts per stitch
+   - For times tables: generate both directions (7×3=21 AND 3×7=21) to reach 20+ facts
+   - Use clean expressions: "7 × 3", "3 × 7", "21 ÷ 3", "21 ÷ 7"
+   - For addition: "7 + 3", "3 + 7", "10 - 7", "10 - 3"
+   - For subtraction: "10 - 3", "10 - 7"
+   - For division: "21 ÷ 3", "21 ÷ 7"
 
 5. RESPONSE FORMAT:
-   Provide a BRIEF, CONCISE summary of what you created, then include the structured data.
+   Provide a BRIEF summary (1 line), then the structured data.
    
    Example response:
-   ✅ Generated: 7x table progression (3 stitches)
-   📊 Created: 3 stitches, 21 facts  
-   🎯 Sample: "7x table [1-7]" → 7 × 1 = 7
+   ✅ Created 3 stitches with 60+ facts for 7x table progression
    
    [GENERATED_CONTENT_START]
    {
      "stitches": [...],
-     "facts": [...]
+     "facts": [
+       {
+         "statement": "7 × 4",
+         "answer": "28",
+         "operation_type": "multiplication",
+         "operand1": 7,
+         "operand2": 4,
+         "difficulty_level": 2
+       }
+     ]
    }
    [GENERATED_CONTENT_END]
 

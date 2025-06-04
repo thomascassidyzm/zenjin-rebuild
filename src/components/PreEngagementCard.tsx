@@ -46,7 +46,7 @@ const PreEngagementCard: React.FC<PreEngagementCardProps> = ({
   const pathInfo = getLearningPathInfo();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         
         {/* Welcome Header */}
