@@ -15,8 +15,8 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
-import { ClaudeGenerationModal } from './ClaudeGenerationModal';
-import type { GeneratedContent, Fact } from './ClaudeGenerationModal';
+import { InlineClaudeGenerator } from './InlineClaudeGenerator';
+import type { Fact } from './ClaudeGenerationModal';
 
 interface StitchEssence {
   id: string;
@@ -43,7 +43,6 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
   const [draggedStitch, setDraggedStitch] = useState<StitchEssence | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<{ tubeId: string; index: number } | null>(null);
   const dragCounter = useRef(0);
-  const [showClaudeModal, setShowClaudeModal] = useState(false);
   const [existingFacts, setExistingFacts] = useState<Fact[]>([]);
 
   useEffect(() => {
@@ -263,31 +262,16 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
     }
   };
 
-  const handleImportFromClaude = async (content: GeneratedContent) => {
-    try {
-      // Import stitches
-      if (content.stitches.length > 0) {
-        // Generate new IDs for imported stitches
-        const newStitches = content.stitches.map((stitch, index) => ({
-          ...stitch,
-          id: `imported_${Date.now()}_${index}`,
-          position: stitches.filter(s => s.tubeId === stitch.tubeId).length + index
-        }));
-        
-        setStitches([...stitches, ...newStitches]);
-      }
-
-      // Import facts (would normally send to API)
-      if (content.facts.length > 0) {
-        console.log('Would import facts:', content.facts);
-        // TODO: Implement API call to save facts
-      }
-
-      // Show success message
-      alert(`Successfully imported ${content.stitches.length} stitches and ${content.facts.length} facts!`);
-    } catch (error) {
-      console.error('Failed to import content:', error);
-      alert('Failed to import content. Please try again.');
+  const handleContentGenerated = (newStitches: StitchEssence[], newFacts: Fact[]) => {
+    // Update UI with generated stitches (facts are already saved to database)
+    if (newStitches.length > 0) {
+      const processedStitches = newStitches.map((stitch, index) => ({
+        ...stitch,
+        id: `generated_${Date.now()}_${index}`,
+        position: stitches.filter(s => s.tubeId === stitch.tubeId).length + index
+      }));
+      
+      setStitches([...stitches, ...processedStitches]);
     }
   };
 
@@ -497,14 +481,9 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
                 <p className="text-gray-400 mt-1">Design learning sequences for the triple helix</p>
               </div>
             </div>
-            <div className="flex space-x-3">
-              <button 
-                onClick={() => setShowClaudeModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-purple-600 rounded-lg shadow-sm text-sm font-medium text-purple-300 bg-purple-900/30 hover:bg-purple-800/50 hover:text-white transition-all"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate with Claude
-              </button>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              <span className="text-sm text-purple-300">Generate content with Claude below</span>
             </div>
           </div>
         </div>
@@ -512,6 +491,14 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Claude Generator */}
+        <InlineClaudeGenerator
+          existingStitches={stitches}
+          existingFacts={existingFacts}
+          onContentGenerated={handleContentGenerated}
+        />
+        
+        {/* Curriculum Tubes */}
         <div className="flex space-x-6">
           {renderTube('tube1')}
           {renderTube('tube2')}
@@ -530,14 +517,6 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
         </div>
       </main>
 
-      {/* Claude Generation Modal */}
-      <ClaudeGenerationModal
-        isOpen={showClaudeModal}
-        onClose={() => setShowClaudeModal(false)}
-        onImport={handleImportFromClaude}
-        existingStitches={stitches}
-        existingFacts={existingFacts}
-      />
     </div>
   );
 };

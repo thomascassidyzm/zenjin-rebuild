@@ -141,10 +141,11 @@ const NavigationHeader: React.FC<{
   backendConnected?: boolean;
   userSession?: any;
   onAdminClick?: () => void;
-}> = ({ currentPage, onNavigate, isOnline, connectionType, backendConnected = false, userSession, onAdminClick }) => {
+  inActiveSession?: boolean;
+}> = ({ currentPage, onNavigate, isOnline, connectionType, backendConnected = false, userSession, onAdminClick, inActiveSession = false }) => {
   return (
     <header className="bg-gray-900 shadow-lg border-b border-gray-700">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -164,7 +165,7 @@ const NavigationHeader: React.FC<{
               )}
             </div>
             
-            <nav className="flex space-x-1">
+            <nav className="flex space-x-2 sm:space-x-3">
             {[
               { id: 'dashboard', icon: '⚏', label: 'Dashboard', title: 'Dashboard' },
               { id: 'session', icon: '▶', label: 'Play', title: 'Play Session' },
@@ -175,7 +176,7 @@ const NavigationHeader: React.FC<{
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 title={item.title}
-                className={`px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 ${
+                className={`px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 ${
                   currentPage === item.id
                     ? 'bg-indigo-600 text-white'
                     : 'text-gray-300 hover:text-white hover:bg-gray-800'
@@ -198,7 +199,7 @@ const NavigationHeader: React.FC<{
             {/* TEMPORARY: Dev Admin Access - Remove after testing */}
             <button
               onClick={onAdminClick}
-              className="px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-yellow-400 hover:text-yellow-300 hover:bg-gray-800"
+              className="px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-yellow-400 hover:text-yellow-300 hover:bg-gray-800"
               title="Dev Admin Access (Temporary)"
             >
               <span className="text-lg">🛠️</span>
@@ -568,17 +569,18 @@ const LearningSession: React.FC<LearningSessionProps> = ({
   }
 
   return (
-    <div className="flex flex-col flex-1">
-      {/* Player Card */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        {currentQuestion ? (
-          <div className="w-full max-w-md">
-            <PlayerCard
-              ref={playerCardRef}
-              key={currentQuestion.id}
-              onAnswerSelected={handleAnswerSelected}
-              points={totalPoints}
-            />
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Player Card Container */}
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+          {currentQuestion ? (
+            <div className="w-full max-w-md">
+              <PlayerCard
+                ref={playerCardRef}
+                key={currentQuestion.id}
+                onAnswerSelected={handleAnswerSelected}
+                points={totalPoints}
+              />
             
             {/* Testing Buttons */}
             <div className="mt-4 text-center flex gap-2 justify-center">
@@ -643,6 +645,7 @@ const LearningSession: React.FC<LearningSessionProps> = ({
             </p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

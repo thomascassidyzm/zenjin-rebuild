@@ -114,7 +114,7 @@ export const ClaudeConversation: React.FC<ClaudeConversationProps> = ({
             placeholder={disabled ? "API key required..." : "Ask Claude to generate curriculum content..."}
             disabled={disabled || isLoading}
             rows={2}
-            className="flex-1 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-gray-900"
           />
           <button
             onClick={onSend}

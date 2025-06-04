@@ -106,33 +106,21 @@ IMPORTANT GUIDELINES:
    - Generate supporting facts for each stitch
 
 5. RESPONSE FORMAT:
-   When generating content, include a section marked with:
+   Provide a BRIEF, CONCISE summary of what you created, then include the structured data.
+   
+   Example response:
+   ✅ Generated: 7x table progression (3 stitches)
+   📊 Created: 3 stitches, 21 facts  
+   🎯 Sample: "7x table [1-7]" → 7 × 1 = 7
    
    [GENERATED_CONTENT_START]
    {
-     "stitches": [
-       {
-         "id": "unique_id",
-         "conceptType": "type",
-         "conceptParams": { "operand": 7, "range": [1, 3] },
-         "tubeId": "tube2",
-         "position": 0
-       }
-     ],
-     "facts": [
-       {
-         "statement": "7 × 1 = ?",
-         "answer": "7",
-         "operation_type": "multiplication",
-         "operand1": 7,
-         "operand2": 1,
-         "difficulty_level": 1
-       }
-     ]
+     "stitches": [...],
+     "facts": [...]
    }
    [GENERATED_CONTENT_END]
 
-Always analyze the existing content and gaps before generating new material.`;
+Keep your description brief - the content will be saved automatically to the database.`;
   }
 
   private parseGeneratedContent(response: string): { stitches: StitchEssence[]; facts: Fact[] } | undefined {
