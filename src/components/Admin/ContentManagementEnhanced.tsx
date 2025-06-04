@@ -273,21 +273,21 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       {/* Facts Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mathematical Facts</h2>
-          <p className="text-gray-600 mt-1">Manage the foundation facts for question generation</p>
+          <h2 className="text-2xl font-bold text-white">Mathematical Facts</h2>
+          <p className="text-gray-400 mt-1">Manage the foundation facts for question generation</p>
         </div>
         <div className="flex space-x-3">
-          <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          <button className="inline-flex items-center px-4 py-2 border border-gray-700 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-white transition-all">
             <Upload className="w-4 h-4 mr-2" />
             Import Facts
           </button>
-          <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          <button className="inline-flex items-center px-4 py-2 border border-gray-700 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-white transition-all">
             <Download className="w-4 h-4 mr-2" />
             Export Facts
           </button>
           <button 
             onClick={() => setShowFactForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Fact
@@ -298,19 +298,19 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       {/* Facts Filters */}
       <div className="flex space-x-4 mb-6">
         <div className="flex-1 relative">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             placeholder="Search facts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-2 bg-gray-800 text-white placeholder-gray-500 border border-gray-700 rounded-lg focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
           />
         </div>
         <select
           value={selectedOperation}
           onChange={(e) => setSelectedOperation(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          className="px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
         >
           {operationTypes.map(op => (
             <option key={op} value={op}>
@@ -321,66 +321,66 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       </div>
 
       {/* Facts Table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-gray-900 shadow-lg rounded-xl overflow-hidden border border-gray-800">
+        <table className="min-w-full divide-y divide-gray-800">
+          <thead className="bg-gray-900">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Fact ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Statement
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Answer
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Operation
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Difficulty
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-gray-900 divide-y divide-gray-800">
             {filteredFacts.map((fact) => (
-              <tr key={fact.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <tr key={fact.id} className="hover:bg-gray-800/50 transition-all">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">
                   {fact.id}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                   {fact.statement}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                   {fact.answer}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    fact.operation_type === 'double' ? 'bg-blue-100 text-blue-800' :
-                    fact.operation_type === 'half' ? 'bg-green-100 text-green-800' :
-                    fact.operation_type === 'multiplication' ? 'bg-purple-100 text-purple-800' :
-                    'bg-gray-100 text-gray-800'
+                    fact.operation_type === 'double' ? 'bg-blue-400/20 text-blue-400' :
+                    fact.operation_type === 'half' ? 'bg-green-400/20 text-green-400' :
+                    fact.operation_type === 'multiplication' ? 'bg-purple-400/20 text-purple-400' :
+                    'bg-gray-700 text-gray-400'
                   }`}>
                     {fact.operation_type}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                   Level {fact.difficulty_level}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
                     <button 
                       onClick={() => setEditingFact(fact)}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      className="text-blue-400 hover:text-blue-300 transition-colors"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => handleDeleteFact(fact.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-400 hover:text-red-300 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -394,9 +394,9 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
 
       {/* Fact Form Modal */}
       {(showFactForm || editingFact) && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium mb-4">
+        <div className="fixed inset-0 bg-gray-950/90 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-lg font-medium mb-4 text-white">
               {editingFact ? 'Edit Fact' : 'Create New Fact'}
             </h3>
             <form
@@ -422,31 +422,31 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
               className="space-y-4"
             >
               <div>
-                <label className="block text-sm font-medium text-gray-700">Statement</label>
+                <label className="block text-sm font-medium text-gray-400">Statement</label>
                 <input
                   name="statement"
                   type="text"
                   defaultValue={editingFact?.statement}
                   required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Answer</label>
+                <label className="block text-sm font-medium text-gray-400">Answer</label>
                 <input
                   name="answer"
                   type="text"
                   defaultValue={editingFact?.answer}
                   required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Operation Type</label>
+                <label className="block text-sm font-medium text-gray-400">Operation Type</label>
                 <select
                   name="operation_type"
                   defaultValue={editingFact?.operation_type || 'addition'}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                 >
                   <option value="addition">Addition</option>
                   <option value="subtraction">Subtraction</option>
@@ -458,26 +458,26 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Operand 1</label>
+                  <label className="block text-sm font-medium text-gray-400">Operand 1</label>
                   <input
                     name="operand1"
                     type="number"
                     defaultValue={editingFact?.operand1 || 0}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Operand 2</label>
+                  <label className="block text-sm font-medium text-gray-400">Operand 2</label>
                   <input
                     name="operand2"
                     type="number"
                     defaultValue={editingFact?.operand2 || 0}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Difficulty Level</label>
+                <label className="block text-sm font-medium text-gray-400">Difficulty Level</label>
                 <input
                   name="difficulty_level"
                   type="number"
@@ -485,7 +485,7 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                   max="5"
                   defaultValue={editingFact?.difficulty_level || 1}
                   required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <div className="flex justify-end space-x-3">
@@ -495,13 +495,13 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                     setShowFactForm(false);
                     setEditingFact(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-700 rounded-lg text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-white transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
                 >
                   {editingFact ? 'Update' : 'Create'}
                 </button>
@@ -518,12 +518,12 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       {/* Stitches Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Learning Stitches</h2>
-          <p className="text-gray-600 mt-1">Manage content recipes for dynamic question generation</p>
+          <h2 className="text-2xl font-bold text-white">Learning Stitches</h2>
+          <p className="text-gray-400 mt-1">Manage content recipes for dynamic question generation</p>
         </div>
         <button 
           onClick={() => setShowStitchForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Stitch
@@ -533,35 +533,35 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       {/* Stitches Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stitches.map((stitch) => (
-          <div key={stitch.id} className="bg-white rounded-lg shadow border border-gray-200 p-6">
+          <div key={stitch.id} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6 hover:border-gray-700 transition-all">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{stitch.name}</h3>
-                <p className="text-sm text-gray-600">{stitch.id}</p>
+                <h3 className="text-lg font-semibold text-white">{stitch.name}</h3>
+                <p className="text-sm text-gray-500">{stitch.id}</p>
               </div>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                stitch.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                stitch.is_active ? 'bg-green-400/20 text-green-400' : 'bg-red-400/20 text-red-400'
               }`}>
                 {stitch.is_active ? 'Active' : 'Inactive'}
               </span>
             </div>
             
             <div className="space-y-2 mb-4">
-              <p className="text-sm"><strong>Tube:</strong> {stitch.tube_id}</p>
-              <p className="text-sm"><strong>Concept:</strong> {stitch.concept_code}</p>
-              <p className="text-sm"><strong>Type:</strong> {stitch.concept_type}</p>
-              <p className="text-sm"><strong>Questions:</strong> {stitch.min_questions}-{stitch.max_questions}</p>
-              <p className="text-sm"><strong>Surprise Weight:</strong> {(stitch.surprise_weight * 100).toFixed(1)}%</p>
+              <p className="text-sm text-gray-400"><span className="text-gray-300">Tube:</span> {stitch.tube_id}</p>
+              <p className="text-sm text-gray-400"><span className="text-gray-300">Concept:</span> {stitch.concept_code}</p>
+              <p className="text-sm text-gray-400"><span className="text-gray-300">Type:</span> {stitch.concept_type}</p>
+              <p className="text-sm text-gray-400"><span className="text-gray-300">Questions:</span> {stitch.min_questions}-{stitch.max_questions}</p>
+              <p className="text-sm text-gray-400"><span className="text-gray-300">Surprise Weight:</span> {(stitch.surprise_weight * 100).toFixed(1)}%</p>
             </div>
             
             <div className="flex justify-end space-x-2">
               <button 
                 onClick={() => setEditingStitch(stitch)}
-                className="text-indigo-600 hover:text-indigo-900"
+                className="text-blue-400 hover:text-blue-300 transition-colors"
               >
                 <Edit3 className="w-4 h-4" />
               </button>
-              <button className="text-red-600 hover:text-red-900">
+              <button className="text-red-400 hover:text-red-300 transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -586,12 +586,12 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
         {/* Mappings Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Concept-to-Tube Mappings</h2>
-            <p className="text-gray-600 mt-1">Flexibly assign concepts to any tube with priorities</p>
+            <h2 className="text-2xl font-bold text-white">Concept-to-Tube Mappings</h2>
+            <p className="text-gray-400 mt-1">Flexibly assign concepts to any tube with priorities</p>
           </div>
           <button 
             onClick={() => setShowMappingForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all"
           >
             <Link className="w-4 h-4 mr-2" />
             Add Mapping
@@ -601,8 +601,8 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
         {/* Concept Groups */}
         <div className="space-y-4">
           {Object.entries(conceptGroups).map(([conceptCode, conceptMappings]) => (
-            <div key={conceptCode} className="bg-white rounded-lg shadow border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div key={conceptCode} className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">
                 Concept {conceptCode}
               </h3>
               
@@ -613,19 +613,19 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                   return (
                     <div 
                       key={tubeId} 
-                      className={`border-2 rounded-lg p-4 ${
+                      className={`border-2 rounded-lg p-4 transition-all ${
                         mapping && mapping.is_active 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-300 bg-gray-50'
+                          ? 'border-blue-400 bg-blue-400/10' 
+                          : 'border-gray-700 bg-gray-800/50'
                       }`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-gray-900">{tubeId}</h4>
+                        <h4 className="font-medium text-gray-200">{tubeId}</h4>
                         {mapping && (
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             mapping.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-green-400/20 text-green-400' 
+                              : 'bg-red-400/20 text-red-400'
                           }`}>
                             {mapping.is_active ? 'Active' : 'Inactive'}
                           </span>
@@ -634,17 +634,17 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                       
                       {mapping ? (
                         <div>
-                          <p className="text-sm text-gray-600">Priority: {mapping.priority}</p>
+                          <p className="text-sm text-gray-400">Priority: {mapping.priority}</p>
                           <div className="mt-2 flex space-x-2">
                             <button 
                               onClick={() => setEditingMapping(mapping)}
-                              className="text-indigo-600 hover:text-indigo-900"
+                              className="text-blue-400 hover:text-blue-300 transition-colors"
                             >
                               <Edit3 className="w-3 h-3" />
                             </button>
                             <button 
                               onClick={() => handleDeleteMapping(mapping.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-400 hover:text-red-300 transition-colors"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -656,7 +656,7 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                             setShowMappingForm(true);
                             // Pre-fill form with concept and tube
                           }}
-                          className="text-sm text-blue-600 hover:text-blue-800"
+                          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                         >
                           + Add to {tubeId}
                         </button>
@@ -671,9 +671,9 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
 
         {/* Mapping Form Modal */}
         {(showMappingForm || editingMapping) && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-medium mb-4">
+          <div className="fixed inset-0 bg-gray-950/90 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 w-full max-w-md shadow-2xl">
+              <h3 className="text-lg font-medium mb-4 text-white">
                 {editingMapping ? 'Edit Mapping' : 'Create Concept Mapping'}
               </h3>
               <form
@@ -696,22 +696,22 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                 className="space-y-4"
               >
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Concept Code</label>
+                  <label className="block text-sm font-medium text-gray-400">Concept Code</label>
                   <input
                     name="concept_code"
                     type="text"
                     defaultValue={editingMapping?.concept_code}
                     required
                     placeholder="e.g., 0001"
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Tube</label>
+                  <label className="block text-sm font-medium text-gray-400">Tube</label>
                   <select
                     name="tube_id"
                     defaultValue={editingMapping?.tube_id || 'tube1'}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                   >
                     <option value="tube1">Tube 1</option>
                     <option value="tube2">Tube 2</option>
@@ -719,7 +719,7 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Priority (0-1000)</label>
+                  <label className="block text-sm font-medium text-gray-400">Priority (0-1000)</label>
                   <input
                     name="priority"
                     type="number"
@@ -727,16 +727,16 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                     max="1000"
                     defaultValue={editingMapping?.priority || 100}
                     required
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                   />
                   <p className="mt-1 text-xs text-gray-500">Higher priority concepts appear first</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <label className="block text-sm font-medium text-gray-400">Status</label>
                   <select
                     name="is_active"
                     defaultValue={editingMapping?.is_active?.toString() || 'true'}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    className="mt-1 block w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-blue-400 focus:border-blue-400 focus:outline-none"
                   >
                     <option value="true">Active</option>
                     <option value="false">Inactive</option>
@@ -749,13 +749,13 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                       setShowMappingForm(false);
                       setEditingMapping(null);
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-700 rounded-lg text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-white transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
                   >
                     {editingMapping ? 'Update' : 'Create'}
                   </button>
@@ -771,39 +771,39 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
   const renderPreviewTab = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Curriculum Preview</h2>
-        <p className="text-gray-600 mt-1">Preview how your curriculum changes affect learners</p>
+        <h2 className="text-2xl font-bold text-white">Curriculum Preview</h2>
+        <p className="text-gray-400 mt-1">Preview how your curriculum changes affect learners</p>
       </div>
       
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6">
         <div className="space-y-4">
-          <div className="border-l-4 border-blue-500 pl-4">
-            <h3 className="font-semibold text-gray-900">Active Concept Mappings</h3>
-            <p className="text-sm text-gray-600 mt-1">
+          <div className="border-l-4 border-blue-400 pl-4">
+            <h3 className="font-semibold text-white">Active Concept Mappings</h3>
+            <p className="text-sm text-gray-400 mt-1">
               {mappings.filter(m => m.is_active).length} active mappings across {
                 [...new Set(mappings.filter(m => m.is_active).map(m => m.tube_id))].length
               } tubes
             </p>
           </div>
           
-          <div className="border-l-4 border-green-500 pl-4">
-            <h3 className="font-semibold text-gray-900">Total Facts Available</h3>
-            <p className="text-sm text-gray-600 mt-1">{facts.length} mathematical facts</p>
+          <div className="border-l-4 border-green-400 pl-4">
+            <h3 className="font-semibold text-white">Total Facts Available</h3>
+            <p className="text-sm text-gray-400 mt-1">{facts.length} mathematical facts</p>
           </div>
           
-          <div className="border-l-4 border-purple-500 pl-4">
-            <h3 className="font-semibold text-gray-900">Active Stitches</h3>
-            <p className="text-sm text-gray-600 mt-1">
+          <div className="border-l-4 border-purple-400 pl-4">
+            <h3 className="font-semibold text-white">Active Stitches</h3>
+            <p className="text-sm text-gray-400 mt-1">
               {stitches.filter(s => s.is_active).length} active learning stitches
             </p>
           </div>
         </div>
         
-        <div className="mt-6 p-4 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-600">
-            <strong>Example:</strong> When a learner on tube2 requests content, the system will:
+        <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+          <p className="text-sm text-gray-300">
+            <span className="text-gray-200 font-medium">Example:</span> When a learner on tube2 requests content, the system will:
           </p>
-          <ol className="mt-2 text-sm text-gray-600 space-y-1 list-decimal list-inside">
+          <ol className="mt-2 text-sm text-gray-400 space-y-1 list-decimal list-inside">
             <li>Check concept mappings for tube2</li>
             <li>Select highest priority active concept</li>
             <li>Find matching stitch definition</li>
@@ -815,11 +815,11 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-950">
       {/* Notification */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg ${
-          notification.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-sm ${
+          notification.type === 'success' ? 'bg-green-400/90 text-gray-900' : 'bg-red-400/90 text-gray-900'
         }`}>
           <div className="flex items-center">
             {notification.type === 'success' ? (
@@ -833,19 +833,19 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-gray-900 shadow-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <button
                 onClick={onBack}
-                className="mr-4 p-2 text-gray-600 hover:text-gray-900"
+                className="mr-4 p-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Content Management</h1>
-                <p className="text-gray-600 mt-1">Manage curriculum with full flexibility</p>
+                <h1 className="text-2xl font-bold text-white">Content Management</h1>
+                <p className="text-gray-400 mt-1">Manage curriculum with full flexibility</p>
               </div>
             </div>
           </div>
@@ -853,7 +853,7 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       </header>
 
       {/* Tabs */}
-      <div className="bg-white border-b">
+      <div className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
@@ -867,13 +867,13 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-400 text-blue-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-700'
                 }`}
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs">
+                  <span className="ml-2 bg-gray-800 text-gray-300 py-0.5 px-2.5 rounded-full text-xs">
                     {tab.count}
                   </span>
                 )}
@@ -887,7 +887,7 @@ export const ContentManagementEnhanced: React.FC<ContentManagementProps> = ({ on
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
           </div>
         ) : (
           <>
