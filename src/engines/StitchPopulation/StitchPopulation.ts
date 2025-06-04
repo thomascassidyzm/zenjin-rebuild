@@ -230,6 +230,9 @@ export class StitchPopulation implements StitchPopulationInterface {
       case 'doubling':
         return this.queryDoublingFacts(criteria);
       
+      case 'halving':
+        return this.queryHalvingFacts(criteria);
+      
       case 'multiplication':
         return this.queryMultiplicationFacts(criteria);
       
@@ -245,19 +248,30 @@ export class StitchPopulation implements StitchPopulationInterface {
    * Query doubling facts with number ending complexity
    */
   private async queryDoublingFacts(criteria: FactCriteria): Promise<MathematicalFact[]> {
-    const facts = await this.factRepository.searchFacts({
-      operation: 'multiplication',
+    // Use the new doubling operation directly
+    const facts = this.factRepository.searchFacts({
+      operation: 'doubling',
       operand1Range: criteria.numberRange,
-      operand2: 2, // Doubling is multiplication by 2
       includeOnlyEndingsWith: criteria.numberEndings
     });
 
-    return facts.filter(fact => {
-      if (!criteria.numberEndings) return true;
-      const operand1Str = fact.operand1.toString();
-      const lastDigit = operand1Str[operand1Str.length - 1];
-      return criteria.numberEndings.includes(lastDigit);
+    // Filter is now handled by the FactRepository's searchDoublingFacts method
+    return facts;
+  }
+
+  /**
+   * Query halving facts with number ending complexity
+   */
+  private async queryHalvingFacts(criteria: FactCriteria): Promise<MathematicalFact[]> {
+    // Use the new halving operation directly
+    const facts = this.factRepository.searchFacts({
+      operation: 'halving',
+      operand1Range: criteria.numberRange,
+      includeOnlyEndingsWith: criteria.numberEndings
     });
+
+    // Filter is now handled by the FactRepository's searchHalvingFacts method
+    return facts;
   }
 
   /**
@@ -285,7 +299,7 @@ export class StitchPopulation implements StitchPopulationInterface {
     });
 
     // Filter for clean division (no remainders)
-    return facts.filter(fact => fact.operand1 % fact.operand2 === 0);
+    return facts.filter(fact => fact.operands[0] % fact.operands[1] === 0);
   }
 
   /**

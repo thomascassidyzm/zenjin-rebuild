@@ -73,13 +73,22 @@ export class FactRepository implements FactRepositoryInterface {
     
     // Filter by operation (most selective filter first)
     if (query.operation) {
-      const operationIds = this.operationIndex.get(query.operation);
-      if (!operationIds) {
-        return []; // No facts for this operation
+      // Handle virtual operations
+      if (query.operation === 'doubling') {
+        const doublingFacts = this.getDoublingFacts();
+        candidateIds = new Set(doublingFacts.map(f => f.id));
+      } else if (query.operation === 'halving') {
+        const halvingFacts = this.getHalvingFacts();
+        candidateIds = new Set(halvingFacts.map(f => f.id));
+      } else {
+        const operationIds = this.operationIndex.get(query.operation);
+        if (!operationIds) {
+          return []; // No facts for this operation
+        }
+        candidateIds = new Set(
+          [...candidateIds].filter(id => operationIds.has(id))
+        );
       }
-      candidateIds = new Set(
-        [...candidateIds].filter(id => operationIds.has(id))
-      );
     }
     
     // Filter by tags
@@ -166,6 +175,15 @@ export class FactRepository implements FactRepositoryInterface {
    * @throws Error if the operation is invalid
    */
   public getFactsByOperation(operation: string): MathematicalFact[] {
+    // Handle doubling and halving as virtual operations
+    if (operation === 'doubling') {
+      return this.getDoublingFacts();
+    }
+    
+    if (operation === 'halving') {
+      return this.getHalvingFacts();
+    }
+    
     const operationIds = this.operationIndex.get(operation);
     
     if (!operationIds) {
@@ -189,6 +207,41 @@ export class FactRepository implements FactRepositoryInterface {
     }
     
     return this.queryFacts(query).length;
+  }
+  
+  /**
+   * Gets all doubling facts (multiplication by 2)
+   * @returns Array of doubling facts
+   */
+  private getDoublingFacts(): MathematicalFact[] {
+    const doublingFacts: MathematicalFact[] = [];
+    
+    // Get facts where one operand is 2 (doubling)
+    for (const [id, fact] of this.facts.entries()) {
+      if (fact.operation === 'multiplication' && 
+          (fact.operands[0] === 2 || fact.operands[1] === 2)) {
+        doublingFacts.push(fact);
+      }
+    }
+    
+    return doublingFacts.sort((a, b) => (a.difficulty || 0.5) - (b.difficulty || 0.5));
+  }
+  
+  /**
+   * Gets all halving facts (division by 2)
+   * @returns Array of halving facts
+   */
+  private getHalvingFacts(): MathematicalFact[] {
+    const halvingFacts: MathematicalFact[] = [];
+    
+    // Get facts where divisor is 2 (halving)
+    for (const [id, fact] of this.facts.entries()) {
+      if (fact.operation === 'division' && fact.operands[1] === 2) {
+        halvingFacts.push(fact);
+      }
+    }
+    
+    return halvingFacts.sort((a, b) => (a.difficulty || 0.5) - (b.difficulty || 0.5));
   }
   
   /**
@@ -753,8 +806,11 @@ export class FactRepository implements FactRepositoryInterface {
    * @throws Error if the query is invalid
    */
   private validateQuery(query: FactQuery): void {
-    // Validate operation
-    if (query.operation && !this.operationIndex.has(query.operation)) {
+    // Validate operation (including virtual operations)
+    if (query.operation && 
+        !this.operationIndex.has(query.operation) && 
+        query.operation !== 'doubling' && 
+        query.operation !== 'halving') {
       throw new Error(`INVALID_OPERATION - The specified operation is invalid: ${query.operation}`);
     }
     
@@ -829,7 +885,16 @@ export class FactRepository implements FactRepositoryInterface {
    */
   public searchFacts(searchCriteria: { operation: string; [key: string]: any }): MathematicalFact[] {
     try {
-      // Convert searchCriteria to FactQuery format
+      // Handle doubling and halving as special cases
+      if (searchCriteria.operation === 'doubling') {
+        return this.searchDoublingFacts(searchCriteria);
+      }
+      
+      if (searchCriteria.operation === 'halving') {
+        return this.searchHalvingFacts(searchCriteria);
+      }
+      
+      // Convert searchCriteria to FactQuery format for standard operations
       const query: FactQuery = {
         operation: searchCriteria.operation,
         difficulty: searchCriteria.difficulty,
@@ -845,6 +910,68 @@ export class FactRepository implements FactRepositoryInterface {
     }
   }
 
+  /**
+   * Search doubling facts with specific criteria
+   * @param searchCriteria Search criteria for doubling facts
+   * @returns Array of matching doubling facts
+   */
+  private searchDoublingFacts(searchCriteria: { [key: string]: any }): MathematicalFact[] {
+    let doublingFacts = this.getDoublingFacts();
+    
+    // Filter by operand1Range (the number being doubled)
+    if (searchCriteria.operand1Range) {
+      const [min, max] = searchCriteria.operand1Range;
+      doublingFacts = doublingFacts.filter(fact => {
+        const operand = fact.operands[0] === 2 ? fact.operands[1] : fact.operands[0];
+        return operand >= min && operand <= max;
+      });
+    }
+    
+    // Filter by includeOnlyEndingsWith (number endings)
+    if (searchCriteria.includeOnlyEndingsWith) {
+      doublingFacts = doublingFacts.filter(fact => {
+        const operand = fact.operands[0] === 2 ? fact.operands[1] : fact.operands[0];
+        const lastDigit = operand.toString().slice(-1);
+        return searchCriteria.includeOnlyEndingsWith.includes(lastDigit);
+      });
+    }
+    
+    // Apply limit
+    const limit = searchCriteria.limit || searchCriteria.maxFacts || 100;
+    return doublingFacts.slice(0, limit);
+  }
+  
+  /**
+   * Search halving facts with specific criteria
+   * @param searchCriteria Search criteria for halving facts
+   * @returns Array of matching halving facts
+   */
+  private searchHalvingFacts(searchCriteria: { [key: string]: any }): MathematicalFact[] {
+    let halvingFacts = this.getHalvingFacts();
+    
+    // Filter by operand1Range (the number being halved)
+    if (searchCriteria.operand1Range) {
+      const [min, max] = searchCriteria.operand1Range;
+      halvingFacts = halvingFacts.filter(fact => {
+        const operand = fact.operands[0]; // First operand is always the dividend in division
+        return operand >= min && operand <= max;
+      });
+    }
+    
+    // Filter by includeOnlyEndingsWith (number endings)
+    if (searchCriteria.includeOnlyEndingsWith) {
+      halvingFacts = halvingFacts.filter(fact => {
+        const operand = fact.operands[0];
+        const lastDigit = operand.toString().slice(-1);
+        return searchCriteria.includeOnlyEndingsWith.includes(lastDigit);
+      });
+    }
+    
+    // Apply limit
+    const limit = searchCriteria.limit || searchCriteria.maxFacts || 100;
+    return halvingFacts.slice(0, limit);
+  }
+  
   /**
    * Gets question templates for an operation and boundary level
    * @param operation Mathematical operation
@@ -880,6 +1007,20 @@ export class FactRepository implements FactRepositoryInterface {
         3: ['Find the quotient of {{operand1}} and {{operand2}}', '{{operand1}} ÷ {{operand2}} = ?'],
         4: ['Calculate {{operand1}} ÷ {{operand2}}', 'What is {{operand1}} divided by {{operand2}}?'],
         5: ['Determine the quotient: {{operand1}} ÷ {{operand2}}', 'Solve: {{operand1}} ÷ {{operand2}}']
+      },
+      'doubling': {
+        1: ['Double {{operand1}}'],
+        2: ['What is double {{operand1}}?', '{{operand1}} × 2 = ?'],
+        3: ['Find double {{operand1}}', 'What is {{operand1}} doubled?'],
+        4: ['Calculate double {{operand1}}', 'What is twice {{operand1}}?'],
+        5: ['Determine double {{operand1}}', 'Solve: double {{operand1}}']
+      },
+      'halving': {
+        1: ['Half of {{operand1}}'],
+        2: ['What is half of {{operand1}}?', '{{operand1}} ÷ 2 = ?'],
+        3: ['Find half of {{operand1}}', 'What is {{operand1}} halved?'],
+        4: ['Calculate half of {{operand1}}', 'What is {{operand1}} divided by 2?'],
+        5: ['Determine half of {{operand1}}', 'Solve: half of {{operand1}}']
       }
     };
     

@@ -151,7 +151,9 @@ export enum MathOperation {
   ADDITION = 'addition',
   SUBTRACTION = 'subtraction',
   MULTIPLICATION = 'multiplication',
-  DIVISION = 'division'
+  DIVISION = 'division',
+  DOUBLING = 'doubling',
+  HALVING = 'halving'
 }
 
 /**
