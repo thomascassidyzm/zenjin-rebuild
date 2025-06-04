@@ -419,16 +419,8 @@ export class LiveAidManager implements LiveAidManagerInterface {
         
         await this.requestBackgroundPreparation(request);
       } catch (error) {
-        console.warn(`Failed to start initial preparation for ${tubeId}:`, error);
-        
-        // Create fallback content even if preparation fails
-        try {
-          const fallbackStitch = this.createFallbackReadyStitch(userId, tubeId);
-          this.stitchCache.cacheReadyStitch(fallbackStitch, tubeId);
-          console.log(`⚠️ Fallback stitch cached for ${tubeId}`);
-        } catch (fallbackError) {
-          console.error(`Failed to create fallback stitch for ${tubeId}:`, fallbackError);
-        }
+        console.error(`❌ APML Violation: Failed to start initial preparation for ${tubeId}:`, error);
+        throw error; // Don't fallback - enforce proper APML architecture
       }
     }
   }
@@ -450,62 +442,6 @@ export class LiveAidManager implements LiveAidManagerInterface {
     }
   }
 
-  /**
-   * Creates a fallback ready stitch with minimal questions
-   */
-  private createFallbackReadyStitch(userId: string, tubeId: TubeId): ReadyStitch {
-    const questions = [];
-    const operationType = this.getTubeOperationType(tubeId);
-    
-    // Generate 20 simple fallback questions
-    for (let i = 1; i <= 20; i++) {
-      const operand1 = Math.floor(Math.random() * 10) + 1;
-      const operand2 = Math.floor(Math.random() * 10) + 1;
-      let questionText: string;
-      let correctAnswer: string;
-      
-      switch (operationType) {
-        case 'addition':
-          questionText = `What is ${operand1} + ${operand2}?`;
-          correctAnswer = (operand1 + operand2).toString();
-          break;
-        case 'multiplication':
-          questionText = `What is ${operand1} × ${operand2}?`;
-          correctAnswer = (operand1 * operand2).toString();
-          break;
-        case 'subtraction':
-          questionText = `What is ${operand1 + operand2} - ${operand2}?`;
-          correctAnswer = operand1.toString();
-          break;
-        default:
-          questionText = `What is ${operand1} + ${operand2}?`;
-          correctAnswer = (operand1 + operand2).toString();
-      }
-      
-      questions.push({
-        id: `fallback-q${i}-${Date.now()}`,
-        text: questionText,
-        correctAnswer,
-        distractor: (parseInt(correctAnswer) + Math.floor(Math.random() * 3) + 1).toString(),
-        metadata: {
-          factId: `fallback-${operationType}-${operand1}-${operand2}`,
-          boundaryLevel: 1
-        }
-      });
-    }
-    
-    return {
-      stitchId: `fallback-${tubeId}-${Date.now()}`,
-      questions,
-      metadata: {
-        userId,
-        tubeId,
-        boundaryLevel: 1,
-        preparationTime: Date.now(),
-        isEmergencyContent: true
-      }
-    };
-  }
 
   /**
    * Gets the operation type for a tube

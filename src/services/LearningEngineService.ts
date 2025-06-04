@@ -798,44 +798,18 @@ export class LearningEngineService implements LearningEngineServiceInterface {
         this.log(`LiveAidManager failed: ${liveAidError}`);
         console.error('🔴 LiveAidManager error details:', liveAidError);
         
-        // Fallback: Generate simple questions directly
-        this.log('Using emergency fallback question generation');
-        try {
-          const request = {
-            userId,
-            learningPathId,
-            difficultyLevel: 1,
-            questionCount: 20
-          };
-          
-          const questions: Question[] = [];
-          for (let i = 0; i < 20; i++) {
-            const genQuestion = this.questionGenerator.generateQuestion(request);
-            questions.push({
-              id: genQuestion.id,
-              factId: genQuestion.factId,
-              questionText: genQuestion.questionText,
-              correctAnswer: genQuestion.correctAnswer,
-              distractors: genQuestion.distractors || [],
-              boundaryLevel: genQuestion.metadata?.boundaryLevel || 1,
-              difficulty: genQuestion.metadata?.difficulty || 1,
-              metadata: genQuestion.metadata || {}
-            });
-          }
-          
-          return questions;
-        } catch (error) {
-          this.log(`QuestionGenerator also failed: ${error}`);
-          // Last resort fallback
-          return this.generateFirstStitchForNewUser(learningPathId);
-        }
+        // No fallbacks - enforce APML compliance
+        this.log(`❌ APML Violation: LiveAidManager failed and no fallbacks allowed`);
+        throw new LearningEngineError(
+          'LE-ARCH-001',
+          'APML architecture failure: LiveAidManager must work - no fallbacks allowed',
+          { userId, learningPathId, originalError: liveAidError.message }
+        );
       }
       
     } catch (error) {
-      this.log(`Failed to generate stitch questions: ${error}`);
-      // Fallback to hard-coded questions only if all methods fail
-      this.log(`Using hard-coded first stitch as emergency fallback`);
-      return this.generateFirstStitchForNewUser(learningPathId);
+      this.log(`❌ APML Violation: Complete failure to generate stitch questions: ${error}`);
+      throw error; // No fallbacks - force proper architecture
     }
   }
   
@@ -1011,53 +985,6 @@ export class LearningEngineService implements LearningEngineServiceInterface {
     return `<?xml version="1.0" encoding="UTF-8"?>\n<data>${JSON.stringify(data)}</data>`;
   }
   
-  /**
-   * Generate hard-coded first stitch for new users (always the same)
-   * @private
-   */
-  private generateFirstStitchForNewUser(learningPathId: string): Question[] {
-    // First stitch is ALWAYS doubling numbers ending in 0/5 (easiest)
-    const doublingQuestions = [
-      { question: 'Double 10', answer: '20', distractor: '19', factId: 'mult-10-2' },
-      { question: 'Double 15', answer: '30', distractor: '31', factId: 'mult-15-2' },
-      { question: 'Double 20', answer: '40', distractor: '39', factId: 'mult-20-2' },
-      { question: 'Double 25', answer: '50', distractor: '51', factId: 'mult-25-2' },
-      { question: 'Double 30', answer: '60', distractor: '59', factId: 'mult-30-2' },
-      { question: 'Double 35', answer: '70', distractor: '71', factId: 'mult-35-2' },
-      { question: 'Double 40', answer: '80', distractor: '79', factId: 'mult-40-2' },
-      { question: 'Double 45', answer: '90', distractor: '91', factId: 'mult-45-2' },
-      { question: 'Double 5', answer: '10', distractor: '11', factId: 'mult-5-2' },
-      { question: 'Double 50', answer: '100', distractor: '99', factId: 'mult-50-2' },
-      { question: 'Half of 20', answer: '10', distractor: '11', factId: 'div-20-2' },
-      { question: 'Half of 30', answer: '15', distractor: '14', factId: 'div-30-2' },
-      { question: 'Half of 40', answer: '20', distractor: '21', factId: 'div-40-2' },
-      { question: 'Half of 50', answer: '25', distractor: '24', factId: 'div-50-2' },
-      { question: 'Half of 60', answer: '30', distractor: '31', factId: 'div-60-2' },
-      { question: 'Half of 70', answer: '35', distractor: '34', factId: 'div-70-2' },
-      { question: 'Half of 80', answer: '40', distractor: '41', factId: 'div-80-2' },
-      { question: 'Half of 90', answer: '45', distractor: '44', factId: 'div-90-2' },
-      { question: 'Half of 100', answer: '50', distractor: '51', factId: 'div-100-2' },
-      { question: 'Half of 10', answer: '5', distractor: '6', factId: 'div-10-2' }
-    ];
-
-    const questions: Question[] = doublingQuestions.map((q, index) => ({
-      id: `first-stitch-q${index + 1}-${Date.now()}`,
-      factId: q.factId,
-      questionText: q.question,
-      correctAnswer: q.answer,
-      distractors: [q.distractor],
-      boundaryLevel: 1,
-      difficulty: 1,
-      metadata: {
-        learningPathId: learningPathId,
-        stitchId: 't1-0001-0001', // First stitch in tube 1
-        conceptName: 'doubling_0_5_endings_1',
-        hardCoded: true
-      }
-    }));
-
-    return questions;
-  }
 
   /**
    * Map learning path to tube ID for Live Aid Architecture

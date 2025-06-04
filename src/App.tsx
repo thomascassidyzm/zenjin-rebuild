@@ -300,63 +300,10 @@ const LearningSession: React.FC<LearningSessionProps> = ({
         } else {
           console.log('✅ First question:', allQuestions[0]);
         }
-      } else if (initialQuestionFromBus && sessionIdFromBus) {
-        // Fallback: Initialize from single question - ensure it matches Question interface
-        const fixedQuestion = {
-          ...initialQuestionFromBus,
-          distractor: initialQuestionFromBus.distractor || 'Unknown',
-          boundaryLevel: initialQuestionFromBus.boundaryLevel || 1,
-          factId: initialQuestionFromBus.factId || 'unknown'
-        };
-        setQuestions([fixedQuestion]);
-        setSessionId(sessionIdFromBus);
-        setCurrentQuestionIndex(0);
-        setSessionScore({ correct: 0, total: 0 });
-        setSessionComplete(false);
-        setSessionStartTime(Date.now());
-        setHasInitialized(true);
-        console.log(`LearningSession initialized from bus: ${sessionIdFromBus} with 1 question`);
       } else {
-        // Initialize by fetching new questions using APML-compliant service
-        try {
-          // Get the learning engine service following APML context boundaries
-          const learningService = getService<any>('LearningEngineService');
-          
-          // Use tube-based system (defaults to tube1 = doubling/halving)
-          const sessionResult = await learningService.initializeLearningSession(
-            userId,
-            'addition', // Maps to tube1 in the service
-            { maxQuestions: 20 }
-          );
-          
-          setSessionId(sessionResult.sessionId);
-          
-          // Convert to PlayerCard format
-          const playerQuestions = sessionResult.initialQuestions.map(q => ({
-            id: q.id,
-            text: q.questionText,
-            correctAnswer: q.correctAnswer,
-            distractor: (q.distractors && q.distractors[0]) || 'Unknown',
-            boundaryLevel: q.boundaryLevel || 1,
-            factId: q.factId || 'unknown',
-            metadata: {
-              factId: q.factId,
-              boundaryLevel: q.boundaryLevel,
-              sessionId: sessionResult.sessionId
-            }
-          }));
-          
-          setQuestions(playerQuestions);
-          setCurrentQuestionIndex(0);
-          setSessionScore({ correct: 0, total: 0 });
-          setSessionComplete(false);
-          setSessionStartTime(Date.now());
-          
-          console.log(`APML LearningEngineService session initialized: ${sessionResult.sessionId} with ${playerQuestions.length} questions`);
-          setHasInitialized(true);
-        } catch (error) {
-          console.error('Failed to initialize learning session:', error);
-        }
+        // APML Violation: Insufficient data provided by event bus
+        console.error('❌ APML Violation: Event bus must provide full session data - no fallbacks allowed');
+        throw new Error('APML architecture failure: AuthToPlayerEventBus must provide complete session data');
       }
     };
     
@@ -537,37 +484,9 @@ const LearningSession: React.FC<LearningSessionProps> = ({
         
         console.log(`Loading next stitch: ${nextStitch.stitchId}`);
       } else {
-        // Fallback: Start new session using APML-compliant service
-        const learningService = getService<any>('LearningEngineService');
-        const sessionResult = await learningService.initializeLearningSession(
-          userId,
-          'addition',
-          { maxQuestions: 20 }
-        );
-        
-        setSessionId(sessionResult.sessionId);
-        
-        const playerQuestions = sessionResult.initialQuestions.map(q => ({
-          id: q.id,
-          text: q.questionText,
-          correctAnswer: q.correctAnswer,
-          distractor: (q.distractors && q.distractors[0]) || 'Unknown',
-          boundaryLevel: q.boundaryLevel || 1,
-          factId: q.factId || 'unknown',
-          metadata: {
-            factId: q.factId,
-            boundaryLevel: q.boundaryLevel,
-            sessionId: sessionResult.sessionId
-          }
-        }));
-        
-        setQuestions(playerQuestions);
-        setCurrentQuestionIndex(0);
-        setSessionScore({ correct: 0, total: 0 });
-        setSessionComplete(false);
-        setSessionStartTime(Date.now());
-        
-        console.log(`New session started: ${sessionResult.sessionId}`);
+        // APML Violation: EngineOrchestrator must provide next stitch
+        console.error('❌ APML Violation: EngineOrchestrator failed to provide next stitch - no fallbacks allowed');
+        throw new Error('APML architecture failure: EngineOrchestrator must provide next stitch content');
       }
     } catch (error) {
       console.error('Failed to load next stitch:', error);
