@@ -1071,7 +1071,7 @@ const AppContent: React.FC = () => {
         // Don't show auth-to-player content, let normal app render
         authToPlayerContent = null;
         // Ensure we're back to a valid page
-        if (currentPage !== 'dashboard' && currentPage !== 'settings' && currentPage !== 'project-status') {
+        if (currentPage !== 'dashboard' && currentPage !== 'settings' && currentPage !== 'project-status' && currentPage !== 'admin') {
           setCurrentPage('dashboard');
         }
         break;
