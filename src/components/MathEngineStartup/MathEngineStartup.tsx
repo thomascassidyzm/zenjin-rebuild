@@ -52,7 +52,7 @@ const MathEngineStartup: React.FC<MathEngineStartupProps> = ({
     }
 
     getRandomColor(): string {
-      const colors = ['#10b981', '#3b82f6', '#8b5cf6'];
+      const colors = ['#8b5cf6', '#7c3aed', '#a855f7', '#6d28d9', '#5b21b6'];
       return colors[Math.floor(Math.random() * colors.length)];
     }
 
