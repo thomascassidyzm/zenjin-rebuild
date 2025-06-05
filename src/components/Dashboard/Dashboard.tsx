@@ -536,20 +536,6 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </motion.div>
 
-        {/* TEMP: Math Engine Animation Demo Button */}
-        <div className="mb-6 text-center">
-          <button
-            onClick={() => {
-              const currentUrl = new URL(window.location.href);
-              currentUrl.searchParams.set('page', 'math-engine-demo');
-              window.location.href = currentUrl.toString();
-            }}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-          >
-            🚀 Test Math Engine Animation
-          </button>
-        </div>
-
         {/* Priority Metrics - Lifetime Points, Blink Speed, Evolution */}
         <div className="space-y-4 mb-6">
           {/* Lifetime Points - Most Important */}

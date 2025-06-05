@@ -22,6 +22,7 @@ import { StitchPopulation } from '../engines/StitchPopulation/StitchPopulation';
 import { StitchPreparation } from '../engines/StitchPreparation/StitchPreparation';
 import { StitchCache } from '../engines/StitchCache/StitchCache';
 import { LiveAidManager } from '../engines/LiveAidManager/LiveAidManager';
+import { PrefetchManager } from './PrefetchManager';
 import { LearningEngineService } from './LearningEngineService';
 
 // For now, using existing singletons until full migration
@@ -177,6 +178,17 @@ export const serviceFactories: Record<ServiceType, ServiceFactory> = {
     lifetime: 'singleton'
   },
   
+  // PrefetchManager for progressive loading
+  PrefetchManager: {
+    createInstance: async (resolver: ServiceResolver) => {
+      const factRepository = resolver.resolve('FactRepository');
+      const stitchPreparation = resolver.resolve('StitchPreparation');
+      return new PrefetchManager(factRepository, stitchPreparation);
+    },
+    dependencies: ['FactRepository', 'StitchPreparation'],
+    lifetime: 'singleton'
+  },
+
   // LiveAidManager with multiple dependencies
   LiveAidManager: {
     createInstance: async (resolver: ServiceResolver) => {
@@ -184,14 +196,16 @@ export const serviceFactories: Record<ServiceType, ServiceFactory> = {
       const stitchPreparation = resolver.resolve('StitchPreparation');
       const stitchPopulation = resolver.resolve('StitchPopulation');
       const tripleHelixManager = resolver.resolve('TripleHelixManager');
+      const prefetchManager = resolver.resolve('PrefetchManager');
       return new LiveAidManager(
         stitchCache,
         stitchPreparation,
         stitchPopulation,
-        tripleHelixManager as any
+        tripleHelixManager as any,
+        prefetchManager
       );
     },
-    dependencies: ['StitchCache', 'StitchPreparation', 'StitchPopulation', 'TripleHelixManager'],
+    dependencies: ['StitchCache', 'StitchPreparation', 'StitchPopulation', 'TripleHelixManager', 'PrefetchManager'],
     lifetime: 'singleton'
   },
   

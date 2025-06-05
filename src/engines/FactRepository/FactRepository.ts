@@ -22,13 +22,12 @@ export class FactRepository implements FactRepositoryInterface {
    */
   private constructor() {
     console.log('🔄 FactRepository constructor: Starting initialization...');
-    try {
-      this.initializeRepository();
-      console.log('✅ FactRepository constructor: Initialization complete');
-    } catch (error) {
+    // APML v3.5: Async initialization with fail-fast
+    this.initializeRepository().catch((error) => {
       console.error('❌ FactRepository constructor: Initialization failed:', error);
       throw error;
-    }
+    });
+    console.log('✅ FactRepository constructor: Initialization complete');
   }
   
   /**
@@ -245,20 +244,14 @@ export class FactRepository implements FactRepositoryInterface {
   }
   
   /**
-   * Initialize the repository - try loading from backend first, fallback to hardcoded
+   * Initialize the repository - APML v3.5 fail-fast: backend integration or crash
    */
-  private initializeRepository(): void {
+  private async initializeRepository(): Promise<void> {
     console.log('🔄 FactRepository: Initializing facts...');
     
-    // Try to load from backend first
-    this.loadFromBackend()
-      .then(() => {
-        console.log('✅ FactRepository: Facts loaded from backend successfully');
-      })
-      .catch((error) => {
-        console.warn('⚠️ Failed to load facts from backend, using hardcoded fallback:', error);
-        this.initializeHardcodedFacts();
-      });
+    // APML v3.5: No fallbacks - fail fast to identify real problems
+    await this.loadFromBackend();
+    console.log('✅ FactRepository: Facts loaded from backend successfully');
   }
   
   /**

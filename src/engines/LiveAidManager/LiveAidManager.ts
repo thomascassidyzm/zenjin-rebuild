@@ -685,6 +685,80 @@ export class LiveAidManager implements LiveAidManagerInterface {
     // User wait time should be near zero with proper caching
     this.performanceMetrics.userWaitTime = this.performanceMetrics.cacheHitRate > 0.95 ? 0 : 200;
   }
+
+  /**
+   * Initialize PrefetchManager with current tube states
+   * APML Protocol: Ensure progressive loading aligns with LiveAid system
+   */
+  private async initializePrefetchManager(userId: string, systemState: LiveAidSystemState): Promise<void> {
+    try {
+      console.log('🚀 LiveAidManager: Initializing PrefetchManager...');
+      
+      // Convert LiveAid tube states to PrefetchManager format
+      const tubeStates = await this.convertTubeStatesForPrefetch(systemState);
+      
+      // Initialize PrefetchManager with progressive loading strategy
+      await this.prefetchManager.initializeForPlay(userId, tubeStates);
+      
+      console.log('✅ LiveAidManager: PrefetchManager initialized successfully');
+    } catch (error) {
+      console.error('❌ LiveAidManager: PrefetchManager initialization failed:', error);
+      // Don't fail the entire system - graceful degradation
+      console.warn('⚠️ LiveAidManager: Continuing without progressive loading');
+    }
+  }
+
+  /**
+   * Handle PrefetchManager rotation after successful tube rotation
+   * APML Protocol: Coordinate progressive loading with tube transitions
+   */
+  private async handlePrefetchManagerRotation(userId: string, newSystemState: LiveAidSystemState): Promise<void> {
+    try {
+      console.log('🔄 LiveAidManager: Coordinating PrefetchManager rotation...');
+      
+      // Update PrefetchManager with new tube state
+      const tubeStates = await this.convertTubeStatesForPrefetch(newSystemState);
+      
+      // Trigger PrefetchManager rotation handling
+      await this.prefetchManager.handleRotation();
+      
+      console.log('✅ LiveAidManager: PrefetchManager rotation coordinated');
+    } catch (error) {
+      console.error('❌ LiveAidManager: PrefetchManager rotation failed:', error);
+      // Continue - this shouldn't break the core rotation
+    }
+  }
+
+  /**
+   * Convert LiveAid tube states to PrefetchManager format
+   * APML Protocol: Maintain clean interfaces between components
+   */
+  private async convertTubeStatesForPrefetch(systemState: LiveAidSystemState): Promise<any> {
+    const tubeStates = {
+      tube1: { stitches: [] },
+      tube2: { stitches: [] },
+      tube3: { stitches: [] }
+    };
+
+    // Get tube positions from TripleHelixManager
+    const tripleHelixState = await this.tripleHelixManager.getCurrentState();
+    
+    // Convert each tube's stitches to StitchRecipe format
+    for (const tubeId of ['tube1', 'tube2', 'tube3'] as const) {
+      const tubeState = systemState.tubeStates[tubeId];
+      const positions = tripleHelixState?.tubePositions?.[tubeId] || [];
+      
+      tubeStates[tubeId].stitches = positions.map((position: any, index: number) => ({
+        id: `${tubeId}-stitch-${position.stitchId || Date.now() + index}`,
+        conceptType: position.conceptType || 'addition',
+        conceptParams: position.conceptParams || { range: [1, 10] },
+        tubeId,
+        position: index
+      }));
+    }
+
+    return tubeStates;
+  }
 }
 
 export default LiveAidManager;

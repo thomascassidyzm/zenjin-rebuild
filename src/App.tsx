@@ -692,6 +692,7 @@ const AppContent: React.FC = () => {
   // Simplified session state
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
+  const [sessionLoading, setSessionLoading] = useState(false);
 
   // Initialize service container on app start
   const [containerInitialized, setContainerInitialized] = useState(false);
@@ -715,10 +716,16 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
-  // Start learning session directly
+  // Start learning session with animation
   const handleStartLearning = useCallback(async (learningPathId: string = 'addition') => {
     try {
+      // Show the math engine startup animation
+      setSessionLoading(true);
+      setCurrentPage('session-loading');
+      
       const userId = sessionState.user?.id || sessionState.user?.anonymousId || 'anon_' + Date.now();
+      
+      // Generate questions while animation is playing
       const questions = await generateQuestionsForStitch(learningPathId, userId);
       
       if (questions.length > 0) {
@@ -727,13 +734,31 @@ const AppContent: React.FC = () => {
           initialQuestions: questions,
           learningPathId
         });
-        setSessionActive(true);
-        setCurrentPage('session');
+        // Animation will call handleAnimationComplete when done
+      } else {
+        // No questions generated, go back to dashboard
+        setSessionLoading(false);
+        setCurrentPage('dashboard');
       }
     } catch (error) {
       console.error('Failed to start learning session:', error);
+      setSessionLoading(false);
+      setCurrentPage('dashboard');
     }
   }, [sessionState.user]);
+
+  // Handle animation completion and start actual session
+  const handleAnimationComplete = useCallback(() => {
+    if (sessionData) {
+      setSessionLoading(false);
+      setSessionActive(true);
+      setCurrentPage('session');
+    } else {
+      // Fallback if no session data
+      setSessionLoading(false);
+      setCurrentPage('dashboard');
+    }
+  }, [sessionData]);
 
 
   // Initialize connectivity monitoring
@@ -992,6 +1017,16 @@ const AppContent: React.FC = () => {
           />
         );
       
+      case 'session-loading':
+        // Show math engine startup animation while loading
+        return (
+          <MathEngineStartup
+            userName={sessionState.user?.full_name || sessionState.user?.email || "Player"}
+            userAvatar={sessionState.user?.avatar_url}
+            onComplete={handleAnimationComplete}
+          />
+        );
+
       case 'session':
         // Render learning session if we have session data
         if (sessionActive && sessionData) {

@@ -7,6 +7,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Supabase config check:', { 
+      hasUrl: !!supabaseUrl, 
+      hasKey: !!supabaseServiceKey,
+      urlPrefix: supabaseUrl?.substring(0, 20) + '...',
+      keyPrefix: supabaseServiceKey?.substring(0, 10) + '...'
+    });
     return res.status(500).json({ error: 'Missing Supabase configuration' });
   }
 
@@ -46,7 +52,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (factsError) {
           console.error('Error fetching facts:', factsError);
-          return res.status(500).json({ error: 'Failed to fetch facts' });
+          console.error('Full error details:', JSON.stringify(factsError, null, 2));
+          return res.status(500).json({ 
+            error: 'Failed to fetch facts', 
+            details: factsError.message,
+            code: factsError.code 
+          });
         }
 
         return res.status(200).json(facts || []);
