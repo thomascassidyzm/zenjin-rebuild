@@ -1,0 +1,429 @@
+.math-engine-startup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #030712;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.particle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.startup-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Phases */
+.phase {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.phase.active {
+  opacity: 1;
+}
+
+/* Phase 1: Welcome */
+.avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
+}
+
+.user-avatar,
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-placeholder {
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+}
+
+.avatar-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, transparent 70%);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.welcome-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Phase 2: Engines */
+.firing-text {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 3rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.engines-container {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  perspective: 1000px;
+}
+
+.engine {
+  position: relative;
+  animation: engineStartup 1s ease-out forwards;
+}
+
+.engine-1 { animation-delay: 0s; }
+.engine-2 { animation-delay: 0.1s; }
+.engine-3 { animation-delay: 0.2s; }
+
+@keyframes engineStartup {
+  0% {
+    transform: scale(0) rotateY(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotateY(180deg);
+  }
+  100% {
+    transform: scale(1) rotateY(360deg);
+    opacity: 1;
+  }
+}
+
+.cylinder {
+  width: 80px;
+  height: 120px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: engineSpin 2s linear infinite;
+}
+
+@keyframes engineSpin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+.cylinder-top,
+.cylinder-bottom {
+  width: 80px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+}
+
+.cylinder-top {
+  top: -20px;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  border: 2px solid #4b5563;
+}
+
+.cylinder-bottom {
+  bottom: -20px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border: 2px solid #374151;
+}
+
+.cylinder-body {
+  width: 80px;
+  height: 120px;
+  background: linear-gradient(180deg, #374151 0%, #1f2937 50%, #111827 100%);
+  border-radius: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.energy-flow {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.1) 45%, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    rgba(255, 255, 255, 0.1) 55%, 
+    transparent 100%
+  );
+  animation: energyFlow 1.5s linear infinite;
+}
+
+@keyframes energyFlow {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.engine-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 160px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.engine-1 .engine-glow {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
+}
+
+.engine-2 .engine-glow {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+}
+
+.engine-3 .engine-glow {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.5);
+}
+
+/* Phase 3: Triple Helix */
+.calculating-text {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 3rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.triple-helix-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.helix-strand {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  animation: helixRotate 3s linear infinite;
+}
+
+.strand-1 {
+  border-color: #10b981;
+  animation-delay: 0s;
+  transform: rotateX(60deg) rotateZ(0deg);
+}
+
+.strand-2 {
+  border-color: #3b82f6;
+  animation-delay: -1s;
+  transform: rotateX(60deg) rotateZ(120deg);
+}
+
+.strand-3 {
+  border-color: #8b5cf6;
+  animation-delay: -2s;
+  transform: rotateX(60deg) rotateZ(240deg);
+}
+
+@keyframes helixRotate {
+  from {
+    transform: rotateX(60deg) rotateY(0deg) rotateZ(var(--rotation, 0deg));
+  }
+  to {
+    transform: rotateX(60deg) rotateY(360deg) rotateZ(var(--rotation, 0deg));
+  }
+}
+
+.helix-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, 
+    rgba(16, 185, 129, 0.2) 0%, 
+    rgba(59, 130, 246, 0.2) 33%, 
+    rgba(139, 92, 246, 0.2) 66%, 
+    transparent 100%
+  );
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Phase 4: Compression */
+.compression-dots {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  animation: compressIn 0.5s ease-out;
+}
+
+@keyframes compressIn {
+  from {
+    transform: scale(3);
+    opacity: 0.3;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  animation: dotPulse 1s ease-in-out infinite;
+}
+
+.dot-1 {
+  background-color: #10b981;
+  animation-delay: 0s;
+}
+
+.dot-2 {
+  background-color: #3b82f6;
+  animation-delay: 0.2s;
+}
+
+.dot-3 {
+  background-color: #8b5cf6;
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .welcome-text {
+    font-size: 2rem;
+  }
+
+  .firing-text,
+  .calculating-text {
+    font-size: 1.5rem;
+  }
+
+  .engines-container {
+    gap: 2rem;
+  }
+
+  .cylinder {
+    width: 60px;
+    height: 90px;
+  }
+
+  .cylinder-top,
+  .cylinder-bottom {
+    width: 60px;
+    height: 30px;
+  }
+
+  .avatar-container {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-placeholder {
+    font-size: 2.5rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .avatar-pulse,
+  .engine,
+  .cylinder,
+  .energy-flow,
+  .helix-strand,
+  .helix-glow,
+  .dot {
+    animation: none !important;
+  }
+  
+  .phase {
+    transition: opacity 0.2s ease-in-out;
+  }
+}

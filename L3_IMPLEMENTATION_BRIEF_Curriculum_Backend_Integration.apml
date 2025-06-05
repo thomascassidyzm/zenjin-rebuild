@@ -1,0 +1,213 @@
+# L3 Implementation Brief: Curriculum Backend Integration
+
+**Session ID**: L1_Strategic_Backend_Integration_20250605  
+**Date**: June 5, 2025  
+**Assigned To**: Backend Integration Agent  
+**Priority**: CRITICAL  
+**Estimated Complexity**: High
+**Issue Type**: Missing Architecture Component
+
+## Critical Discovery
+
+The SimpleCurriculumPlanner and ContentManagement admin interfaces are **UI-only mockups** with no backend persistence! This means:
+
+- ❌ Curriculum changes are lost on page refresh
+- ❌ Claude-generated content isn't saved anywhere
+- ❌ Learning engine uses hardcoded data, not admin-defined curriculum
+- ❌ No validation that backend integration actually works
+
+**Evidence:**
+```typescript
+// TODO: Save to API
+console.log('✅ Stitch updated:', stitchId, parsed);
+```
+
+## APML Architecture Requirements
+
+### Data Flow Must Be:
+```
+SimpleCurriculumPlanner → CurriculumService → Supabase → FactRepository → LiveAidManager
+                    ↓                                            ↑
+              API Validation                              Backend Loading
+```
+
+### NOT:
+```
+SimpleCurriculumPlanner → React State → ❌ Nothing
+LiveAidManager → Hardcoded Facts → Broken Questions
+```
+
+## Implementation Requirements
+
+### 1. Backend Schema (Supabase)
+Create proper tables if they don't exist:
+```sql
+-- Curriculum stitches
+CREATE TABLE IF NOT EXISTS curriculum_stitches (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  stitch_id TEXT UNIQUE NOT NULL,
+  concept_type TEXT NOT NULL,
+  concept_params JSONB NOT NULL,
+  tube_id TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Facts repository
+CREATE TABLE IF NOT EXISTS facts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  fact_id TEXT UNIQUE NOT NULL,
+  operation TEXT NOT NULL,
+  operand1 INTEGER NOT NULL,
+  operand2 INTEGER NOT NULL,
+  result INTEGER NOT NULL,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 2. API Endpoints Required
+```typescript
+// Curriculum management
+POST   /api/admin/curriculum/stitches
+GET    /api/admin/curriculum/stitches
+PUT    /api/admin/curriculum/stitches/:id
+DELETE /api/admin/curriculum/stitches/:id
+
+// Fact management  
+POST   /api/admin/facts
+GET    /api/admin/facts
+PUT    /api/admin/facts/:id
+DELETE /api/admin/facts/:id
+
+// Bulk operations for Claude
+POST   /api/admin/curriculum/import
+POST   /api/admin/facts/bulk-import
+```
+
+### 3. SimpleCurriculumPlanner Integration
+Replace the TODO with actual implementation:
+
+```typescript
+const handleSaveEdit = async (stitchId: string) => {
+  const parsed = parseStitchTitle(editValue);
+  
+  try {
+    // Save to backend
+    const response = await fetch('/api/admin/curriculum/stitches', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: stitchId,
+        ...parsed
+      })
+    });
+    
+    if (!response.ok) throw new Error('Failed to save');
+    
+    // Update local state only after successful save
+    const updated = await response.json();
+    setStitches(prev => prev.map(s => 
+      s.id === stitchId ? updated : s
+    ));
+    
+    console.log('✅ Stitch saved to backend:', updated);
+  } catch (error) {
+    console.error('❌ Failed to save stitch:', error);
+    // Show error to user
+  }
+};
+```
+
+### 4. FactRepository Integration
+Update to load from backend instead of hardcoded data:
+
+```typescript
+class FactRepository {
+  async initialize(): Promise<void> {
+    try {
+      // Load facts from backend
+      const response = await fetch('/api/facts');
+      if (!response.ok) throw new Error('Failed to load facts');
+      
+      const facts = await response.json();
+      this.facts = new Map(facts.map(f => [f.fact_id, f]));
+      
+      console.log('✅ Loaded', this.facts.size, 'facts from backend');
+    } catch (error) {
+      console.error('❌ Failed to load facts from backend:', error);
+      throw new Error('FACT_REPOSITORY_INIT_FAILED');
+    }
+  }
+}
+```
+
+### 5. Claude Integration Fix
+The ClaudeGenerationModal should actually save to backend:
+
+```typescript
+const handleImportFromClaude = async (content: GeneratedContent) => {
+  try {
+    // Import to backend, not just local state
+    const response = await fetch('/api/admin/curriculum/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(content)
+    });
+    
+    if (!response.ok) throw new Error('Import failed');
+    
+    // Reload curriculum from backend to ensure consistency
+    await loadCurriculum();
+    
+    alert('Successfully imported to backend!');
+  } catch (error) {
+    console.error('Failed to import:', error);
+    alert('Import failed - check console');
+  }
+};
+```
+
+## Validation Requirements
+
+### Must Verify:
+1. **Persistence**: Changes survive page refresh
+2. **Loading**: LiveAidManager uses backend curriculum, not hardcoded
+3. **Claude Integration**: Generated content actually saves to database
+4. **Error Handling**: Clear feedback when backend operations fail
+5. **Data Integrity**: No more `operand1=undefined` errors
+
+### Test Flow:
+1. Create stitch in SimpleCurriculumPlanner
+2. Refresh page
+3. Verify stitch still exists
+4. Start learning session
+5. Verify questions use the defined curriculum
+6. No more `mult-0-2` with undefined operands!
+
+## Success Criteria
+
+- ✅ All curriculum changes persist to Supabase
+- ✅ FactRepository loads from database on init
+- ✅ No more hardcoded test data
+- ✅ Claude imports save to backend
+- ✅ Clear error messages when backend fails
+- ✅ Learning sessions use current curriculum
+
+## Technical Notes
+
+- Use existing Supabase client from `UserSessionManager`
+- Follow APML service boundaries - no direct database access from components
+- All API calls should use proper error handling and loading states
+- Consider optimistic updates for better UX
+
+## Out of Scope
+
+- Don't implement caching (yet)
+- Don't add complex permissions (admin only for now)
+- Don't optimize for performance (correctness first)
+
+---
+
+*Brief spawned after discovering SimpleCurriculumPlanner has no backend integration. Critical for ensuring Claude-generated content and curriculum changes actually persist and affect the learning engine.*

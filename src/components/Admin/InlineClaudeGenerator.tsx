@@ -102,10 +102,28 @@ Then include the full structured data for import.`;
         await Promise.all(factPromises);
       }
 
-      // Then save stitches (if you have an API for them)
+      // Then save stitches using the existing API
       if (stitches.length > 0) {
-        // Note: You may need to implement this API endpoint
-        console.log('Stitches to save:', stitches);
+        console.log(`💾 Saving ${stitches.length} stitches to backend...`);
+        const stitchPromises = stitches.map(stitch =>
+          fetch('/api/admin/stitches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: stitch.id,
+              name: stitch.name || `${stitch.concept_type} stitch`,
+              tube_id: stitch.tube_id || 'tube1',
+              concept_type: stitch.concept_type,
+              concept_params: stitch.concept_params,
+              is_active: true
+            })
+          }).then(res => {
+            if (!res.ok) throw new Error(`Failed to save stitch ${stitch.id}`);
+            return res.json();
+          })
+        );
+        const savedStitches = await Promise.all(stitchPromises);
+        console.log('✅ Stitches saved to backend:', savedStitches);
       }
     } catch (error) {
       console.error('Database save failed:', error);

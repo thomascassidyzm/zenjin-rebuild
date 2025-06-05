@@ -245,10 +245,72 @@ export class FactRepository implements FactRepositoryInterface {
   }
   
   /**
-   * Initialize the repository with basic mathematical facts
+   * Initialize the repository - try loading from backend first, fallback to hardcoded
    */
   private initializeRepository(): void {
     console.log('🔄 FactRepository: Initializing facts...');
+    
+    // Try to load from backend first
+    this.loadFromBackend()
+      .then(() => {
+        console.log('✅ FactRepository: Facts loaded from backend successfully');
+      })
+      .catch((error) => {
+        console.warn('⚠️ Failed to load facts from backend, using hardcoded fallback:', error);
+        this.initializeHardcodedFacts();
+      });
+  }
+  
+  /**
+   * Load facts from backend API
+   */
+  private async loadFromBackend(): Promise<void> {
+    try {
+      const response = await fetch('/api/admin/facts?limit=10000');
+      if (!response.ok) {
+        throw new Error(`Backend API error: ${response.status}`);
+      }
+      
+      const backendFacts = await response.json();
+      console.log(`📥 Loading ${backendFacts.length} facts from backend...`);
+      
+      // Clear existing facts
+      this.facts.clear();
+      
+      // Convert backend facts to FactRepository format
+      for (const backendFact of backendFacts) {
+        const fact: MathematicalFact = {
+          id: backendFact.id,
+          operation: backendFact.operation_type,
+          operands: [backendFact.operand1 || 0, backendFact.operand2 || 0],
+          result: parseInt(backendFact.answer),
+          difficulty: (backendFact.difficulty_level || 1) / 5, // Convert 1-5 to 0.2-1.0
+          relatedFactIds: [], // Could be enhanced later
+          tags: [backendFact.operation_type, `level-${backendFact.difficulty_level || 1}`]
+        };
+        
+        this.facts.set(fact.id, fact);
+      }
+      
+      // Build indexes for efficient querying
+      this.buildIndexes();
+      
+      if (this.facts.size === 0) {
+        throw new Error('No facts loaded from backend');
+      }
+      
+      console.log(`✅ Successfully loaded ${this.facts.size} facts from backend`);
+    } catch (error) {
+      console.error('❌ Failed to load facts from backend:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Initialize with hardcoded facts (fallback)
+   */
+  private initializeHardcodedFacts(): void {
+    console.log('🔄 FactRepository: Initializing hardcoded facts as fallback...');
     // Initialize with all required mathematical facts to satisfy system dependencies
     this.addBasicMultiplicationFacts();  // 20×20 = 400 facts (well-defined scope)
     this.addDoublingAndHalvingFacts();   // ~200 facts (doubling 1-100, halving even numbers)
@@ -258,7 +320,7 @@ export class FactRepository implements FactRepositoryInterface {
     
     // Build indexes for efficient querying
     this.buildIndexes();
-    console.log('✅ FactRepository: Facts initialized successfully');
+    console.log('✅ FactRepository: Hardcoded facts initialized successfully');
   }
   
   /**

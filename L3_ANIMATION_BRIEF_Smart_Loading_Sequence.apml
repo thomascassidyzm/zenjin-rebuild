@@ -1,0 +1,119 @@
+# L3 Animation Brief: Smart Loading Sequence
+
+**Session ID**: L1_Strategic_Animation_Loading_20250605  
+**Date**: June 5, 2025  
+**Assigned To**: Animation/UX Agent  
+**Priority**: High  
+**Time Limit**: 30 minutes
+**Type**: Loading Animation with Engagement
+
+## Strategic Context
+
+Different users need different loading experiences:
+- **Anonymous Users**: ALWAYS start Tube1/Stitch1 - can prebuild and play instantly
+- **Authenticated Users**: Resume from saved position - need 3 seconds to build custom stitch
+
+## Animation Requirements
+
+### Anonymous User Flow (Instant)
+```
+Click "Start Learning" → Instant play (stitch pre-built)
+```
+
+### Authenticated User Flow (3-second engaging animation)
+```
+Click "Start Learning" → 3-second animation → Play custom stitch
+```
+
+## The 3-Second Animation Sequence
+
+### Option A: "Warm-Up Questions" (Recommended)
+**0-1s**: Fade in with "Preparing your personalized session..."
+**1-2.5s**: Show 2-3 floating warm-up questions user can click/answer
+**2.5-3s**: Transition to main game with "Here we go!"
+
+**Benefits**:
+- User engaged immediately (not just watching)
+- Warm-up answers could even count toward progress
+- Feels faster than passive loading
+
+### Option B: "Mathematical Journey"
+**0-1s**: Show user's progress visualization (where they are in curriculum)
+**1-2s**: Zoom into their current position with particle effects
+**2-3s**: Transition to PlayerCard with momentum
+
+### Option C: "Building Your Stitch"
+**0-1s**: Show facts being selected (visual representation)
+**1-2s**: Facts combining into questions with satisfying animations
+**2-3s**: Questions arranging into ready stitch, transition to game
+
+## Technical Implementation
+
+### Warm-Up Questions Structure
+```typescript
+interface WarmUpQuestion {
+  text: string;        // "2 + 2"
+  answer: number;      // 4
+  difficulty: 'easy';  // Always easy for warm-up
+}
+
+// Pre-generate 10 easy questions on app load
+const warmUpPool = [
+  { text: "2 + 2", answer: 4 },
+  { text: "5 + 5", answer: 10 },
+  { text: "3 + 4", answer: 7 },
+  // ... more easy questions
+];
+```
+
+### Animation Requirements
+- Smooth 60fps animations
+- Mobile-optimized (no heavy effects)
+- Accessible (respects prefers-reduced-motion)
+- Skippable after 1 second (for returning users)
+
+## Visual Design
+
+### Color Palette
+- Use existing dark theme (gray-900 background)
+- Purple/indigo accents for loading
+- Green for correct warm-up answers
+- Smooth gradients, no jarring transitions
+
+### Motion Principles
+- Ease-in-out for all transitions
+- Subtle particle effects (mathematical symbols)
+- Progress indication (loading bar or circular progress)
+- Maintain PlayerCard's 370px width constraint
+
+## Success Metrics
+
+1. **Engagement**: Users interact with warm-up questions 80%+ of time
+2. **Perception**: 3 seconds feels faster than passive loading
+3. **Smooth Transition**: No jarring jump to PlayerCard
+4. **Performance**: Animation doesn't delay actual loading
+
+## Integration Points
+
+1. **Trigger**: Between "Start Learning" click and PlayerCard display
+2. **Data Needed**: User's current position (for auth users)
+3. **Background Tasks**: While animating, system builds real stitch
+4. **Completion**: Seamless handoff to PlayerCard component
+
+## Deliverables
+
+1. **LoadingAnimation component** with warm-up questions
+2. **Smooth transitions** in and out
+3. **Progress indication** for peace of mind
+4. **Skip functionality** for power users
+
+## Out of Scope
+
+- Complex 3D animations
+- Sound effects (save for later)
+- Personalized warm-up questions (just use easy ones)
+- Score tracking for warm-up (just for engagement)
+
+---
+
+*Brief spawned during L1 strategic session. Focus on making 3-second load time feel engaging rather than waiting.*

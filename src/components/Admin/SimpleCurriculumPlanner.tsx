@@ -57,55 +57,56 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
       if (factsResponse.ok) {
         const factsData = await factsResponse.json();
         setExistingFacts(factsData);
+        console.log(`✅ Loaded ${factsData.length} facts from backend`);
       }
 
-      // Mock curriculum data - would come from API
-      setStitches([
-        {
-          id: 'st_1_1',
-          conceptType: 'double',
-          conceptParams: { range: [1, 5] },
-          tubeId: 'tube1',
-          position: 0
-        },
-        {
-          id: 'st_1_2', 
-          conceptType: 'double',
-          conceptParams: { range: [6, 10] },
-          tubeId: 'tube1',
-          position: 1
-        },
-        {
-          id: 'st_1_3',
-          conceptType: 'half',
-          conceptParams: { range: [2, 10] },
-          tubeId: 'tube1',
-          position: 2
-        },
-        {
-          id: 'st_2_1',
-          conceptType: 'times_table',
-          conceptParams: { operand: 2, range: [1, 5] },
-          tubeId: 'tube2',
-          position: 0
-        },
-        {
-          id: 'st_2_2',
-          conceptType: 'times_table', 
-          conceptParams: { operand: 2, range: [6, 12] },
-          tubeId: 'tube2',
-          position: 1
-        },
-        {
-          id: 'st_3_1',
-          conceptType: 'mixed_operations',
-          conceptParams: {},
-          tubeId: 'tube3',
-          position: 0
-        }
-      ]);
+      // Load stitches from API
+      const stitchesResponse = await fetch('/api/admin/stitches?limit=1000');
+      if (stitchesResponse.ok) {
+        const stitchesData = await stitchesResponse.json();
+        
+        // Convert backend format to local format
+        const localStitches: StitchEssence[] = stitchesData.map((stitch: any, index: number) => ({
+          id: stitch.id,
+          conceptType: stitch.concept_type,
+          conceptParams: stitch.concept_params || {},
+          tubeId: stitch.tube_id as 'tube1' | 'tube2' | 'tube3',
+          position: index // Will be recalculated per tube below
+        }));
+        
+        // Sort by tube and recalculate positions
+        const sortedStitches = localStitches.sort((a, b) => {
+          if (a.tubeId !== b.tubeId) return a.tubeId.localeCompare(b.tubeId);
+          return 0; // Maintain order from backend
+        });
+        
+        // Recalculate positions per tube
+        let tube1Count = 0, tube2Count = 0, tube3Count = 0;
+        sortedStitches.forEach(stitch => {
+          switch (stitch.tubeId) {
+            case 'tube1':
+              stitch.position = tube1Count++;
+              break;
+            case 'tube2':
+              stitch.position = tube2Count++;
+              break;
+            case 'tube3':
+              stitch.position = tube3Count++;
+              break;
+          }
+        });
+        
+        setStitches(sortedStitches);
+        console.log(`✅ Loaded ${sortedStitches.length} stitches from backend`);
+      } else {
+        console.warn('⚠️ No stitches loaded from backend, starting with empty curriculum');
+        setStitches([]);
+      }
     } catch (error) {
       console.error('Failed to load curriculum:', error);
+      // Start with empty curriculum if backend fails
+      setStitches([]);
+      setExistingFacts([]);
     } finally {
       setLoading(false);
     }
@@ -184,18 +185,42 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
 
   const handleSaveEdit = async (stitchId: string) => {
     const parsed = parseStitchTitle(editValue);
-    const updatedStitches = stitches.map(s => 
-      s.id === stitchId 
-        ? { ...s, ...parsed }
-        : s
-    );
     
-    setStitches(updatedStitches);
-    setEditingStitch(null);
-    setEditValue('');
-    
-    // TODO: Save to API
-    console.log('✅ Stitch updated:', stitchId, parsed);
+    try {
+      // Save to backend API
+      const response = await fetch(`/api/admin/stitches?id=${stitchId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editValue,
+          concept_type: parsed.conceptType,
+          concept_params: parsed.conceptParams
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to save: ${response.statusText}`);
+      }
+      
+      const updatedStitch = await response.json();
+      
+      // Update local state only after successful save
+      const updatedStitches = stitches.map(s => 
+        s.id === stitchId 
+          ? { ...s, ...parsed }
+          : s
+      );
+      
+      setStitches(updatedStitches);
+      setEditingStitch(null);
+      setEditValue('');
+      
+      console.log('✅ Stitch saved to backend:', updatedStitch);
+    } catch (error) {
+      console.error('❌ Failed to save stitch:', error);
+      alert('Failed to save changes. Please try again.');
+      // Don't update local state if save failed
+    }
   };
 
   const handleCancelEdit = () => {
@@ -203,26 +228,72 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
     setEditValue('');
   };
 
-  const handleAddStitch = (tubeId: 'tube1' | 'tube2' | 'tube3') => {
+  const handleAddStitch = async (tubeId: 'tube1' | 'tube2' | 'tube3') => {
     const tubeStitches = stitches.filter(s => s.tubeId === tubeId);
     const newPosition = tubeStitches.length;
-    const newStitch: StitchEssence = {
-      id: `st_${tubeId.slice(-1)}_${Date.now()}`,
-      conceptType: 'new_concept',
-      conceptParams: {},
-      tubeId,
-      position: newPosition
+    const newId = `st_${tubeId.slice(-1)}_${Date.now()}`;
+    
+    const newStitchData = {
+      id: newId,
+      name: 'New Concept',
+      tube_id: tubeId,
+      concept_type: 'new_concept',
+      concept_params: {},
+      is_active: true
     };
     
-    setStitches([...stitches, newStitch]);
-    handleEditStitch(newStitch.id);
+    try {
+      // Save to backend API
+      const response = await fetch('/api/admin/stitches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStitchData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create: ${response.statusText}`);
+      }
+      
+      const createdStitch = await response.json();
+      
+      // Convert to local format and update state
+      const localStitch: StitchEssence = {
+        id: createdStitch.id,
+        conceptType: createdStitch.concept_type,
+        conceptParams: createdStitch.concept_params,
+        tubeId,
+        position: newPosition
+      };
+      
+      setStitches([...stitches, localStitch]);
+      handleEditStitch(localStitch.id);
+      console.log('✅ Stitch created in backend:', createdStitch);
+    } catch (error) {
+      console.error('❌ Failed to create stitch:', error);
+      alert('Failed to create stitch. Please try again.');
+    }
   };
 
   const handleDeleteStitch = async (stitchId: string) => {
     if (!confirm('Delete this stitch?')) return;
     
-    setStitches(stitches.filter(s => s.id !== stitchId));
-    console.log('✅ Stitch deleted:', stitchId);
+    try {
+      // Delete from backend API
+      const response = await fetch(`/api/admin/stitches?id=${stitchId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete: ${response.statusText}`);
+      }
+      
+      // Update local state only after successful deletion
+      setStitches(stitches.filter(s => s.id !== stitchId));
+      console.log('✅ Stitch deleted from backend:', stitchId);
+    } catch (error) {
+      console.error('❌ Failed to delete stitch:', error);
+      alert('Failed to delete stitch. Please try again.');
+    }
   };
 
   // Drag and Drop handlers
@@ -262,16 +333,56 @@ export const SimpleCurriculumPlanner: React.FC<SimpleCurriculumPlannerProps> = (
     }
   };
 
-  const handleContentGenerated = (newStitches: StitchEssence[], newFacts: Fact[]) => {
-    // Update UI with generated stitches (facts are already saved to database)
+  const handleContentGenerated = async (newStitches: StitchEssence[], newFacts: Fact[]) => {
+    // Facts are already saved to database by InlineClaudeGenerator
+    
+    // Save generated stitches to backend
     if (newStitches.length > 0) {
-      const processedStitches = newStitches.map((stitch, index) => ({
-        ...stitch,
-        id: `generated_${Date.now()}_${index}`,
-        position: stitches.filter(s => s.tubeId === stitch.tubeId).length + index
-      }));
-      
-      setStitches([...stitches, ...processedStitches]);
+      try {
+        console.log(`💾 Saving ${newStitches.length} generated stitches to backend...`);
+        
+        const savePromises = newStitches.map(async (stitch, index) => {
+          const stitchData = {
+            id: `generated_${Date.now()}_${index}`,
+            name: stitch.conceptType || 'Generated Stitch',
+            tube_id: stitch.tubeId || 'tube1',
+            concept_type: stitch.conceptType,
+            concept_params: stitch.conceptParams,
+            is_active: true
+          };
+          
+          const response = await fetch('/api/admin/stitches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stitchData)
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to save stitch: ${response.statusText}`);
+          }
+          
+          const savedStitch = await response.json();
+          
+          // Convert back to local format
+          return {
+            id: savedStitch.id,
+            conceptType: savedStitch.concept_type,
+            conceptParams: savedStitch.concept_params,
+            tubeId: stitch.tubeId,
+            position: stitches.filter(s => s.tubeId === stitch.tubeId).length + index
+          };
+        });
+        
+        const savedStitches = await Promise.all(savePromises);
+        
+        // Update local state with backend-saved stitches
+        setStitches([...stitches, ...savedStitches]);
+        console.log('✅ Generated stitches saved to backend and added to UI');
+        
+      } catch (error) {
+        console.error('❌ Failed to save generated stitches:', error);
+        alert('Failed to save generated content to backend. Please try again.');
+      }
     }
   };
 
