@@ -211,9 +211,9 @@ export class StitchPreparation implements StitchPreparationInterface {
     
     let questionText = template;
     
-    // Extract operands from fact structure
-    let operand1 = fact.operands?.[0] || fact.operand1;
-    let operand2 = fact.operands?.[1] || fact.operand2;
+    // APML v3.5: Use database structure directly - no conversion needed
+    let operand1 = fact.operand1;
+    let operand2 = fact.operand2;
     
     // APML Protocol: Fail fast if operands are missing - no silent fallbacks
     if (operand1 === undefined || operand2 === undefined) {

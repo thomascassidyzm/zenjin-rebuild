@@ -270,19 +270,10 @@ export class FactRepository implements FactRepositoryInterface {
       // Clear existing facts
       this.facts.clear();
       
-      // Convert backend facts to FactRepository format
+      // APML v3.5: Use database structure directly - no conversion layer
       for (const backendFact of backendFacts) {
-        const fact: MathematicalFact = {
-          id: backendFact.id,
-          operation: backendFact.operation_type,
-          operands: [backendFact.operand1 || 0, backendFact.operand2 || 0],
-          result: parseInt(backendFact.answer),
-          difficulty: (backendFact.difficulty_level || 1) / 5, // Convert 1-5 to 0.2-1.0
-          relatedFactIds: [], // Could be enhanced later
-          tags: [backendFact.operation_type, `level-${backendFact.difficulty_level || 1}`]
-        };
-        
-        this.facts.set(fact.id, fact);
+        // Store facts in original database format to avoid conversion bugs
+        this.facts.set(backendFact.id, backendFact);
       }
       
       // Build indexes for efficient querying
