@@ -29,6 +29,7 @@ import OfflineContentManager from './components/OfflineContentManager';
 import UserSettings from './components/UserSettings';
 import { contentGatingEngine } from './engines/ContentGatingEngine';
 import { initializeServiceContainer, isServiceContainerInitialized, getService } from './services/AppServiceContainer';
+import MathEngineStartup from './components/MathEngineStartup/MathEngineStartup';
 import './App.css';
 
 // Mock data for initial testing
@@ -1063,6 +1064,20 @@ const AppContent: React.FC = () => {
             <div className="max-w-4xl mx-auto">
               <UserSettings onClose={() => setCurrentPage('dashboard')} />
             </div>
+          </div>
+        );
+      
+      case 'math-engine-demo':
+        return (
+          <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+            <MathEngineStartup
+              userName={sessionState.user?.full_name || sessionState.user?.email || "Player"}
+              userAvatar={sessionState.user?.avatar_url}
+              onComplete={() => {
+                console.log('Animation complete!');
+                setCurrentPage('dashboard');
+              }}
+            />
           </div>
         );
       

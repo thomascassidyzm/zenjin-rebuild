@@ -26,12 +26,14 @@ import { StitchCache } from '../StitchCache/StitchCache';
 import { StitchPreparation } from '../StitchPreparation/StitchPreparation';
 import { StitchPopulation } from '../StitchPopulation/StitchPopulation';
 import { TripleHelixManager } from '../TripleHelixManager/TripleHelixManager';
+import { PrefetchManager } from '../../services/PrefetchManager';
 
 export class LiveAidManager implements LiveAidManagerInterface {
   private stitchCache: StitchCache;
   private stitchPreparation: StitchPreparation;
   private stitchPopulation: StitchPopulation;
   private tripleHelixManager: TripleHelixManager;
+  private prefetchManager: PrefetchManager;
   private userSystemStates: Map<string, LiveAidSystemState>;
   private activePreparations: Map<string, PreparationProgress>;
   private performanceMetrics: LiveAidPerformanceMetrics;
@@ -41,12 +43,14 @@ export class LiveAidManager implements LiveAidManagerInterface {
     stitchCache: StitchCache,
     stitchPreparation: StitchPreparation,
     stitchPopulation: StitchPopulation,
-    tripleHelixManager: TripleHelixManager
+    tripleHelixManager: TripleHelixManager,
+    prefetchManager: PrefetchManager
   ) {
     this.stitchCache = stitchCache;
     this.stitchPreparation = stitchPreparation;
     this.stitchPopulation = stitchPopulation;
     this.tripleHelixManager = tripleHelixManager;
+    this.prefetchManager = prefetchManager;
     this.userSystemStates = new Map();
     this.activePreparations = new Map();
     this.rotationCounter = 0;
@@ -112,6 +116,9 @@ export class LiveAidManager implements LiveAidManagerInterface {
 
       // Update performance metrics
       this.updateRotationMetrics(rotationTime);
+
+      // Handle PrefetchManager rotation for progressive loading
+      await this.handlePrefetchManagerRotation(userId, newSystemState);
 
       const result: LiveAidRotationResult = {
         rotationId,
@@ -388,6 +395,9 @@ export class LiveAidManager implements LiveAidManagerInterface {
 
       // Start initial background preparations
       await this.startInitialBackgroundPreparations(userId, systemState);
+
+      // Initialize PrefetchManager for progressive loading
+      await this.initializePrefetchManager(userId, systemState);
 
       systemState.systemHealth = 'optimal';
       return systemState;
